@@ -2,7 +2,8 @@
 
 using System.Security.Claims;
 using System.Security.Cryptography;
-using API.Dtos;
+using API.Dtos.User;
+using API.Dtos.Auth;
 using API.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
@@ -26,9 +27,8 @@ namespace API.Controllers
 
         [AllowAnonymous]
         [HttpPost("Sign-in")]
-        public async Task<ActionResult<AuthResponse>> SignIn(AuthSignInDto signInDto)
+        public async Task<ActionResult<AuthResponseDto>> SignIn(AuthSignInDto signInDto)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(signInDto));
             string sqlForHash = "EXEC PasswordSchema.spFor_Hash @Email=@Email";
 
             DynamicParameters parameters = new DynamicParameters();
@@ -69,7 +69,7 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            AuthResponse response = new AuthResponse
+            AuthResponseDto response = new AuthResponseDto
             {
                 User = user
             };
@@ -79,7 +79,7 @@ namespace API.Controllers
 
         [AllowAnonymous]
         [HttpPost("Sign-up")]
-        public async Task<ActionResult<AuthResponse>> SignUp(AuthSignUpDto signUpDto)
+        public async Task<ActionResult<AuthResponseDto>> SignUp(AuthSignUpDto signUpDto)
         {
 
             if (signUpDto.Password != signUpDto.ConfirmPassword)
@@ -132,7 +132,7 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            AuthResponse response = new AuthResponse
+            AuthResponseDto response = new AuthResponseDto
             {
                 User = user
             };
@@ -141,7 +141,7 @@ namespace API.Controllers
         }
 
         [HttpGet("RefreshToken")]
-        public async Task<ActionResult<AuthResponse>> RefreshToken()
+        public async Task<ActionResult<AuthResponseDto>> RefreshToken()
         {
             string userId = User.FindFirstValue("userId") ?? "";
             User.ToString();
@@ -174,7 +174,7 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            AuthResponse response = new AuthResponse
+            AuthResponseDto response = new AuthResponseDto
             {
 
                 User = user
@@ -184,11 +184,11 @@ namespace API.Controllers
         }
 
         [HttpPost("Sign-out")]
-        public new ActionResult<AuthResponse> SignOut()
+        public new ActionResult<AuthResponseDto> SignOut()
         {
             Response.Cookies.Delete("AuthToken");
 
-            AuthResponse response = new AuthResponse
+            AuthResponseDto response = new AuthResponseDto
             {
                 User = null
             };

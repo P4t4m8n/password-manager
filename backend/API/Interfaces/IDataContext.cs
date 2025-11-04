@@ -1,4 +1,5 @@
 using Dapper;
+namespace API.Interfaces;
 
 public interface IDataContext
 {

@@ -1,5 +1,5 @@
 
-namespace API.Dtos;
+namespace API.Dtos.Auth;
 
 public partial class AuthConfirmationDto
 {

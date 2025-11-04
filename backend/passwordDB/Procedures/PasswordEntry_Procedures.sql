@@ -1,0 +1,99 @@
+USE PasswordDB;
+
+GO
+
+DROP PROCEDURE PasswordSchema.spPasswordEntry_UPDATE;
+
+GO
+
+CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Select_Many
+    @UserId UNIQUEIDENTIFIER,
+    @EntryName NVARCHAR(255) = NULL,
+    @WebsiteUrl NVARCHAR(255) = NULL,
+    @Offset INT = NULL,
+    @Limit INT = NULL
+AS
+BEGIN
+    SELECT Id, EntryName, WebsiteUrl, EntryUserName, EncryptedPassword, IV, Notes
+    FROM PasswordSchema.PasswordEntry
+    WHERE UserId = @UserId
+        AND (@EntryName IS NULL OR EntryName LIKE '%' + @EntryName + '%')
+        AND (@WebsiteUrl IS NULL OR WebsiteUrl LIKE '%' + @WebsiteUrl + '%')
+    ORDER BY EntryName
+    OFFSET ISNULL(@Offset, 0) ROWS
+    FETCH NEXT ISNULL(@Limit, 10) ROWS ONLY;
+END
+
+GO
+
+CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Select_ById
+    @UserId UNIQUEIDENTIFIER,
+    @EntryId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SELECT Id, EntryName, WebsiteUrl, EntryUserName, EncryptedPassword, IV, Notes
+    FROM PasswordSchema.PasswordEntry
+    WHERE UserId = @UserId AND Id = @EntryId;
+END
+
+GO
+
+CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Insert
+    @UserId UNIQUEIDENTIFIER,
+    @EntryName NVARCHAR(100) ,
+    @WebsiteUrl NVARCHAR(255) ,
+    @EntryUserName NVARCHAR(100) ,
+    @EncryptedPassword VARBINARY(MAX) ,
+    @IV NVARCHAR(255) ,
+    @Notes NVARCHAR(1000)
+AS
+BEGIN
+    INSERT INTO PasswordSchema.PasswordEntry
+        (UserId, EntryName, WebsiteUrl, EntryUserName, EncryptedPassword, IV, Notes)
+    OUTPUT
+    INSERTED.Id,
+    INSERTED.EntryName,
+    INSERTED.WebsiteUrl,
+    INSERTED.EntryUserName,
+    INSERTED.EncryptedPassword,
+    INSERTED.IV,
+    INSERTED.Notes
+    VALUES
+        (@UserId, @EntryName, @WebsiteUrl, @EntryUserName, @EncryptedPassword, @IV, @Notes);
+
+END
+
+GO
+CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Update
+    @UserId UNIQUEIDENTIFIER,
+    @EntryId UNIQUEIDENTIFIER,
+    @EntryName NVARCHAR(100) ,
+    @WebsiteUrl NVARCHAR(255) ,
+    @EntryUserName NVARCHAR(100) ,
+    @EncryptedPassword VARBINARY(MAX) = NULL,
+    @IV NVARCHAR(255) = NULL,
+    @Notes NVARCHAR(1000)
+AS
+BEGIN
+    UPDATE PasswordSchema.PasswordEntry 
+        SET 
+          EntryName = CASE WHEN @EntryName IS NOT NULL THEN @EntryName ELSE EntryName END,
+          WebsiteUrl = CASE WHEN @WebsiteUrl IS NOT NULL THEN @WebsiteUrl ELSE WebsiteUrl END,
+          EntryUserName = CASE WHEN @EntryUserName IS NOT NULL THEN @EntryUserName ELSE EntryUserName END,
+          EncryptedPassword = CASE WHEN @EncryptedPassword IS NOT NULL THEN @EncryptedPassword ELSE EncryptedPassword END,
+          IV = CASE WHEN @IV IS NOT NULL THEN @IV ELSE IV END,
+          Notes = CASE WHEN @Notes IS NOT NULL THEN @Notes ELSE Notes END
+    OUTPUT INSERTED.Id, INSERTED.EntryName, INSERTED.WebsiteUrl, INSERTED.EntryUserName, INSERTED.EncryptedPassword, INSERTED.IV, INSERTED.Notes
+    WHERE UserId = @UserId AND Id = @EntryId;
+END
+
+GO
+
+CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_DELETE
+    @UserId UNIQUEIDENTIFIER,
+    @EntryId UNIQUEIDENTIFIER
+AS
+BEGIN
+    DELETE FROM PasswordSchema.PasswordEntry
+    WHERE UserId = @UserId AND Id = @EntryId;
+END

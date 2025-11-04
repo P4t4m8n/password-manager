@@ -1,6 +1,10 @@
+using API.Dtos.Auth;
+
+namespace API.Interfaces;
+
 public interface IAuthService
 {
-    Task<AuthResponse> SignUpAsync(AuthSignUpDto authSignUpDto);
-    Task<AuthResponse> SignInAsync(AuthSignInDto authSignInDto);
+    Task<AuthResponseDto> SignUpAsync(AuthSignUpDto authSignUpDto);
+    Task<AuthResponseDto> SignInAsync(AuthSignInDto authSignInDto);
     Task SignOutAsync(string token);
 }
