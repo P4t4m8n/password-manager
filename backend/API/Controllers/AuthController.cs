@@ -5,6 +5,9 @@ using System.Security.Cryptography;
 using API.Dtos.User;
 using API.Dtos.Auth;
 using API.Services;
+using API.Interfaces;
+using API.Models;
+
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +44,7 @@ namespace API.Controllers
                 return Unauthorized(new { message = "Invalid email or password" });
             }
 
-            byte[] passwordHash = _authService.GetPasswordHash(signInDto.Password!, authConfirmation.Salt);
+            byte[] passwordHash = _authService.GetPasswordHash(signInDto.Password!, authConfirmation.PasswordSalt);
 
             for (int i = 0; i < passwordHash.Length; i++)
             {
@@ -52,9 +55,9 @@ namespace API.Controllers
             }
 
             string userSelectSql = "EXEC PasswordSchema.spUser_GetOne @Email=@Email";
-            UserDto? user = await _contextDapper.LoadDataSingle<UserDto>(userSelectSql, parameters);
+            User? user = await _contextDapper.LoadDataSingle<User>(userSelectSql, parameters);
 
-            if (user == null || user.Id == null)
+            if (user == null || user.Id == Guid.Empty)
             {
                 return Unauthorized(new { message = "Invalid email or password" });
             }
@@ -71,7 +74,13 @@ namespace API.Controllers
 
             AuthResponseDto response = new AuthResponseDto
             {
-                User = user
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Username = user.Username,
+                },
+                MasterPasswordSalt = user.MasterPasswordSalt
             };
 
             return Ok(response);
@@ -97,26 +106,26 @@ namespace API.Controllers
                 return BadRequest(new { message = "Bad credentials" });
             }
 
-            byte[] Salt = new byte[128 / 8];
+            byte[] PasswordSalt = new byte[128 / 8];
             using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
             {
-                rng.GetNonZeroBytes(Salt);
+                rng.GetNonZeroBytes(PasswordSalt);
             }
 
-            byte[] passwordHash = _authService.GetPasswordHash(signUpDto.Password!, Salt);
+            byte[] passwordHash = _authService.GetPasswordHash(signUpDto.Password!, PasswordSalt);
 
-            string sqlInsertAuth = @"EXEC PasswordSchema.spUser_Create @Email=@Email, @PasswordHash=@PasswordHash, @Salt=@Salt, @Username=@Username";
+            string sqlInsertAuth = @"EXEC PasswordSchema.spUser_Create @Email=@Email, @PasswordHash=@PasswordHash, @PasswordSalt=@PasswordSalt, @Username=@Username";
 
             parameters.Add(@"PasswordHash", passwordHash);
-            parameters.Add(@"Salt", Salt);
+            parameters.Add(@"PasswordSalt", PasswordSalt);
             parameters.Add(@"Username", signUpDto.Username);
 
 
 
-            UserDto? user = await _contextDapper.InsertAndReturn<UserDto>(sqlInsertAuth, parameters);
+            User? user = await _contextDapper.InsertAndReturn<User>(sqlInsertAuth, parameters);
 
 
-            if (user == null || user.Id == null)
+            if (user == null || user.Id == Guid.Empty)
             {
 
                 return StatusCode(500, new { message = "Server error" });
@@ -134,13 +143,19 @@ namespace API.Controllers
 
             AuthResponseDto response = new AuthResponseDto
             {
-                User = user
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Username = user.Username,
+                },
+                MasterPasswordSalt = user.MasterPasswordSalt
             };
 
             return Ok(response);
         }
 
-        [HttpGet("RefreshToken")]
+        [HttpGet("Refresh-token")]
         public async Task<ActionResult<AuthResponseDto>> RefreshToken()
         {
             string userId = User.FindFirstValue("userId") ?? "";
@@ -157,9 +172,9 @@ namespace API.Controllers
             string userIdSelectSql = "EXEC PasswordSchema.spUser_GetOne @Id=@Id";
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@Id", Guid.Parse(userId));
-            var user = await _contextDapper.LoadDataSingle<UserDto>(userIdSelectSql, parameters);
+            User? user = await _contextDapper.LoadDataSingle<User>(userIdSelectSql, parameters);
 
-            if (user == null || user.Id == null)
+            if (user == null || user.Id == Guid.Empty)
             {
                 return NotFound("User not found");
             }
@@ -177,7 +192,13 @@ namespace API.Controllers
             AuthResponseDto response = new AuthResponseDto
             {
 
-                User = user
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Username = user.Username,
+                },
+                MasterPasswordSalt = user.MasterPasswordSalt
             };
 
             return Ok(response);
@@ -190,7 +211,8 @@ namespace API.Controllers
 
             AuthResponseDto response = new AuthResponseDto
             {
-                User = null
+                User = null,
+                MasterPasswordSalt = Array.Empty<byte>()
             };
 
             return Ok(response);

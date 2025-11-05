@@ -1,0 +1,56 @@
+<header>
+  <app-icon-logo
+    [style]="{
+        width: '3.5rem',
+        height: '3.5rem',
+        fill: '#2563EB',
+        display: 'block',
+    }"
+  />
+  <span>
+    <h2>MediCare</h2>
+    <p>Clinic Management</p>
+  </span>
+
+  <button (click)="onToggle()">
+    <app-icon-close-open
+      [style]="{
+        width: '2rem',
+       
+      }"
+    />
+  </button>
+</header>
+
+@if (session_user ) {
+<nav>
+  <ul class="nav-list">
+    @for(nav_route of navRoutes;track nav_route.label ) {
+    <li>
+      <a [routerLink]="nav_route.route">
+        <ng-container
+          [ngComponentOutlet]="nav_route.icon"
+          [ngComponentOutletInputs]="{
+            style: {
+              width: '2rem',
+              height: '2rem',
+              minHeight: '2rem',
+              minWidth: '2rem',
+              stroke: 'rgba(0, 0, 0, 1)'
+            }
+          }"
+        >
+        </ng-container>
+        <p>
+          {{ nav_route.label }}
+        </p>
+      </a>
+    </li>
+    }
+  </ul>
+</nav>
+}
+
+<footer>
+  <h5>{{ session_user?.username | titlecase }}</h5>
+</footer>

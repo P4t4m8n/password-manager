@@ -19,7 +19,10 @@ namespace API.Models
         public string? PasswordHash { get; set; }
         public string? googleId { get; set; }
         [Required]
-        public int Salt { get; set; }
+        public byte[]? PasswordSalt { get; set; }
+        public required byte[] EncryptedMasterRecovery { get; set; }
+        public required byte[] MasterPasswordSalt { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

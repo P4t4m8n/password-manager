@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using API.Interfaces;
 
 namespace API.Data
 {

@@ -5,5 +5,4 @@ public class UserDto : Dto
 {
     public string? Username { get; set; }
     public string? Email { get; set; }
-    public int? Salt { get; set; }
 }

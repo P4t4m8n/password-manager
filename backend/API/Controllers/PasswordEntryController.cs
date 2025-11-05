@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using API.QueryParams;
 using System.Security.Claims;
 using Dapper;
+using API.Interfaces;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using API.Dtos.PasswordEntry;

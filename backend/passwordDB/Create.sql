@@ -26,11 +26,16 @@ BEGIN
     CREATE TABLE PasswordSchema.[User]
     (
         Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
-        Username NVARCHAR(50) NOT NULL UNIQUE,
-        PasswordHash VARBINARY(MAX) ,
-        GoogleId NVARCHAR(100) UNIQUE,
-        Email NVARCHAR(100) NOT NULL UNIQUE,
-        Salt VARBINARY(MAX) NOT NULL,
+
+        EncryptedMasterRecovery VARBINARY (MAX) ,
+        MasterPasswordSalt VARBINARY (MAX) ,
+
+        Username NVARCHAR (50) NOT NULL UNIQUE,
+        PasswordHash VARBINARY (MAX) ,
+        GoogleId NVARCHAR (100) UNIQUE,
+        Email NVARCHAR (100) NOT NULL UNIQUE,
+        PasswordSalt VARBINARY (MAX) ,
+
         CreatedAt DATETIME2 DEFAULT GETDATE(),
         UpdatedAt DATETIME2 DEFAULT GETDATE()
 
