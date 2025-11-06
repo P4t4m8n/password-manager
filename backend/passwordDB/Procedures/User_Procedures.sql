@@ -6,7 +6,7 @@ CREATE OR ALTER PROCEDURE PasswordSchema.spFor_Hash
     @Email NVARCHAR(100)
 AS
 BEGIN
-    SELECT PasswordHash, Salt
+    SELECT PasswordHash, PasswordSalt
     FROM PasswordSchema.[User]
     WHERE Email = @Email;
 END
@@ -19,7 +19,7 @@ CREATE OR ALTER PROCEDURE PasswordSchema.spUser_GetOne
     @Id UNIQUEIDENTIFIER = NULL
 AS
 BEGIN
-    SELECT Id, UserName, Email
+    SELECT Id, UserName, Email, MasterPasswordSalt
     FROM PasswordSchema.[User]
     WHERE Email = @Email OR Id = @Id;
 
@@ -41,15 +41,19 @@ CREATE OR ALTER PROCEDURE PasswordSchema.spUser_Create
     @Email NVARCHAR(100),
     @UserName NVARCHAR(100),
     @PasswordHash VARBINARY(MAX),
-    @Salt VARBINARY(MAX)
+    @PasswordSalt VARBINARY(MAX),
+    @MasterPasswordSalt VARBINARY(MAX) ,
+    @EncryptedMasterKeyWithRecovery VARBINARY(MAX) ,
+    @RecoveryIV VARBINARY(MAX)
 AS
 BEGIN
     INSERT INTO PasswordSchema.[User]
-        (Email, PasswordHash, Salt, Username)
+        (Email,Username, PasswordHash, PasswordSalt, MasterPasswordSalt, EncryptedMasterKeyWithRecovery, RecoveryIV)
     OUTPUT
     INSERTED.Id,
     INSERTED.Email,
-    INSERTED.Username
+    INSERTED.Username,
+    INSERTED.MasterPasswordSalt
     VALUES
-        (@Email, @PasswordHash, @Salt, @Username);
+        (@Email, @Username, @PasswordHash, @PasswordSalt, @MasterPasswordSalt, @EncryptedMasterKeyWithRecovery, @RecoveryIV);
 END

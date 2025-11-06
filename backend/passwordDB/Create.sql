@@ -27,14 +27,18 @@ BEGIN
     (
         Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
 
-        EncryptedMasterRecovery VARBINARY (MAX) ,
+        EncryptedMasterKeyWithRecovery VARBINARY (MAX) NOT NULL,
+        RecoveryIV VARBINARY (MAX) NOT NULL,
+
         MasterPasswordSalt VARBINARY (MAX) ,
 
         Username NVARCHAR (50) NOT NULL UNIQUE,
-        PasswordHash VARBINARY (MAX) ,
-        GoogleId NVARCHAR (100) UNIQUE,
         Email NVARCHAR (100) NOT NULL UNIQUE,
+
+        PasswordHash VARBINARY (MAX) ,
         PasswordSalt VARBINARY (MAX) ,
+
+        GoogleId NVARCHAR (100) UNIQUE,
 
         CreatedAt DATETIME2 DEFAULT GETDATE(),
         UpdatedAt DATETIME2 DEFAULT GETDATE()
@@ -54,14 +58,18 @@ BEGIN
     (
         Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
         UserId UNIQUEIDENTIFIER NOT NULL,
+
         EntryName NVARCHAR(100) ,
         WebsiteUrl NVARCHAR(255),
         EntryUserName NVARCHAR(100),
+        Notes NVARCHAR(1000),
+
         EncryptedPassword VARBINARY(MAX) NOT NULL,
         IV NVARCHAR(255) NOT NULL,
-        Notes NVARCHAR(1000),
+
         CreatedAt DATETIME2 DEFAULT GETDATE(),
         UpdatedAt DATETIME2 DEFAULT GETDATE(),
+
         FOREIGN KEY (UserId) REFERENCES PasswordSchema.[User](Id) ON DELETE CASCADE
     );
 END

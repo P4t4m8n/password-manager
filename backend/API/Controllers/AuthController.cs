@@ -93,7 +93,7 @@ namespace API.Controllers
 
             if (signUpDto.Password != signUpDto.ConfirmPassword)
             {
-                throw new Exception("Passwords do not match");
+                return BadRequest(new { message = "Passwords do not match" });
             }
 
             string selectExistingUserSql = "EXEC PasswordSchema.spFor_Existing @Email=@Email";
@@ -114,11 +114,21 @@ namespace API.Controllers
 
             byte[] passwordHash = _authService.GetPasswordHash(signUpDto.Password!, PasswordSalt);
 
-            string sqlInsertAuth = @"EXEC PasswordSchema.spUser_Create @Email=@Email, @PasswordHash=@PasswordHash, @PasswordSalt=@PasswordSalt, @Username=@Username";
+            string sqlInsertAuth = @"EXEC PasswordSchema.spUser_Create 
+                                      @Email=@Email, 
+                                      @Username=@Username,
+                                      @PasswordHash=@PasswordHash, 
+                                      @PasswordSalt=@PasswordSalt, 
+                                      @MasterPasswordSalt=@MasterPasswordSalt,
+                                      @EncryptedMasterKeyWithRecovery=@EncryptedMasterKeyWithRecovery,
+                                      @RecoveryIV=@RecoveryIV";
 
+            parameters.Add(@"Username", signUpDto.Username);
             parameters.Add(@"PasswordHash", passwordHash);
             parameters.Add(@"PasswordSalt", PasswordSalt);
-            parameters.Add(@"Username", signUpDto.Username);
+            parameters.Add(@"MasterPasswordSalt", signUpDto.MasterPasswordSalt);
+            parameters.Add(@"EncryptedMasterKeyWithRecovery", signUpDto.EncryptedMasterKeyWithRecovery);
+            parameters.Add(@"RecoveryIV", signUpDto.RecoveryIV);
 
 
 

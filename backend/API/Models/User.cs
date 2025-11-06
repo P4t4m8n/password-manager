@@ -17,12 +17,12 @@ namespace API.Models
         [EmailAddress]
         public string? Email { get; set; }
         public string? PasswordHash { get; set; }
+        public byte[]? PasswordSalt { get; set; }
         public string? googleId { get; set; }
         [Required]
-        public byte[]? PasswordSalt { get; set; }
-        public required byte[] EncryptedMasterRecovery { get; set; }
         public required byte[] MasterPasswordSalt { get; set; }
-
+        public required byte[] EncryptedMasterKeyWithRecovery { get; set; }
+        public required byte[] RecoveryIV { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
