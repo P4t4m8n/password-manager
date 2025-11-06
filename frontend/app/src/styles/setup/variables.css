@@ -1,0 +1,8 @@
+:root {
+  --primary: #000000;
+  --secondary: rgb(240, 240, 240);
+  --accent: #ff5e5b;
+  --font-family: 'Courier New', monospace;
+  --font-size-base: 1rem;
+  --shadow: 8px 8px 0px var(--primary);
+}

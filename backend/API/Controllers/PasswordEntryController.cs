@@ -27,7 +27,6 @@ namespace API.Controllers
         {
 
             string userId = User.FindFirstValue("userId") ?? "";
-            Console.WriteLine("queryParams: " + queryParams.EntryName);
 
             if (userId == null)
             {

@@ -10,6 +10,8 @@ import { AuthService } from '../../services/auth.service';
 import { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/AuthDto';
 import { CryptoService } from '../../../crypto/services/crypto.service';
 import { TitleCasePipe } from '@angular/common';
+import { tap } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-auth-index',
@@ -22,6 +24,7 @@ export class AuthIndex {
   isSignIn = signal(true);
   private formBuilder = inject(FormBuilder);
   private cryptoService = inject(CryptoService);
+  private router = inject(Router);
 
   signInInputs = [
     {
@@ -95,20 +98,29 @@ export class AuthIndex {
   }
 
   async onSubmit(e: Event) {
-    console.log('🚀 ~ AuthIndex ~ onSubmit ~ e:', e);
     e.preventDefault();
-    if (this.isSignIn()) {
-      const { email, password } = this.authSignInFormGroup.value;
-      if (!email || !password) {
-        console.warn(
-          'Email or Password are missing and skipped validation, this should not happen.'
-        );
-        return;
-      }
-      const signInDto: IAuthSignInDto = { email: email, password: password };
-      this.authService.signIn(signInDto).subscribe();
+    return this.isSignIn() ? this.signIn() : await this.signUp();
+  }
+
+  private signIn() {
+    const { email, password } = this.authSignInFormGroup.value;
+    if (!email || !password) {
+      console.warn('Email or Password are missing and skipped validation, this should not happen.');
       return;
     }
+    const signInDto: IAuthSignInDto = { email: email, password: password };
+    this.authService
+      .signIn(signInDto)
+      .pipe(
+        tap(() => {
+          this.router.navigate(['/logins']);
+        })
+      )
+      .subscribe();
+    return;
+  }
+
+  private async signUp() {
     const { email, password, confirmPassword, username, masterPassword } =
       this.authSignUpFormGroup.value;
     if (!email || !password || !confirmPassword || !username || !masterPassword) {
@@ -146,7 +158,15 @@ export class AuthIndex {
       encryptedMasterKeyWithRecovery: encryptedMasterKeyWithRecoveryBase64,
       recoveryIV: recoveryIVBase64,
     };
-    this.authService.signUp(signUpDto).subscribe();
+
+    this.authService
+      .signUp(signUpDto)
+      .pipe(
+        tap(() => {
+          this.router.navigate(['/logins']);
+        })
+      )
+      .subscribe();
     return;
   }
 }

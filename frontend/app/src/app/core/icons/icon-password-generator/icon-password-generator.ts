@@ -3,8 +3,8 @@ import { IconComponent } from '../../abstracts/icon-component';
 import { NgStyle } from '@angular/common';
 
 @Component({
-  selector: 'app-icon-patients',
+  selector: 'app-icon-password-generator',
   imports: [NgStyle],
-  templateUrl: './icon-patients.html',
+  templateUrl: './icon-password-generator.html',
 })
-export class IconPatients extends IconComponent {}
+export class IconPasswordGenerator extends IconComponent {}

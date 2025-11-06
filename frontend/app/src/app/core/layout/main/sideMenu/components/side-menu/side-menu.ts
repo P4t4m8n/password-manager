@@ -1,5 +1,12 @@
-import { Component, HostBinding, inject, OnInit, signal } from '@angular/core';
-
+import {
+  Component,
+  ElementRef,
+  HostBinding,
+  inject,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { IconLogo } from '../../../../../icons/icon-logo/icon-logo';
 import { RouterLink } from '@angular/router';
@@ -8,8 +15,9 @@ import { IconCloseOpen } from '../../../../../icons/icon-close-open/icon-close-o
 import { AuthService } from '../../../../../../features/Auth/services/auth.service';
 import { IAuthDto } from '../../../../../../features/Auth/interfaces/AuthDto';
 import { INavRoute } from '../../../../../interfaces/navRoute';
-import { IconPatients } from '../../../../../icons/icon-patients/icon-patients';
 import { IconSettings } from '../../../../../icons/icon-settings/icon-settings';
+import { IconPasswordGenerator } from '../../../../../icons/icon-password-generator/icon-password-generator';
+import { IconVault } from '../../../../../icons/icon-vault/icon-vault';
 @Component({
   selector: 'app-side-menu',
   imports: [TitleCasePipe, IconLogo, RouterLink, CommonModule, NgComponentOutlet, IconCloseOpen],
@@ -23,12 +31,12 @@ export class SideMenu implements OnInit {
     {
       route: '/logins',
       label: 'logins',
-      icon: IconPatients,
+      icon: IconVault,
     },
     {
       route: '/password-generator',
       label: 'password generator',
-      icon: IconPatients,
+      icon: IconPasswordGenerator,
     },
     {
       route: '/settings',
@@ -39,6 +47,8 @@ export class SideMenu implements OnInit {
 
   isOpen = signal(true);
 
+  @ViewChild('defaultLink') defaultLink!: ElementRef;
+
   session_user: IAuthDto | null = null;
 
   ngOnInit(): void {
@@ -47,6 +57,9 @@ export class SideMenu implements OnInit {
     });
   }
 
+  ngAfterViewInit() {
+    this.defaultLink.nativeElement.focus();
+  }
   @HostBinding('class.hide')
   get hide() {
     return !this.isOpen();

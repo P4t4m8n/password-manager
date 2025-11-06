@@ -68,7 +68,7 @@ namespace API.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
@@ -165,14 +165,48 @@ namespace API.Controllers
             return Ok(response);
         }
 
+        [HttpGet("Check-session")]
+        public async Task<ActionResult<AuthResponseDto>> CheckSession()
+        {
+            string userId = User.FindFirstValue("userId") ?? "";
+
+            AuthResponseDto authRes = new AuthResponseDto
+            {
+                User = null,
+                MasterPasswordSalt = Array.Empty<byte>()
+            };
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return NotFound(authRes);
+            }
+
+            string userIdSelectSql = "EXEC PasswordSchema.spUser_GetOne @Id=@Id";
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@Id", Guid.Parse(userId));
+
+            User? user = await _contextDapper.LoadDataSingle<User>(userIdSelectSql, parameters);
+
+            if (user == null || user.Id == Guid.Empty)
+            {
+                return NotFound(authRes);
+            }
+
+            authRes.User = new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Username = user.Username,
+            };
+            authRes.MasterPasswordSalt = user.MasterPasswordSalt;
+
+            return Ok(authRes);
+        }
         [HttpGet("Refresh-token")]
         public async Task<ActionResult<AuthResponseDto>> RefreshToken()
         {
             string userId = User.FindFirstValue("userId") ?? "";
             User.ToString();
-            Console.WriteLine(User.ToString());
-
-
 
             if (string.IsNullOrEmpty(userId))
             {
