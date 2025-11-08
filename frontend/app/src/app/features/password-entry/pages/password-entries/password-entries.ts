@@ -7,7 +7,7 @@ import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
 import { IconPlus } from '../../../../core/icons/icon-plus/icon-plus';
 import { IconSafety } from '../../../../core/icons/icon-safety/icon-safety';
 import { RouterLink } from '@angular/router';
-import { PASSWORD_ENTRIES_PATHS } from '../../../../core/consts/routes.const';
+import { PASSWORD_ENTRIES_PATHS } from '../../consts/routes.const';
 
 @Component({
   selector: 'app-password-entities',

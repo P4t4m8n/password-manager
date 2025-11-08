@@ -45,7 +45,6 @@
     .nav-list {
       display: grid;
       gap: 2rem;
-      --highlight-bg-color: rgba(255, 94, 91, 0.75);
       li {
         a {
           display: flex;
@@ -57,14 +56,17 @@
           padding: 0.5rem;
           color: rgba(0, 0, 0, 0.8);
           border-radius: 0.5rem;
-          transition:  background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+          transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+
           &:hover {
-            background-color: var(--highlight-bg-color);
+            background-color: rgba(var(--raw-accent), 0.75);
+            color: rgba(255, 255, 255, 0.9);
           }
 
-          &:focus {
-            background-color: var(--highlight-bg-color);
+          &.active {
             outline: none;
+            background-color: var(--accent);
+            color: rgba(255, 255, 255, 0.9);
           }
         }
       }

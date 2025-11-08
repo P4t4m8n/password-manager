@@ -1,19 +1,18 @@
 import { Directive, ElementRef, OnInit, Output, EventEmitter, HostListener } from '@angular/core';
 
-@Directive({
-  selector: '[appDialog]',
-  standalone: true,
-})
-export class DialogDirective implements OnInit {
+@Directive()
+export class DialogDirective {
   @Output() dialogClosed = new EventEmitter<void>();
 
-  private dialogElement: HTMLDialogElement;
+  private dialogElement: HTMLDialogElement | null = null;
 
-  constructor(private el: ElementRef<HTMLDialogElement>) {
-    this.dialogElement = this.el.nativeElement;
-  }
+  constructor(private el: ElementRef<HTMLElement>) {}
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    this.dialogElement = this.el.nativeElement.querySelector('dialog');
+    if (!this.dialogElement) {
+      throw new Error('A <dialog> element must be present in the component template.');
+    }
     this.setupCloseListener();
   }
 
@@ -25,15 +24,22 @@ export class DialogDirective implements OnInit {
   }
 
   open(): void {
-    this.dialogElement.showModal();
+    if (!this.dialogElement) {
+      return;
+    }
+
+    if (this.dialogElement.open) {
+      return;
+    }
+    this.dialogElement?.showModal();
   }
 
   close(): void {
-    this.dialogElement.close();
+    this.dialogElement?.close();
   }
 
   private setupCloseListener(): void {
-    this.dialogElement.addEventListener('close', () => {
+    this.dialogElement?.addEventListener('close', () => {
       this.dialogClosed.emit();
     });
   }

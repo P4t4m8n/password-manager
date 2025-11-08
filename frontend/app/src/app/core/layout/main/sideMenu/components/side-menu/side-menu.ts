@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { IconLogo } from '../../../../../icons/icon-logo/icon-logo';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule, NgComponentOutlet } from '@angular/common';
 import { IconCloseOpen } from '../../../../../icons/icon-close-open/icon-close-open';
 import { AuthService } from '../../../../../../features/Auth/services/auth.service';
@@ -20,7 +20,7 @@ import { IconPasswordGenerator } from '../../../../../icons/icon-password-genera
 import { IconVault } from '../../../../../icons/icon-vault/icon-vault';
 @Component({
   selector: 'app-side-menu',
-  imports: [TitleCasePipe, IconLogo, RouterLink, CommonModule, NgComponentOutlet, IconCloseOpen],
+  imports: [TitleCasePipe, IconLogo, RouterLink, CommonModule, NgComponentOutlet, IconCloseOpen,RouterLinkActive],
   templateUrl: './side-menu.html',
   styleUrl: './side-menu.css',
   hostDirectives: [],
@@ -45,21 +45,18 @@ export class SideMenu implements OnInit {
     },
   ];
 
+
   isOpen = signal(true);
 
-  @ViewChild('defaultLink') defaultLink!: ElementRef;
-
+  
   session_user: IAuthDto | null = null;
-
+  
   ngOnInit(): void {
     this.authService._session_user$.subscribe((user) => {
       this.session_user = user;
     });
   }
 
-  ngAfterViewInit() {
-    this.defaultLink.nativeElement.focus();
-  }
   @HostBinding('class.hide')
   get hide() {
     return !this.isOpen();

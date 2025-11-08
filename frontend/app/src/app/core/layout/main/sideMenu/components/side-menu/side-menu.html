@@ -27,7 +27,7 @@
   <ul class="nav-list">
     @for(nav_route of navRoutes;track nav_route.label ) {
     <li>
-      <a [routerLink]="nav_route.route" #defaultLink>
+      <a [routerLink]="nav_route.route"  routerLinkActive="active">
         <ng-container
           [ngComponentOutlet]="nav_route.icon"
           [ngComponentOutletInputs]="{

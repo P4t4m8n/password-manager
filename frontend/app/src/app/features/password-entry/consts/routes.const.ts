@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '../../features/Auth/guards/auth-guard';
-import { PasswordEntries } from '../../features/password-entry/pages/password-entries/password-entries';
-import { PasswordEntryDetails } from '../../features/password-entry/pages/password-entry-details/password-entry-details';
-import { PasswordEntryEdit } from '../../features/password-entry/pages/password-entry-edit/password-entry-edit';
+import { authGuard } from '../../Auth/guards/auth-guard';
+import { PasswordEntries } from '../pages/password-entries/password-entries';
+import { PasswordEntryDetails } from '../pages/password-entry-details/password-entry-details';
+import { PasswordEntryEdit } from '../pages/password-entry-edit/password-entry-edit';
 
 export const PASSWORD_ENTRIES_PATHS = {
   passwordEntities: 'logins',
