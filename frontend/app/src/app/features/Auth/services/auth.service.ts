@@ -3,6 +3,7 @@ import { BehaviorSubject, catchError, of, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { IAuthDto, IAuthResponseDto, IAuthSignInDto, IAuthSignUpDto } from '../interfaces/AuthDto';
 import { CryptoService } from '../../crypto/services/crypto.service';
+import { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
 
 @Injectable({
   providedIn: 'root',
@@ -19,22 +20,26 @@ export class AuthService {
 
   signIn(dto: IAuthSignInDto) {
     return this.httpClient
-      .post<IAuthResponseDto>(`${this.coreAPIUrl}/Sign-in`, dto, { withCredentials: true })
+      .post<IHttpResponseDto<IAuthResponseDto>>(`${this.coreAPIUrl}/Sign-in`, dto, {
+        withCredentials: true,
+      })
       .pipe(
         tap((res) => {
-          this.session_user$.next(res.user);
-          this.masterPasswordSalt$.next(res.masterPasswordSalt);
+          this.session_user$.next(res.data.user);
+          this.masterPasswordSalt$.next(res.data.masterPasswordSalt);
         })
       );
   }
 
   signUp(dto: IAuthSignUpDto) {
     return this.httpClient
-      .post<IAuthResponseDto>(`${this.coreAPIUrl}/Sign-up`, dto, { withCredentials: true })
+      .post<IHttpResponseDto<IAuthResponseDto>>(`${this.coreAPIUrl}/Sign-up`, dto, {
+        withCredentials: true,
+      })
       .pipe(
         tap((res) => {
-          this.session_user$.next(res.user);
-          this.masterPasswordSalt$.next(res.masterPasswordSalt);
+          this.session_user$.next(res.data.user);
+          this.masterPasswordSalt$.next(res.data.masterPasswordSalt);
         })
       );
   }
@@ -51,22 +56,26 @@ export class AuthService {
 
   refreshToken() {
     return this.httpClient
-      .get<IAuthResponseDto>(`${this.coreAPIUrl}/Refresh-token`, { withCredentials: true })
+      .get<IHttpResponseDto<IAuthResponseDto>>(`${this.coreAPIUrl}/Refresh-token`, {
+        withCredentials: true,
+      })
       .pipe(
         tap((res) => {
-          this.session_user$.next(res.user);
-          this.masterPasswordSalt$.next(res.masterPasswordSalt);
+          this.session_user$.next(res.data.user);
+          this.masterPasswordSalt$.next(res.data.masterPasswordSalt);
         })
       );
   }
 
   checkSession() {
     return this.httpClient
-      .get<IAuthResponseDto>(`${this.coreAPIUrl}/Check-session`, { withCredentials: true })
+      .get<IHttpResponseDto<IAuthResponseDto>>(`${this.coreAPIUrl}/Check-session`, {
+        withCredentials: true,
+      })
       .pipe(
         tap((res) => {
-          this.session_user$.next(res.user);
-          this.masterPasswordSalt$.next(res.masterPasswordSalt);
+          this.session_user$.next(res.data.user);
+          this.masterPasswordSalt$.next(res.data.masterPasswordSalt);
         }),
         catchError((err) => {
           this.session_user$.next(null);

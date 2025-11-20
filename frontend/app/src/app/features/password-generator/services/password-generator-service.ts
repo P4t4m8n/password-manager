@@ -68,8 +68,6 @@ export class PasswordGeneratorService {
     return { strength, timeToCrack };
   }
 
-  
-
   private getStrengthKey(length: number, varietyCount: number, entropy: number): TPasswordStrength {
     if (length < 8 || varietyCount < 2) return 'weak';
     if (length < 12 || varietyCount < 3 || entropy < 50) return 'medium';

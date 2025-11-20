@@ -1,12 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using API.Interfaces;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.IdentityModel.Tokens;
 
 namespace API.Services
 {
-    public class AuthService
+    public class AuthService : IAuthService
     {
         private readonly IConfiguration _config;
 
@@ -18,7 +19,7 @@ namespace API.Services
 
         public byte[] GetPasswordHash(string password, byte[] salt)
         {
-          
+
 
             return KeyDerivation.Pbkdf2(
                 password: password,
@@ -39,15 +40,14 @@ namespace API.Services
             SymmetricSecurityKey tokenKey = new SymmetricSecurityKey
             (Encoding.UTF8.GetBytes(tokenKeyString ?? ""));
 
-            SigningCredentials cred = new SigningCredentials
-            (tokenKey, SecurityAlgorithms.HmacSha512Signature);
+            SigningCredentials cred = new(tokenKey, SecurityAlgorithms.HmacSha512Signature);
 
             SecurityTokenDescriptor desc = new SecurityTokenDescriptor()
             {
                 Subject = new ClaimsIdentity(claims),
                 SigningCredentials = cred,
                 Expires = DateTime.Now.AddDays(1)
-                
+
 
             };
 

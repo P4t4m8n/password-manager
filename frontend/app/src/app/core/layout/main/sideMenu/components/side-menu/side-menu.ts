@@ -29,8 +29,8 @@ export class SideMenu implements OnInit {
   authService = inject(AuthService);
   navRoutes: INavRoute[] = [
     {
-      route: '/logins',
-      label: 'logins',
+      route: '/entries',
+      label: 'entries',
       icon: IconVault,
     },
     {

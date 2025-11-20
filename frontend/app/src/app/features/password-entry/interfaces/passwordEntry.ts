@@ -4,7 +4,8 @@ export interface IPasswordEntryDto extends IEntity {
   entryName?: string;
   websiteUrl?: string;
   entryUserName?: string;
-  encryptedPassword?: Uint8Array;
-  iv?: Uint8Array;
+  encryptedPassword?: string;
+  iv?: string;
   notes?: string;
 }
+

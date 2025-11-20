@@ -5,9 +5,9 @@ import { PasswordEntryDetails } from '../pages/password-entry-details/password-e
 import { PasswordEntryEdit } from '../pages/password-entry-edit/password-entry-edit';
 
 export const PASSWORD_ENTRIES_PATHS = {
-  passwordEntities: 'logins',
-  passwordEntityDetails: 'logins/details',
-  passwordEntityEdit: 'logins/edit',
+  passwordEntities: 'entries',
+  passwordEntityDetails: 'entries/details',
+  passwordEntityEdit: 'entries/edit',
 } as const;
 
 const PASSWORD_ENTRY_GUARDS = [authGuard];
@@ -25,7 +25,7 @@ export const PASSWORD_ENTRIES_ROUTES: Routes = [
     canActivate: PASSWORD_ENTRY_GUARDS,
   },
   {
-    path: PASSWORD_ENTRIES_PATHS.passwordEntityEdit + '/:id',
+    path: PASSWORD_ENTRIES_PATHS.passwordEntityEdit + '/:entryId',
     component: PasswordEntryEdit,
     canActivate: PASSWORD_ENTRY_GUARDS,
   },

@@ -7,6 +7,10 @@ export class CryptoService {
   private encryptionKey: CryptoKey | null = null;
   private masterKey: string | null = null;
 
+  checkEncryptionKeyInitialized(): boolean {
+    return this.encryptionKey !== null;
+  }
+  
   async deriveMasterEncryptionKey({
     masterPassword,
     salt,

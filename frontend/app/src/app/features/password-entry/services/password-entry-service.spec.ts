@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { PasswordEntityService } from './password-entity-service';
+import { PasswordEntryService } from './password-entry-service';
 
-describe('PasswordEntityService', () => {
-  let service: PasswordEntityService;
+describe('PasswordEntryService', () => {
+  let service: PasswordEntryService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(PasswordEntityService);
+    service = TestBed.inject(PasswordEntryService);
   });
 
   it('should be created', () => {

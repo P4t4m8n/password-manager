@@ -1,10 +1,8 @@
-using API.Dtos.Auth;
-
-namespace API.Interfaces;
-
-public interface IAuthService
+namespace API.Interfaces
 {
-    Task<AuthResponseDto> SignUpAsync(AuthSignUpDto authSignUpDto);
-    Task<AuthResponseDto> SignInAsync(AuthSignInDto authSignInDto);
-    Task SignOutAsync(string token);
+    public interface IAuthService
+    {
+        byte[] GetPasswordHash(string password, byte[] salt);
+        string CreateToken(string userId);
+    }
 }

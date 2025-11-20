@@ -28,6 +28,11 @@ namespace API.Data
             using IDbConnection dbConnection = new SqlConnection(_connectionString);
             return await dbConnection.QuerySingleOrDefaultAsync<T>(sql, parameters);
         }
+        public async Task<T?> QuerySingleOrDefaultAsync<T>(string sql, DynamicParameters? parameters)
+        {
+            using IDbConnection dbConnection = new SqlConnection(_connectionString);
+            return await dbConnection.QuerySingleOrDefaultAsync<T>(sql, parameters);
+        }
 
         public async Task<int> ExecuteSql(string sql, DynamicParameters? parameters)
         {

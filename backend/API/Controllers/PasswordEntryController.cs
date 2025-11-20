@@ -7,6 +7,7 @@ using API.Interfaces;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using API.Dtos.PasswordEntry;
+using API.Dtos.Http;
 
 namespace API.Controllers
 {
@@ -30,7 +31,16 @@ namespace API.Controllers
 
             if (userId == null)
             {
-                return Unauthorized();
+                HttpErrorResponseDTO errorResponse = new()
+                {
+                    Message = "Unauthorized access.",
+                    StatusCode = 401,
+                    Errors = new Dictionary<string, string>
+                     {
+                          { "Authentication", "User is not authenticated." }
+                     }
+                };
+                return Unauthorized(errorResponse);
             }
 
             Guid userGuid = Guid.Parse(userId);
@@ -44,7 +54,7 @@ namespace API.Controllers
                                  @Limit=@Limit,
                                  @Offset=@Offset;";
 
-            DynamicParameters parameters = new DynamicParameters();
+            DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
             parameters.Add("@EntryName", queryParams.EntryName);
             parameters.Add("@WebsiteUrl", queryParams.WebsiteUrl);
@@ -53,7 +63,13 @@ namespace API.Controllers
 
             IEnumerable<PasswordEntry> entries = await _contextDapper.LoadData<PasswordEntry>(selectSql, parameters);
 
-            return Ok(entries);
+            HttpResponseDTO<IEnumerable<PasswordEntry>> response = new()
+            {
+                Data = entries,
+                Message = "Entries retrieved successfully."
+            };
+
+            return Ok(response);
         }
 
         [HttpGet("{entryId}")]
@@ -87,7 +103,7 @@ namespace API.Controllers
         }
 
         [HttpPost("edit")]
-        public async Task<ActionResult<PasswordEntryDto>> EditEntry(PasswordEntryEditDto entryDto)
+        public async Task<ActionResult<PasswordEntryDto>> CreateEntry(PasswordEntryEditDto entryDto)
         {
             try
             {
@@ -110,7 +126,7 @@ namespace API.Controllers
                                      @Notes=@Notes;";
 
 
-                DynamicParameters parameters = new DynamicParameters();
+                DynamicParameters parameters = new();
                 parameters.Add("@UserId", userGuid);
                 parameters.Add("@EntryName", entryDto.EntryName);
                 parameters.Add("@WebsiteUrl", entryDto.WebsiteUrl);
@@ -126,13 +142,27 @@ namespace API.Controllers
                     // This case might occur if the OUTPUT clause fails or returns nothing.
                     return BadRequest("Failed to create the entry.");
                 }
+                HttpResponseDTO<PasswordEntryDto> response = new()
+                {
+                    Data = entry,
+                    Message = "Entry created successfully."
+                };
 
-                return Ok(entry);
+                return Ok(response);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
+                HttpErrorResponseDTO errorResponse = new()
+                {
+                    Message = "An error occurred while processing your request.",
+                    StatusCode = 500,
+                    Errors = new Dictionary<string, string>
+                     {
+                          { "ExceptionMessage", ex.Message }
+                     }
+                };
 
-                return StatusCode(500, $"An error occurred while processing your request -> {ex.Message}");
+                return StatusCode(500, errorResponse);
             }
         }
 

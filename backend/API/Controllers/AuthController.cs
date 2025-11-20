@@ -7,10 +7,11 @@ using API.Dtos.Auth;
 using API.Services;
 using API.Interfaces;
 using API.Models;
-
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using API.Exceptions;
+using API.Dtos.Http;
 
 namespace API.Controllers
 {
@@ -20,12 +21,14 @@ namespace API.Controllers
     {
 
         private readonly IDataContext _contextDapper;
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
+        private readonly IGoogleService _googleService;
 
-        public AuthController(IDataContext contextDapper, AuthService authService)
+        public AuthController(IDataContext contextDapper, IAuthService authService, IGoogleService googleService)
         {
             _contextDapper = contextDapper;
             _authService = authService;
+            _googleService = googleService;
         }
 
         [AllowAnonymous]
@@ -37,7 +40,7 @@ namespace API.Controllers
             DynamicParameters parameters = new DynamicParameters();
             parameters.Add("@Email", signInDto.Email);
 
-            AuthConfirmationDto? authConfirmation = await _contextDapper.LoadDataSingle<AuthConfirmationDto>(sqlForHash, parameters);
+            AuthConfirmationDto? authConfirmation = await _contextDapper.QuerySingleOrDefaultAsync<AuthConfirmationDto>(sqlForHash, parameters);
 
             if (authConfirmation == null)
             {
@@ -72,7 +75,7 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            AuthResponseDto response = new AuthResponseDto
+            AuthResponseDto response = new()
             {
                 User = new UserDto
                 {
@@ -83,7 +86,15 @@ namespace API.Controllers
                 MasterPasswordSalt = user.MasterPasswordSalt
             };
 
-            return Ok(response);
+            HttpResponseDTO<AuthResponseDto> httpResponse = new()
+            {
+                Data = response,
+                Message = "Sign-in successful",
+                StatusCode = 200
+
+            };
+
+            return Ok(httpResponse);
         }
 
         [AllowAnonymous]
@@ -97,7 +108,7 @@ namespace API.Controllers
             }
 
             string selectExistingUserSql = "EXEC PasswordSchema.spFor_Existing @Email=@Email";
-            DynamicParameters parameters = new DynamicParameters();
+            DynamicParameters parameters = new();
             parameters.Add("@Email", signUpDto.Email);
 
             IEnumerable<string> existingUser = await _contextDapper.LoadData<string>(selectExistingUserSql, parameters);
@@ -132,13 +143,13 @@ namespace API.Controllers
 
 
 
-            User? user = await _contextDapper.InsertAndReturn<User>(sqlInsertAuth, parameters);
+            User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(sqlInsertAuth, parameters);
 
 
             if (user == null || user.Id == Guid.Empty)
             {
 
-                return StatusCode(500, new { message = "Server error" });
+                throw new UserCreationFailedException("Failed to create user due to a server error.");
             }
 
             string token = _authService.CreateToken(user.Id.ToString()!);
@@ -151,7 +162,7 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            AuthResponseDto response = new AuthResponseDto
+            AuthResponseDto response = new()
             {
                 User = new UserDto
                 {
@@ -162,34 +173,75 @@ namespace API.Controllers
                 MasterPasswordSalt = user.MasterPasswordSalt
             };
 
-            return Ok(response);
+            HttpResponseDTO<AuthResponseDto> httpResponse = new()
+            {
+                Data = response,
+                Message = "User created successfully",
+                StatusCode = 201
+
+            };
+
+            return Ok(httpResponse);
         }
+
+
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("google")]
+        public async Task<IActionResult> GoogleAuth()
+        {
+            return await Task.Run(() => Redirect(_googleService.GetCallbackUrl()));
+        }
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("callback")]
 
         [HttpGet("Check-session")]
         public async Task<ActionResult<AuthResponseDto>> CheckSession()
         {
             string userId = User.FindFirstValue("userId") ?? "";
 
-            AuthResponseDto authRes = new AuthResponseDto
+            AuthResponseDto authRes = new()
             {
                 User = null,
-                MasterPasswordSalt = Array.Empty<byte>()
+                MasterPasswordSalt = []
             };
 
             if (string.IsNullOrEmpty(userId))
             {
-                return NotFound(authRes);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return NotFound(new HttpErrorResponseDTO
+                    {
+                        Message = "User not authenticated",
+                        StatusCode = 401,
+                        Errors = new Dictionary<string, string>
+                    {
+                        { "Authentication", "No valid authentication token found" }
+                    }
+                    });
+                }
             }
 
             string userIdSelectSql = "EXEC PasswordSchema.spUser_GetOne @Id=@Id";
-            DynamicParameters parameters = new DynamicParameters();
+            DynamicParameters parameters = new();
             parameters.Add("@Id", Guid.Parse(userId));
 
-            User? user = await _contextDapper.LoadDataSingle<User>(userIdSelectSql, parameters);
+            User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(userIdSelectSql, parameters);
 
             if (user == null || user.Id == Guid.Empty)
             {
-                return NotFound(authRes);
+                return NotFound(
+                     new HttpErrorResponseDTO
+                     {
+                         Message = "User not found",
+                         StatusCode = 404,
+                         Errors = new Dictionary<string, string>
+                         {
+                            { "User", "No user found for the given authentication token" }
+                         }
+                     }
+                 );
             }
 
             authRes.User = new UserDto
@@ -200,7 +252,13 @@ namespace API.Controllers
             };
             authRes.MasterPasswordSalt = user.MasterPasswordSalt;
 
-            return Ok(authRes);
+            HttpResponseDTO<AuthResponseDto> httpResponse = new()
+            {
+                Data = authRes,
+                Message = "User is authenticated"
+            };
+
+            return Ok(httpResponse);
         }
         [HttpGet("Refresh-token")]
         public async Task<ActionResult<AuthResponseDto>> RefreshToken()
@@ -214,9 +272,9 @@ namespace API.Controllers
             }
 
             string userIdSelectSql = "EXEC PasswordSchema.spUser_GetOne @Id=@Id";
-            DynamicParameters parameters = new DynamicParameters();
+            DynamicParameters parameters = new();
             parameters.Add("@Id", Guid.Parse(userId));
-            User? user = await _contextDapper.LoadDataSingle<User>(userIdSelectSql, parameters);
+            User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(userIdSelectSql, parameters);
 
             if (user == null || user.Id == Guid.Empty)
             {
@@ -233,7 +291,7 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            AuthResponseDto response = new AuthResponseDto
+            AuthResponseDto response = new()
             {
 
                 User = new UserDto
@@ -245,7 +303,15 @@ namespace API.Controllers
                 MasterPasswordSalt = user.MasterPasswordSalt
             };
 
-            return Ok(response);
+            HttpResponseDTO<AuthResponseDto> httpResponse = new()
+            {
+                Data = response,
+                Message = "Token refreshed successfully",
+                StatusCode = 200
+
+            };
+
+            return Ok(httpResponse);
         }
 
         [HttpPost("Sign-out")]
@@ -256,10 +322,18 @@ namespace API.Controllers
             AuthResponseDto response = new AuthResponseDto
             {
                 User = null,
-                MasterPasswordSalt = Array.Empty<byte>()
+                MasterPasswordSalt = []
             };
 
-            return Ok(response);
+            HttpResponseDTO<AuthResponseDto> httpResponse = new()
+            {
+                Data = response,
+                Message = "Sign-out successful",
+                StatusCode = 200
+
+            };
+
+            return Ok(httpResponse);
         }
 
     }

@@ -1,102 +1,50 @@
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, retry, tap } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
-import { IPasswordEntryDto } from '../interfaces/passwordEntryDto';
+import { IPasswordEntryDto } from '../interfaces/passwordEntry';
+import { AuthService } from '../../Auth/services/auth.service';
+import { CryptoService } from '../../crypto/services/crypto.service';
+import { MasterPasswordDialogService } from '../../crypto/master-password/services/master-password-dialog-service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PasswordEntryService {
-  httpClient: HttpClient = inject(HttpClient);
+  private cryptoService = inject(CryptoService);
+  private authService = inject(AuthService);
+  private masterPasswordDialogService = inject(MasterPasswordDialogService);
 
-  private coreAPIUrl = 'http://localhost:5222/api/Password-entry';
+  async decryptPassword({
+    encryptedPassword,
+    iv,
+  }: Pick<IPasswordEntryDto, 'encryptedPassword' | 'iv'>): Promise<string | void> {
+    if (!encryptedPassword || !iv) {
+      console.error('Encrypted password or IV is missing.');
+      return;
+    }
 
-  private _passwordEntries$ = new BehaviorSubject<IPasswordEntryDto[]>([]);
-  public passwordEntries$ = this._passwordEntries$.asObservable();
+    if (!this.cryptoService.checkEncryptionKeyInitialized()) {
+      const masterPassword = await this.masterPasswordDialogService.openMasterPasswordDialog();
+      if (!masterPassword) {
+        console.error('Master password is required to encrypt the password entry.');
+        return;
+      }
+      const plainSalt = this.authService.get_master_password_salt();
+      if (!plainSalt) {
+        console.error('Master password salt is missing.');
+        return;
+      }
 
-  public get() {
-    return this.httpClient
-      .get<IPasswordEntryDto[]>(`${this.coreAPIUrl}`, { withCredentials: true })
-      .pipe(
-        tap((res) => {
-          this._passwordEntries$.next(res);
-        }),
-        catchError((err) => {
-          this._passwordEntries$.next([]);
-          console.error('Error fetching password entries', err);
-          throw err;
-        })
+      const salt = this.cryptoService.base64ToArrayBuffer(plainSalt);
+      await this.cryptoService.deriveMasterEncryptionKey({ masterPassword, salt });
+    }
+
+    try {
+      const decryptedPassword = await this.cryptoService.decryptPassword(
+        this.cryptoService.base64ToArrayBuffer(encryptedPassword),
+        this.cryptoService.base64ToArrayBuffer(iv)
       );
-  }
-
-  public getById(id: string) {
-    return this.httpClient
-      .get<IPasswordEntryDto>(`${this.coreAPIUrl}/${id}`, {
-        withCredentials: true,
-      })
-      .pipe(
-        catchError((err) => {
-          console.error(`Error fetching password entry with id ${id}`, err);
-          throw err;
-        })
-      );
-  }
-
-  public save(dto: IPasswordEntryDto) {
-    return dto.id ? this.update(dto) : this.create(dto);
-  }
-
-  public delete(id: string) {
-    return this.httpClient
-      .delete<void>(`${this.coreAPIUrl}/Delete/${id}`, { withCredentials: true })
-      .pipe(
-        tap(() => {
-          const passwordEntities = this._passwordEntries$.value.filter((pe) => pe.id !== id);
-          this._passwordEntries$.next(passwordEntities);
-        }),
-        catchError((err) => {
-          console.error(`Error deleting password entry with id ${id}`, err);
-          throw err;
-        })
-      );
-  }
-
-  private create(dto: IPasswordEntryDto) {
-    return this.httpClient
-      .post<IPasswordEntryDto>(`${this.coreAPIUrl}/Edit`, dto, {
-        withCredentials: true,
-      })
-      .pipe(
-        tap((pe) => {
-          const passwordEntities = this._passwordEntries$.value;
-          this._passwordEntries$.next([...passwordEntities, pe]);
-          return pe;
-        }),
-        retry(1),
-        catchError((err) => {
-          console.error('Error creating password entry', err);
-          throw err;
-        })
-      );
-  }
-
-  private update(dto: IPasswordEntryDto) {
-    return this.httpClient
-      .put<IPasswordEntryDto>(`${this.coreAPIUrl}/Edit/${dto.id}`, dto, {
-        withCredentials: true,
-      })
-      .pipe(
-        tap((updatedEntity) => {
-          const passwordEntities = this._passwordEntries$.value.map((pe) =>
-            pe.id === updatedEntity.id ? updatedEntity : pe
-          );
-          this._passwordEntries$.next(passwordEntities);
-        }),
-        retry(1),
-        catchError((err) => {
-          console.error('Error updating password entry', err);
-          throw err;
-        })
-      );
+      return decryptedPassword;
+    } catch (error) {
+      console.log('🚀 ~ PasswordEntryPreview ~ onShowPassword ~ error:', error);
+    }
   }
 }

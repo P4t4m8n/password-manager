@@ -34,6 +34,12 @@ export class AuthIndex {
       placeHolder: 'Email',
     },
     {
+      labelText: 'Master Password',
+      formControlName: 'masterPassword',
+      type: 'password',
+      placeHolder: 'Master Password',
+    },
+    {
       labelText: 'Password',
       formControlName: 'password',
       type: 'password',
@@ -66,6 +72,7 @@ export class AuthIndex {
   authSignInFormGroup = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
+    masterPassword: ['', Validators.required],
   });
 
   authSignUpFormGroup = this.formBuilder.group({
@@ -103,17 +110,19 @@ export class AuthIndex {
   }
 
   private signIn() {
-    const { email, password } = this.authSignInFormGroup.value;
-    if (!email || !password) {
-      console.warn('Email or Password are missing and skipped validation, this should not happen.');
+    const { email, password, masterPassword } = this.authSignInFormGroup.value;
+    if (!email || !password || !masterPassword) {
+      console.warn(
+        'Email, Password or Master Password are missing and skipped validation, this should not happen.'
+      );
       return;
     }
     const signInDto: IAuthSignInDto = { email: email, password: password };
     this.authService
       .signIn(signInDto)
       .pipe(
-        tap(() => {
-          this.router.navigate(['/logins']);
+        tap(async (authRes) => {
+          this.router.navigate(['/entries']);
         })
       )
       .subscribe();

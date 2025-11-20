@@ -59,7 +59,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddScoped<IDataContext, DataContextDapper>();
-builder.Services.AddSingleton<AuthService>();
+builder.Services.AddScoped<IGoogleService, GoogleService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
