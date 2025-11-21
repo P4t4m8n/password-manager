@@ -44,7 +44,7 @@ export class PasswordEntryService {
       );
       return decryptedPassword;
     } catch (error) {
-      console.log('🚀 ~ PasswordEntryPreview ~ onShowPassword ~ error:', error);
+      console.error('🚀 ~ PasswordEntryPreview ~ onShowPassword ~ error:', error);
     }
   }
 }

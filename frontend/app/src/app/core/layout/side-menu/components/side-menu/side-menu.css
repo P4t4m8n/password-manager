@@ -1,0 +1,190 @@
+:host {
+  background-color: var(--secondary);
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  height: 100svh;
+  transition: transform 0.3s ease-in-out;
+  transform: translate(0);
+  width: 100%;
+
+  gap: 2.5rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+
+  header {
+    width: 100%;
+    transition: all 0.3s ease-in-out;
+    display: grid;
+    grid-template-columns: 3rem 1fr 2rem;
+    align-items: center;
+    align-content: center;
+
+    gap: 0.5rem;
+    span {
+      display: block;
+      width: 100%;
+      transition: all 0.3s ease-in-out;
+      h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      p {
+        font-size: 0.75rem;
+        grid-area: 2/2/3/-1;
+        color: rgba(0, 0, 0, 0.6);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    app-icon-logo {
+      width: 3rem;
+      overflow: hidden;
+      transition: all 0.3s ease-in-out;
+    }
+    button {
+      transition: rotate 0.3s ease-in-out;
+      margin-left: auto;
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+
+  nav {
+    .nav-list {
+      display: grid;
+      gap: 2rem;
+      li {
+        a {
+          display: flex;
+          align-items: center;
+          font-size: 1rem;
+          font-weight: 600;
+          line-height: 2rem;
+          gap: 0.5rem;
+          padding: 0.5rem;
+          border-radius: var(--border-radius);
+          transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+
+          &:hover {
+            background-color: rgba(var(--raw-accent), 0.75);
+            color: var(--secondary);
+          }
+
+          &.active {
+            outline: none;
+            background-color: var(--accent);
+            color: var(--secondary);
+          }
+        }
+      }
+    }
+  }
+
+  footer {
+    background-color: rgba(var(--raw-accent), 0.75);
+    border-radius: var(--border-radius);
+    margin-top: auto;
+    display: grid;
+    padding-inline: 0.5rem;
+    grid-template-columns: 2rem 1fr;
+    grid-template-rows: auto auto;
+    align-items: center;
+    align-content: center;
+    column-gap: 0.5rem;
+    height: 2.5rem;
+    transition: all 0.3s ease-in-out;
+    width: 100%;
+
+    img {
+      grid-area: 1/1/-1/2;
+      border-radius: 100vh;
+      aspect-ratio: 1/1;
+      height: auto;
+      object-fit: cover;
+    }
+    h5 {
+      font-size: 1.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+:host(.hide) {
+  transform: translateX(-100%);
+  width: 100%;
+}
+
+@media (min-width: 48rem) {
+  :host {
+    height: 100%;
+    width: 18rem;
+    position: relative;
+    transition: width 0.3s ease-in-out;
+
+    header {
+      span {
+        display: block;
+        width: 100%;
+        transition: all 0.3s ease-in-out;
+      }
+    }
+    li {
+      width: 16rem;
+      transition: all 0.3s ease-in-out;
+      display: block;
+      a {
+        p {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+  :host(.hide) {
+    transform: translate(0);
+    width: 4rem;
+
+    align-items: center;
+
+    button {
+      rotate: 45deg;
+    }
+    li {
+      width: 3rem;
+    }
+    header {
+      grid-template-columns: 0 0 2rem;
+      justify-content: center;
+      width: 3rem;
+      gap: 0;
+      span {
+        width: 0;
+      }
+      app-icon-logo {
+        transition: width 0.3s ease-in-out;
+
+        width: 0;
+        overflow: hidden;
+      }
+    }
+    footer {
+      width: 3rem;
+      padding: 0rem;
+      gap: 0;
+      grid-template-columns: 2rem 0;
+      display: grid;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}

@@ -8,10 +8,13 @@ import { AuthService } from '../../../Auth/services/auth.service';
 import { MasterPasswordDialogService } from '../../../crypto/master-password/services/master-password-dialog-service';
 import { BehaviorSubject } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
+import { IconFavorite } from "../../../../core/icons/icon-favorite/icon-favorite";
+import { IconCopyPassword } from "../../../../core/icons/icon-copy-password/icon-copy-password";
+import { IconDots } from "../../../../core/icons/icon-dots/icon-dots";
 
 @Component({
   selector: 'app-password-entry-preview',
-  imports: [IconEye, IconTrash, RouterLink, AsyncPipe],
+  imports: [IconEye, IconTrash, RouterLink, AsyncPipe, IconFavorite, IconCopyPassword, IconDots],
   templateUrl: './password-entry-preview.html',
   styleUrl: './password-entry-preview.css',
 })
@@ -57,7 +60,7 @@ export class PasswordEntryPreview {
       );
       this.password.next(decryptedPassword);
     } catch (error) {
-      console.log('🚀 ~ PasswordEntryPreview ~ onShowPassword ~ error:', error);
+      console.error('🚀 ~ PasswordEntryPreview ~ onShowPassword ~ error:', error);
     }
   }
 }

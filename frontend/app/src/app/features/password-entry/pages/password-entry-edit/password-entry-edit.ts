@@ -10,20 +10,21 @@ import { AuthService } from '../../../Auth/services/auth.service';
 import { MasterPasswordDialogService } from '../../../crypto/master-password/services/master-password-dialog-service';
 import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { PasswordEntryService } from '../../services/password-entry-service';
+import { BackButton } from "../../../../core/components/back-button/back-button";
 
 @Component({
   selector: 'app-password-entry-edit',
   imports: [
     RevelInputPasswordDirective,
     IconFavorite,
-    IconArrow,
     ReactiveFormsModule,
     IconEye,
     PasswordGeneratorDialog,
-  ],
+    BackButton
+],
   templateUrl: './password-entry-edit.html',
   styleUrl: './password-entry-edit.css',
 })
@@ -35,6 +36,7 @@ export class PasswordEntryEdit {
   private passwordEntryHttpService = inject(PasswordEntryHttpService);
   private route = inject(ActivatedRoute);
   private passwordEntryService = inject(PasswordEntryService);
+  private router = inject(Router);
 
   passwordEntryFormGroup = this.formBuilder.group({
     entryName: [''],
@@ -100,7 +102,6 @@ export class PasswordEntryEdit {
     }
 
     const encryptedPassword = await this.cryptoService.encryptPassword(password);
-    console.log('Encrypted Password:', encryptedPassword);
 
     const passwordEntryDto: IPasswordEntryDto = {
       entryName: entryName || '',
@@ -110,10 +111,9 @@ export class PasswordEntryEdit {
       iv: this.cryptoService.arrayBufferToBase64(encryptedPassword.iv),
       notes: notes || '',
     };
-    console.log('🚀 ~ PasswordEntryEdit ~ onSubmit ~ passwordEntryDto:', passwordEntryDto);
     this.passwordEntryHttpService.save(passwordEntryDto).subscribe({
       next: (res) => {
-        console.log('Password entry saved successfully:', res);
+        this.router.navigate(['/entries', res.id]);
       },
       error: (err) => {
         console.error('Error saving password entry:', err);
@@ -137,5 +137,9 @@ export class PasswordEntryEdit {
       const salt = this.cryptoService.base64ToArrayBuffer(plainSalt);
       await this.cryptoService.deriveMasterEncryptionKey({ masterPassword, salt });
     }
+  }
+
+  onCancel(){
+    this.router.navigate(['/entries']);
   }
 }

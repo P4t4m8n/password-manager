@@ -7,4 +7,6 @@
   --font-family: 'Courier New', monospace;
   --font-size-base: 1rem;
   --shadow: 8px 8px 0px var(--primary);
+
+  --border-radius: 4px;
 }

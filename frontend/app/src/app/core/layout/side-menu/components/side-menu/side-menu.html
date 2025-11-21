@@ -27,7 +27,7 @@
   <ul class="nav-list">
     @for(nav_route of navRoutes;track nav_route.label ) {
     <li>
-      <a [routerLink]="nav_route.route"  routerLinkActive="active">
+      <a [routerLink]="nav_route.route" routerLinkActive="active">
         <ng-container
           [ngComponentOutlet]="nav_route.icon"
           [ngComponentOutletInputs]="{
@@ -42,7 +42,7 @@
         >
         </ng-container>
         <p>
-          {{ nav_route.label|titlecase}}
+          {{ nav_route.label | titlecase }}
         </p>
       </a>
     </li>
@@ -52,5 +52,13 @@
 }
 
 <footer>
+  <app-icon-profile
+    [style]="{
+        width: '2rem',
+        height: '2rem',
+        fill: 'none',
+        stroke:'black',
+    }"
+  />
   <h5>{{ session_user?.username | titlecase }}</h5>
 </footer>

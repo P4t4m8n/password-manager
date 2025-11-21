@@ -1,0 +1,9 @@
+:host{
+    display: flex;
+    height: fit-content;
+    width: fit-content;
+    button{
+        border:1px solid black;
+        border-radius: 100vh;
+    }
+}

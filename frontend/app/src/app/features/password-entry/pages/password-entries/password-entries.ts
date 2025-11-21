@@ -9,10 +9,11 @@ import { RouterLink } from '@angular/router';
 import { PASSWORD_ENTRIES_PATHS } from '../../consts/routes.const';
 import { CommonModule } from '@angular/common';
 import { PasswordEntryTable } from '../../components/password-entry-table/password-entry-table';
+import { BackButton } from "../../../../core/components/back-button/back-button";
 
 @Component({
   selector: 'app-password-entities',
-  imports: [IconSearch, IconPlus, IconSafety, RouterLink, CommonModule, PasswordEntryTable],
+  imports: [IconSearch, IconPlus, IconSafety, RouterLink, CommonModule, PasswordEntryTable, BackButton],
   templateUrl: './password-entries.html',
   styleUrl: './password-entries.css',
 })
