@@ -17,11 +17,19 @@
         [placeholder]="input.placeHolder"
         class="input-box"
       />
+
+      <span class="error-message">{{
+        getErrorMessage(input.formControlName, input.labelText)
+      }}</span>
     </li>
     }
   </ul>
 
-  <button class="submit-btn" type="submit" [disabled]="authSettings.formGroup.invalid">
+  <button
+    class="submit-btn"
+    type="submit"
+    [disabled]="authSettings.formGroup.invalid && authSettings.formGroup.touched"
+  >
     {{ authSettings.headerText | titlecase }}
   </button>
 

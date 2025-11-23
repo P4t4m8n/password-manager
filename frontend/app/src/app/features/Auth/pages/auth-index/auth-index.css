@@ -24,13 +24,22 @@
       text-align: center;
       color: var(--primary);
     }
+
     ul {
       display: grid;
-      gap: 1rem;
+      gap: .75rem;
       li {
+        display: grid;
         label {
           font-weight: bold;
           color: var(--primary);
+        }
+        input.ng-invalid.ng-touched + span {
+          color: #dc3545;
+        }
+        span {
+          padding-left: 0.5rem;
+          height: 1.25rem;
         }
       }
     }
@@ -75,6 +84,11 @@
       color: var(--primary);
       font-weight: bold;
       text-decoration: underline;
+    }
+
+    .ng-valid[required],
+    .ng-valid.required {
+      border-left: 5px solid #42a948; /* green */
     }
   }
 }

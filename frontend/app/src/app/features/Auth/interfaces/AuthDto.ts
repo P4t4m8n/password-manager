@@ -6,16 +6,16 @@ export interface IAuthDto extends IEntity {
 }
 
 export interface IAuthSignInDto {
-  email: string;
-  password: string;
+  email?: string;
+  password?: string;
 }
 
 export interface IAuthSignUpDto extends IAuthSignInDto {
-  username: string;
-  confirmPassword: string;
-  encryptedMasterKeyWithRecovery: string;
-  recoveryIV: string;
-  masterPasswordSalt: string;
+  username?: string;
+  confirmPassword?: string;
+  encryptedMasterKeyWithRecovery?: string;
+  recoveryIV?: string;
+  masterPasswordSalt?: string;
 }
 
 export interface IAuthResponseDto {

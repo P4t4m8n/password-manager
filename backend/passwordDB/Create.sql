@@ -38,7 +38,7 @@ BEGIN
         PasswordHash VARBINARY (MAX) ,
         PasswordSalt VARBINARY (MAX) ,
 
-        GoogleId NVARCHAR (100) UNIQUE,
+        GoogleId NVARCHAR (100) NULL,
 
         CreatedAt DATETIME2 DEFAULT GETDATE(),
         UpdatedAt DATETIME2 DEFAULT GETDATE()
@@ -48,6 +48,18 @@ BEGIN
 END
 
 GO
+
+IF NOT EXISTS (SELECT *
+FROM sys.indexes
+WHERE name = 'UQ_User_GoogleId' AND object_id = OBJECT_ID('PasswordSchema.[User]'))
+BEGIN
+    CREATE UNIQUE INDEX UQ_User_GoogleId 
+    ON PasswordSchema.[User](GoogleId) 
+    WHERE GoogleId IS NOT NULL;
+END
+
+GO
+
 IF NOT EXISTS (SELECT *
 FROM sys.tables t
     JOIN sys.schemas s ON t.schema_id = s.schema_id

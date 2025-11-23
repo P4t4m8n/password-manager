@@ -7,21 +7,27 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using API.Dtos.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddOpenApi();
-
-builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
+builder.Services.AddControllers().AddJsonOptions(options =>
+       {
+           options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+           options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+       })
+       .ConfigureApiBehaviorOptions(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
     {
+        JsonNamingPolicy? camelCase = JsonNamingPolicy.CamelCase;
         Dictionary<string, string>? errors = context.ModelState
                .Where(e => e.Value?.Errors.Count > 0)
                .ToDictionary(
-                   kvp => kvp.Key,
+                   kvp => camelCase.ConvertName(kvp.Key),
                    kvp => kvp.Value?.Errors.First().ErrorMessage ?? ""
                );
 
@@ -83,6 +89,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped<IDataContext, DataContextDapper>();
 builder.Services.AddScoped<IGoogleService, GoogleService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
 
 var app = builder.Build();
 

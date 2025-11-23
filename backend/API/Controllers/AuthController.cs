@@ -42,7 +42,7 @@ namespace API.Controllers
             AuthConfirmationDto? authConfirmation = await _contextDapper.QuerySingleOrDefaultAsync<AuthConfirmationDto>(sqlForHash, parameters)
              ?? throw new UnauthorizedException("Invalid email or password", new Dictionary<string, string>
                {
-                   { "Authentication", "No user found for the given email" }
+                   { "Email", "No user found for the given email" }
                });
 
             byte[] passwordHash = _authService.GetPasswordHash(signInDto.Password!, authConfirmation.PasswordSalt);
@@ -53,7 +53,7 @@ namespace API.Controllers
                 {
                     throw new UnauthorizedException("Invalid email or password", new Dictionary<string, string>
                     {
-                        { "Authentication", "Password does not match" }
+                        { "Password", "Password does not match" }
                     });
                 }
             }

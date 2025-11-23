@@ -53,8 +53,11 @@ namespace API.Middleware
             }
 
             context.Response.StatusCode = response.StatusCode;
-
-            var result = JsonSerializer.Serialize(response);
+            JsonSerializerOptions? options = new(JsonSerializerDefaults.Web)
+            {
+                DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
+            };
+            string? result = JsonSerializer.Serialize(response, options);
             return context.Response.WriteAsync(result);
         }
     }
