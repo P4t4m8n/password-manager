@@ -5,6 +5,8 @@ using API.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using API.Dtos.Http;
+using Microsoft.AspNetCore.Mvc;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +14,27 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        Dictionary<string, string>? errors = context.ModelState
+               .Where(e => e.Value?.Errors.Count > 0)
+               .ToDictionary(
+                   kvp => kvp.Key,
+                   kvp => kvp.Value?.Errors.First().ErrorMessage ?? ""
+               );
+
+        HttpErrorResponseDTO errorResponse = new()
+        {
+            Message = "One or more validation errors occurred.",
+            StatusCode = StatusCodes.Status400BadRequest,
+            Errors = errors
+        };
+
+        return new BadRequestObjectResult(errorResponse);
+    };
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -80,6 +102,7 @@ else
 app.UseAuthentication();
 
 app.UseAuthorization();
+app.UseMiddleware<API.Middleware.ErrorHandlingMiddleware>();
 
 app.MapControllers();
 

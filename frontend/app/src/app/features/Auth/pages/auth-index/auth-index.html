@@ -1,11 +1,13 @@
+@if(authSettings$ | async; as authSettings){
+
 <form
   (submit)="onSubmit($event)"
-  [formGroup]="isSignIn() ? authSignInFormGroup : authSignUpFormGroup"
+  [formGroup]="(isSignIn$ | async) ? authSignInFormGroup : authSignUpFormGroup"
 >
-  <h2>{{ authSettings().headerText.toUpperCase() }}</h2>
+  <h2>{{ authSettings.headerText.toUpperCase() }}</h2>
 
   <ul>
-    @for (input of authSettings().inputs; track input.formControlName) {
+    @for (input of (authSettings$ | async)?.inputs; track input.formControlName) {
     <li>
       <label [for]="input.formControlName">{{ input.labelText.toUpperCase() }}</label>
       <input
@@ -13,13 +15,14 @@
         [formControlName]="input.formControlName"
         [type]="input.type"
         [placeholder]="input.placeHolder"
+        class="input-box"
       />
     </li>
     }
   </ul>
 
-  <button class="submit-btn" type="submit" [disabled]="authSettings().formGroup.invalid">
-    {{ authSettings().headerText | titlecase }}
+  <button class="submit-btn" type="submit" [disabled]="authSettings.formGroup.invalid">
+    {{ authSettings.headerText | titlecase }}
   </button>
 
   <span class="divider">OR</span>
@@ -31,6 +34,8 @@
   </div>
 
   <button class="toggle-btn" type="button" (click)="toggleAuthMode()">
-    {{ authSettings().footerText }}
+    {{ authSettings.footerText }}
   </button>
 </form>
+
+}

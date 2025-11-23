@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using API.Dtos.User;
 using API.Dtos.Auth;
-using API.Services;
 using API.Interfaces;
 using API.Models;
 using Dapper;
@@ -22,30 +21,29 @@ namespace API.Controllers
 
         private readonly IDataContext _contextDapper;
         private readonly IAuthService _authService;
-        private readonly IGoogleService _googleService;
 
-        public AuthController(IDataContext contextDapper, IAuthService authService, IGoogleService googleService)
+        public AuthController(IDataContext contextDapper, IAuthService authService)
         {
             _contextDapper = contextDapper;
             _authService = authService;
-            _googleService = googleService;
         }
-
+        /*
+        [HttpPost("Sign-in")]
+        */
         [AllowAnonymous]
         [HttpPost("Sign-in")]
         public async Task<ActionResult<AuthResponseDto>> SignIn(AuthSignInDto signInDto)
         {
             string sqlForHash = "EXEC PasswordSchema.spFor_Hash @Email=@Email";
 
-            DynamicParameters parameters = new DynamicParameters();
+            DynamicParameters parameters = new();
             parameters.Add("@Email", signInDto.Email);
 
-            AuthConfirmationDto? authConfirmation = await _contextDapper.QuerySingleOrDefaultAsync<AuthConfirmationDto>(sqlForHash, parameters);
-
-            if (authConfirmation == null)
-            {
-                return Unauthorized(new { message = "Invalid email or password" });
-            }
+            AuthConfirmationDto? authConfirmation = await _contextDapper.QuerySingleOrDefaultAsync<AuthConfirmationDto>(sqlForHash, parameters)
+             ?? throw new UnauthorizedException("Invalid email or password", new Dictionary<string, string>
+               {
+                   { "Authentication", "No user found for the given email" }
+               });
 
             byte[] passwordHash = _authService.GetPasswordHash(signInDto.Password!, authConfirmation.PasswordSalt);
 
@@ -53,7 +51,10 @@ namespace API.Controllers
             {
                 if (passwordHash[i] != authConfirmation.PasswordHash[i])
                 {
-                    return Unauthorized(new { message = "Invalid email or password" });
+                    throw new UnauthorizedException("Invalid email or password", new Dictionary<string, string>
+                    {
+                        { "Authentication", "Password does not match" }
+                    });
                 }
             }
 
@@ -62,7 +63,12 @@ namespace API.Controllers
 
             if (user == null || user.Id == Guid.Empty)
             {
-                return Unauthorized(new { message = "Invalid email or password" });
+                string errorMsg = "User record not found after validation - this should NOT happen";
+                throw new UnexpectedCaughtException(errorMsg, new Dictionary<string, string>
+                {
+                    { "Authentication", errorMsg }
+                });
+
             }
 
             string token = _authService.CreateToken(user.Id.ToString()!);
@@ -75,20 +81,18 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            AuthResponseDto response = new()
-            {
-                User = new UserDto
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    Username = user.Username,
-                },
-                MasterPasswordSalt = user.MasterPasswordSalt
-            };
-
             HttpResponseDTO<AuthResponseDto> httpResponse = new()
             {
-                Data = response,
+                Data = new AuthResponseDto()
+                {
+                    User = new UserDto
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        Username = user.Username,
+                    },
+                    MasterPasswordSalt = user.MasterPasswordSalt
+                },
                 Message = "Sign-in successful",
                 StatusCode = 200
 
@@ -96,16 +100,13 @@ namespace API.Controllers
 
             return Ok(httpResponse);
         }
-
+        /*
+        [HttpPost("Sign-up")]
+        */
         [AllowAnonymous]
         [HttpPost("Sign-up")]
         public async Task<ActionResult<AuthResponseDto>> SignUp(AuthSignUpDto signUpDto)
         {
-
-            if (signUpDto.Password != signUpDto.ConfirmPassword)
-            {
-                return BadRequest(new { message = "Passwords do not match" });
-            }
 
             string selectExistingUserSql = "EXEC PasswordSchema.spFor_Existing @Email=@Email";
             DynamicParameters parameters = new();
@@ -114,7 +115,7 @@ namespace API.Controllers
             IEnumerable<string> existingUser = await _contextDapper.LoadData<string>(selectExistingUserSql, parameters);
             if (existingUser.Any())
             {
-                return BadRequest(new { message = "Bad credentials" });
+                throw new UserAlreadyExistsException();
             }
 
             byte[] PasswordSalt = new byte[128 / 8];
@@ -149,7 +150,7 @@ namespace API.Controllers
             if (user == null || user.Id == Guid.Empty)
             {
 
-                throw new UserCreationFailedException("Failed to create user due to a server error.");
+                throw new UserCreationFailedException();
             }
 
             string token = _authService.CreateToken(user.Id.ToString()!);
@@ -157,7 +158,7 @@ namespace API.Controllers
             Response.Cookies.Append("AuthToken", token, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true, // Only send over HTTPS
+                Secure = true,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
@@ -183,19 +184,9 @@ namespace API.Controllers
 
             return Ok(httpResponse);
         }
-
-
-        [AllowAnonymous]
-        [HttpGet]
-        [Route("google")]
-        public async Task<IActionResult> GoogleAuth()
-        {
-            return await Task.Run(() => Redirect(_googleService.GetCallbackUrl()));
-        }
-        [AllowAnonymous]
-        [HttpGet]
-        [Route("callback")]
-
+        /*
+        [HttpGet("Check-session")]
+        */
         [HttpGet("Check-session")]
         public async Task<ActionResult<AuthResponseDto>> CheckSession()
         {
@@ -209,19 +200,13 @@ namespace API.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedException("User not authenticated", new Dictionary<string, string>
                 {
-                    return NotFound(new HttpErrorResponseDTO
-                    {
-                        Message = "User not authenticated",
-                        StatusCode = 401,
-                        Errors = new Dictionary<string, string>
-                    {
-                        { "Authentication", "No valid authentication token found" }
-                    }
-                    });
-                }
+                    { "Authentication", "No valid authentication token found" }
+                });
+
             }
+
 
             string userIdSelectSql = "EXEC PasswordSchema.spUser_GetOne @Id=@Id";
             DynamicParameters parameters = new();
@@ -231,17 +216,12 @@ namespace API.Controllers
 
             if (user == null || user.Id == Guid.Empty)
             {
-                return NotFound(
-                     new HttpErrorResponseDTO
-                     {
-                         Message = "User not found",
-                         StatusCode = 404,
-                         Errors = new Dictionary<string, string>
-                         {
-                            { "User", "No user found for the given authentication token" }
-                         }
-                     }
-                 );
+
+                throw new NotFoundException("User not found", new Dictionary<string, string>
+                 {
+                    { "User", "No user found for the given authentication token" }
+                 });
+
             }
 
             authRes.User = new UserDto
@@ -260,6 +240,9 @@ namespace API.Controllers
 
             return Ok(httpResponse);
         }
+        /*
+        [HttpGet("Refresh-token")]
+        */
         [HttpGet("Refresh-token")]
         public async Task<ActionResult<AuthResponseDto>> RefreshToken()
         {
@@ -268,7 +251,11 @@ namespace API.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized("User not authenticated");
+                throw new UnauthorizedException("User not authenticated", new Dictionary<string, string>
+                {
+                    { "Authentication", "No valid authentication token found" }
+                });
+
             }
 
             string userIdSelectSql = "EXEC PasswordSchema.spUser_GetOne @Id=@Id";
@@ -278,7 +265,12 @@ namespace API.Controllers
 
             if (user == null || user.Id == Guid.Empty)
             {
-                return NotFound("User not found");
+
+                throw new NotFoundException("User not found", new Dictionary<string, string>
+                 {
+                    { "User", "No user found for the given authentication token" }
+                 });
+
             }
 
             string token = _authService.CreateToken(user.Id!.ToString()!);
@@ -286,7 +278,7 @@ namespace API.Controllers
             Response.Cookies.Append("AuthToken", token, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true, // Only send over HTTPS
+                Secure = true, 
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
@@ -313,13 +305,15 @@ namespace API.Controllers
 
             return Ok(httpResponse);
         }
-
+        /*    
+        [HttpPost("Sign-out")]
+        */
         [HttpPost("Sign-out")]
         public new ActionResult<AuthResponseDto> SignOut()
         {
             Response.Cookies.Delete("AuthToken");
 
-            AuthResponseDto response = new AuthResponseDto
+            AuthResponseDto response = new()
             {
                 User = null,
                 MasterPasswordSalt = []

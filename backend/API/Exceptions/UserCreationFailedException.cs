@@ -1,8 +1,9 @@
 namespace API.Exceptions
 {
 
-    public class UserCreationFailedException : Exception
+    public class UserCreationFailedException : BaseException
     {
-        public UserCreationFailedException(string message) : base(message) { }
+        public UserCreationFailedException(Dictionary<string, string>? errors = null)
+            : base("Failed to create user due to a server error.", 500, errors) { }
     }
 }

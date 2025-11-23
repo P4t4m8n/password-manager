@@ -1,30 +1,30 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AsyncPipe, TitleCasePipe } from '@angular/common';
+
+import { BehaviorSubject, map, Subscription, tap } from 'rxjs';
+
+import { CryptoService } from '../../../crypto/services/crypto.service';
 import { AuthService } from '../../services/auth.service';
 import { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/AuthDto';
-import { CryptoService } from '../../../crypto/services/crypto.service';
-import { TitleCasePipe } from '@angular/common';
-import { tap } from 'rxjs';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-auth-index',
-  imports: [ReactiveFormsModule, TitleCasePipe],
+  imports: [ReactiveFormsModule, TitleCasePipe, AsyncPipe],
   templateUrl: './auth-index.html',
   styleUrl: './auth-index.css',
 })
 export class AuthIndex {
-  authService = inject(AuthService);
-  isSignIn = signal(true);
+  private authService = inject(AuthService);
   private formBuilder = inject(FormBuilder);
   private cryptoService = inject(CryptoService);
   private router = inject(Router);
+
+  private subscription: Subscription = new Subscription();
+
+  private isSignIn = new BehaviorSubject<boolean>(false);
+  isSignIn$ = this.isSignIn.asObservable();
 
   signInInputs = [
     {
@@ -61,12 +61,6 @@ export class AuthIndex {
       type: 'password',
       placeHolder: 'Confirm Password',
     },
-    {
-      labelText: 'Master Password',
-      formControlName: 'masterPassword',
-      type: 'password',
-      placeHolder: 'Master Password',
-    },
   ];
 
   authSignInFormGroup = this.formBuilder.group({
@@ -83,30 +77,36 @@ export class AuthIndex {
     masterPassword: ['', Validators.required],
   });
 
-  authSettings = computed(() => {
-    if (this.isSignIn()) {
+  authSettings$ = this.isSignIn$.pipe(
+    map((isSignIn) => {
+      if (isSignIn) {
+        return {
+          headerText: 'Sign-In',
+          footerText: "Don't have an account? Sign Up",
+          formGroup: this.authSignInFormGroup,
+          inputs: this.signInInputs,
+        };
+      }
       return {
-        headerText: 'Sign-In',
-        footerText: "Don't have an account? Sign Up",
-        formGroup: this.authSignInFormGroup,
-        inputs: this.signInInputs,
+        headerText: 'Sign Up',
+        footerText: 'Already have an account? Sign In',
+        formGroup: this.authSignUpFormGroup,
+        inputs: this.signUpInputs,
       };
-    }
-    return {
-      headerText: 'Sign Up',
-      footerText: 'Already have an account? Sign In',
-      formGroup: this.authSignUpFormGroup,
-      inputs: this.signUpInputs,
-    };
-  });
+    })
+  );
 
   toggleAuthMode() {
-    this.isSignIn.set(!this.isSignIn());
+    this.isSignIn.next(!this.isSignIn.getValue());
   }
 
   async onSubmit(e: Event) {
     e.preventDefault();
-    return this.isSignIn() ? this.signIn() : await this.signUp();
+    return this.isSignIn.getValue() ? this.signIn() : await this.signUp();
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
   private signIn() {

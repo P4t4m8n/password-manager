@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using API.Dtos.Http;
+using API.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Middleware
@@ -28,37 +30,31 @@ namespace API.Middleware
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            var code = HttpStatusCode.InternalServerError;
-            var problemDetails = new ProblemDetails
+            context.Response.ContentType = "application/problem+json";
+
+            HttpErrorResponseDTO response = new()
             {
-                Status = (int)code,
-                Title = "An unexpected error occurred.",
-                Detail = "An internal server error has occurred. Please try again later."
+                Message = exception.Message,
+                StatusCode = (int)HttpStatusCode.InternalServerError,
+                Errors = null
             };
 
-            switch (exception)
+            if (exception is BaseException appEx)
             {
-                case KeyNotFoundException:
-                    code = HttpStatusCode.NotFound;
-                    problemDetails.Status = (int)code;
-                    problemDetails.Title = "Resource not found.";
-                    problemDetails.Detail = exception.Message;
-                    break;
-                case UnauthorizedAccessException:
-                    code = HttpStatusCode.Unauthorized;
-                    problemDetails.Status = (int)code;
-                    problemDetails.Title = "Unauthorized access.";
-                    problemDetails.Detail = exception.Message;
-                    break;
-
+                response.StatusCode = appEx.StatusCode;
+                response.Errors = appEx.Errors;
+            }
+            else
+            {
+                response.Message = "Internal Server Error";
+                _logger.LogError(exception, "Unexpected error");
             }
 
-            context.Response.ContentType = "application/problem+json";
-            context.Response.StatusCode = problemDetails.Status.Value;
+            context.Response.StatusCode = response.StatusCode;
 
-            var result = JsonSerializer.Serialize(problemDetails);
+            var result = JsonSerializer.Serialize(response);
             return context.Response.WriteAsync(result);
         }
     }
