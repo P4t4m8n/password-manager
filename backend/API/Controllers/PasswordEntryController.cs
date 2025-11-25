@@ -14,7 +14,7 @@ namespace API.Controllers
     [Authorize]
     [ApiController]
     [Route("api/Password-entry")]
-    public class PasswordEntryController : ControllerBase
+    public sealed class PasswordEntryController : ControllerBase
     {
         private readonly IDataContext _contextDapper;
 

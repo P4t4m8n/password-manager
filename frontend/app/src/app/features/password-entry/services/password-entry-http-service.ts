@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, map, retry, tap } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { IPasswordEntryDto } from '../interfaces/passwordEntry';
 import { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
 
@@ -15,9 +15,16 @@ export class PasswordEntryHttpService {
   private _passwordEntries$ = new BehaviorSubject<IPasswordEntryDto[]>([]);
   public passwordEntries$ = this._passwordEntries$.asObservable();
 
-  public get() {
+  public get(searchParams?: { entryName?: string }) {
+    let params = new HttpParams();
+    if (searchParams?.entryName) {
+      params = params.set('EntryName', searchParams.entryName);
+    }
     return this.httpClient
-      .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.coreAPIUrl}`, { withCredentials: true })
+      .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.coreAPIUrl}`, {
+        withCredentials: true,
+        params,
+      })
       .pipe(
         tap((res) => {
           this._passwordEntries$.next(res.data);
