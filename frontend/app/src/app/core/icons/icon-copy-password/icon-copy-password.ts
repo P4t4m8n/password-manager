@@ -1,5 +1,5 @@
 import { NgStyle } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { IconComponent } from '../../abstracts/icon-component';
 
 @Component({
@@ -7,4 +7,6 @@ import { IconComponent } from '../../abstracts/icon-component';
   imports: [NgStyle],
   templateUrl: './icon-copy-password.html',
 })
-export class IconCopyPassword extends IconComponent {}
+export class IconCopyPassword extends IconComponent {
+  @Input() showKeyhole: boolean = true;
+}

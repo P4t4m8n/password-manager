@@ -99,7 +99,13 @@ namespace API.Controllers
                 return NotFound();
             }
 
-            return Ok(entry);
+            HttpResponseDTO<PasswordEntryDto> response = new()
+            {
+                Data = entry,
+                Message = "Entry retrieved successfully."
+            };
+
+            return Ok(response);
         }
 
         [HttpPost("edit")]

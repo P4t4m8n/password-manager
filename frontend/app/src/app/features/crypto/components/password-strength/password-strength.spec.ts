@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { IconTrash } from './icon-trash';
+import { PasswordStrength } from './password-strength';
 
-describe('IconTrash', () => {
-  let component: IconTrash;
-  let fixture: ComponentFixture<IconTrash>;
+describe('PasswordStrength', () => {
+  let component: PasswordStrength;
+  let fixture: ComponentFixture<PasswordStrength>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [IconTrash]
+      imports: [PasswordStrength]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(IconTrash);
+    fixture = TestBed.createComponent(PasswordStrength);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

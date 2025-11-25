@@ -17,7 +17,7 @@
     width: 100%;
     transition: all 0.3s ease-in-out;
     display: grid;
-    grid-template-columns: 3rem 1fr 2rem;
+    grid-template-columns: 3rem 1fr 2.5rem;
     align-items: center;
     align-content: center;
 
@@ -50,7 +50,6 @@
     }
     button {
       transition: rotate 0.3s ease-in-out;
-      margin-left: auto;
       width: 2rem;
       height: 2rem;
     }
@@ -125,23 +124,31 @@
 @media (min-width: 48rem) {
   :host {
     height: 100%;
-    width: 18rem;
+    width: 26rem;
+    padding: 2rem;
     position: relative;
     transition: width 0.3s ease-in-out;
 
     header {
+          height: 4rem;
+
       span {
         display: block;
         width: 100%;
         transition: all 0.3s ease-in-out;
       }
+      button {
+        /* align-self: start; */
+        justify-self: center;
+      }
     }
     li {
-      width: 16rem;
+      width: 100%;
       transition: all 0.3s ease-in-out;
       display: block;
       a {
         p {
+          font-size: 1.25rem;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -153,7 +160,7 @@
   :host(.hide) {
     transform: translate(0);
     width: 4rem;
-
+    padding: 2rem 0;
     align-items: center;
 
     button {

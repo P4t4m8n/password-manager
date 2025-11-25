@@ -15,22 +15,22 @@ export class PasswordEntryService {
   async decryptPassword({
     encryptedPassword,
     iv,
-  }: Pick<IPasswordEntryDto, 'encryptedPassword' | 'iv'>): Promise<string | void> {
+  }: Pick<IPasswordEntryDto, 'encryptedPassword' | 'iv'>): Promise<string | null> {
     if (!encryptedPassword || !iv) {
       console.error('Encrypted password or IV is missing.');
-      return;
+      return null;
     }
 
     if (!this.cryptoService.checkEncryptionKeyInitialized()) {
       const masterPassword = await this.masterPasswordDialogService.openMasterPasswordDialog();
       if (!masterPassword) {
         console.error('Master password is required to encrypt the password entry.');
-        return;
+        return null;
       }
       const plainSalt = this.authService.get_master_password_salt();
       if (!plainSalt) {
         console.error('Master password salt is missing.');
-        return;
+        return null;
       }
 
       const salt = this.cryptoService.base64ToArrayBuffer(plainSalt);
@@ -42,9 +42,11 @@ export class PasswordEntryService {
         this.cryptoService.base64ToArrayBuffer(encryptedPassword),
         this.cryptoService.base64ToArrayBuffer(iv)
       );
+      console.log("🚀 ~ PasswordEntryService ~ decryptPassword ~ decryptedPassword:", decryptedPassword)
       return decryptedPassword;
     } catch (error) {
       console.error('🚀 ~ PasswordEntryPreview ~ onShowPassword ~ error:', error);
+      return null;
     }
   }
 }

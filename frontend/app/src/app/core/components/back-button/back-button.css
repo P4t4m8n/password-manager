@@ -1,7 +1,7 @@
 :host{
     display: flex;
-    height: fit-content;
-    width: fit-content;
+    height: 2rem;
+    width: 2rem;
     button{
         border:1px solid black;
         border-radius: 100vh;

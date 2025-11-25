@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, retry, tap } from 'rxjs';
+import { BehaviorSubject, catchError, map, retry, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { IPasswordEntryDto } from '../interfaces/passwordEntry';
 import { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
@@ -32,10 +32,11 @@ export class PasswordEntryHttpService {
 
   public getById(id: string) {
     return this.httpClient
-      .get<IPasswordEntryDto>(`${this.coreAPIUrl}/${id}`, {
+      .get<IHttpResponseDto<IPasswordEntryDto>>(`${this.coreAPIUrl}/${id}`, {
         withCredentials: true,
       })
       .pipe(
+        map((res) => res.data),
         catchError((err) => {
           console.error(`Error fetching password entry with id ${id}`, err);
           throw err;

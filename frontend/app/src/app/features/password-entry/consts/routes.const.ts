@@ -20,7 +20,7 @@ export const PASSWORD_ENTRIES_ROUTES: Routes = [
     children: [],
   },
   {
-    path: PASSWORD_ENTRIES_PATHS.passwordEntityDetails,
+    path: PASSWORD_ENTRIES_PATHS.passwordEntityDetails + '/:entryId',
     component: PasswordEntryDetails,
     canActivate: PASSWORD_ENTRY_GUARDS,
   },
@@ -34,7 +34,4 @@ export const PASSWORD_ENTRIES_ROUTES: Routes = [
     component: PasswordEntryEdit,
     canActivate: PASSWORD_ENTRY_GUARDS,
   },
-
 ] as const;
-
-

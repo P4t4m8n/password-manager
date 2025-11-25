@@ -1,8 +1,6 @@
 import { Component, inject, Input } from '@angular/core';
 import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
-import { IconTrash } from '../../../../core/icons/icon-trash/icon-trash';
-import { RouterLink } from '@angular/router';
 import { CryptoService } from '../../../crypto/services/crypto.service';
 import { AuthService } from '../../../Auth/services/auth.service';
 import { MasterPasswordDialogService } from '../../../crypto/master-password/services/master-password-dialog-service';
@@ -10,11 +8,11 @@ import { BehaviorSubject } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { IconFavorite } from "../../../../core/icons/icon-favorite/icon-favorite";
 import { IconCopyPassword } from "../../../../core/icons/icon-copy-password/icon-copy-password";
-import { IconDots } from "../../../../core/icons/icon-dots/icon-dots";
+import { PasswordEntryPreviewActions } from "../password-entry-preview-actions/password-entry-preview-actions";
 
 @Component({
   selector: 'app-password-entry-preview',
-  imports: [IconEye, IconTrash, RouterLink, AsyncPipe, IconFavorite, IconCopyPassword, IconDots],
+  imports: [IconEye, AsyncPipe, IconFavorite, IconCopyPassword, PasswordEntryPreviewActions],
   templateUrl: './password-entry-preview.html',
   styleUrl: './password-entry-preview.css',
 })

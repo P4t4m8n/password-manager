@@ -3,8 +3,8 @@ import { IconComponent } from '../../abstracts/icon-component';
 import { NgStyle } from '@angular/common';
 
 @Component({
-  selector: 'app-icon-trash',
+  selector: 'app-icon-pencil',
   imports: [NgStyle],
-  templateUrl: './icon-trash.html',
+  templateUrl: './icon-pencil.html',
 })
-export class IconTrash extends IconComponent {}
+export class IconPencil extends IconComponent {}

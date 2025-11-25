@@ -40,7 +40,7 @@ export class PasswordGeneratorService {
     }).join('');
   }
 
-  evaluatePasswordStrength(password: string){
+  evaluatePasswordStrength(password: string): { strength: TPasswordStrength; timeToCrack: string } {
     if (!password) {
       return { strength: 'weak', timeToCrack: 'instant' };
     }

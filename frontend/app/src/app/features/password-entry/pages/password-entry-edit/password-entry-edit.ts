@@ -11,9 +11,9 @@ import { MasterPasswordDialogService } from '../../../crypto/master-password/ser
 import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { filter, map } from 'rxjs';
+import { async, filter, map, switchMap } from 'rxjs';
 import { PasswordEntryService } from '../../services/password-entry-service';
-import { BackButton } from "../../../../core/components/back-button/back-button";
+import { BackButton } from '../../../../core/components/back-button/back-button';
 
 @Component({
   selector: 'app-password-entry-edit',
@@ -23,8 +23,8 @@ import { BackButton } from "../../../../core/components/back-button/back-button"
     ReactiveFormsModule,
     IconEye,
     PasswordGeneratorDialog,
-    BackButton
-],
+    BackButton,
+  ],
   templateUrl: './password-entry-edit.html',
   styleUrl: './password-entry-edit.css',
 })
@@ -50,26 +50,31 @@ export class PasswordEntryEdit {
     this.route.params
       .pipe(
         map((params) => params['entryId']),
-        filter((id) => id)
-      )
-      .subscribe((entryId: string) => {
-        this.passwordEntryHttpService.getById(entryId).subscribe({
-          next: async (entry) => {
-            const decryptedPassword =
-              (await this.passwordEntryService.decryptPassword({
-                encryptedPassword: entry.encryptedPassword,
-                iv: entry.iv,
-              })) ?? '';
+        filter((id) => !!id),
+        switchMap((entryId) => this.passwordEntryHttpService.getById(entryId)),
+        switchMap(async (entry) => {
+          const decryptedPassword =
+            (await this.passwordEntryService.decryptPassword({
+              encryptedPassword: entry.encryptedPassword,
+              iv: entry.iv,
+            })) ?? '';
 
-            this.passwordEntryFormGroup.patchValue({
-              entryName: entry.entryName,
-              websiteUrl: entry.websiteUrl,
-              entryUserName: entry.entryUserName,
-              password: decryptedPassword,
-              notes: entry.notes,
-            });
-          },
-        });
+          return { entry, decryptedPassword };
+        })
+      )
+      .subscribe({
+        next: ({ entry, decryptedPassword }) => {
+          this.passwordEntryFormGroup.patchValue({
+            entryName: entry.entryName,
+            websiteUrl: entry.websiteUrl,
+            entryUserName: entry.entryUserName,
+            password: decryptedPassword,
+            notes: entry.notes,
+          });
+        },
+        error: (err) => {
+          console.error('Error loading password entry', err);
+        },
       });
   }
 
@@ -139,7 +144,7 @@ export class PasswordEntryEdit {
     }
   }
 
-  onCancel(){
+  onCancel() {
     this.router.navigate(['/entries']);
   }
 }
