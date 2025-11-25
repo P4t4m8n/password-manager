@@ -57,7 +57,7 @@ export class PasswordEntryHttpService {
 
   public delete(id: string) {
     return this.httpClient
-      .delete<void>(`${this.coreAPIUrl}/Delete/${id}`, { withCredentials: true })
+      .delete<void>(`${this.coreAPIUrl}/${id}`, { withCredentials: true })
       .pipe(
         tap(() => {
           const passwordEntities = this._passwordEntries$.value.filter((pe) => pe.id !== id);
@@ -72,13 +72,13 @@ export class PasswordEntryHttpService {
 
   private create(dto: IPasswordEntryDto) {
     return this.httpClient
-      .post<IPasswordEntryDto>(`${this.coreAPIUrl}/Edit`, dto, {
+      .post<IHttpResponseDto<IPasswordEntryDto>>(`${this.coreAPIUrl}`, dto, {
         withCredentials: true,
       })
       .pipe(
         tap((pe) => {
           const passwordEntities = this._passwordEntries$.value;
-          this._passwordEntries$.next([...passwordEntities, pe]);
+          this._passwordEntries$.next([...passwordEntities, pe.data]);
           return pe;
         }),
         retry(1),
@@ -91,13 +91,13 @@ export class PasswordEntryHttpService {
 
   private update(dto: IPasswordEntryDto) {
     return this.httpClient
-      .put<IPasswordEntryDto>(`${this.coreAPIUrl}/Edit/${dto.id}`, dto, {
+      .put<IHttpResponseDto<IPasswordEntryDto>>(`${this.coreAPIUrl}/${dto.id}`, dto, {
         withCredentials: true,
       })
       .pipe(
         tap((updatedEntity) => {
           const passwordEntities = this._passwordEntries$.value.map((pe) =>
-            pe.id === updatedEntity.id ? updatedEntity : pe
+            pe.id === updatedEntity.data.id ? updatedEntity.data : pe
           );
           this._passwordEntries$.next(passwordEntities);
         }),

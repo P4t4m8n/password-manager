@@ -1,6 +1,5 @@
 
 
-using System.Security.Claims;
 using System.Security.Cryptography;
 using API.Dtos.User;
 using API.Dtos.Auth;
@@ -11,12 +10,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using API.Exceptions;
 using API.Dtos.Http;
+using API.Extensions;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public sealed class AuthController : ControllerBase
     {
 
         private readonly IDataContext _contextDapper;
@@ -32,14 +32,14 @@ namespace API.Controllers
         */
         [AllowAnonymous]
         [HttpPost("Sign-in")]
-        public async Task<ActionResult<AuthResponseDto>> SignIn(AuthSignInDto signInDto)
+        public async Task<ActionResult<AuthResponseDTO>> SignIn(AuthSignInDTO signInDto)
         {
             string sqlForHash = "EXEC PasswordSchema.spFor_Hash @Email=@Email";
 
             DynamicParameters parameters = new();
             parameters.Add("@Email", signInDto.Email);
 
-            AuthConfirmationDto? authConfirmation = await _contextDapper.QuerySingleOrDefaultAsync<AuthConfirmationDto>(sqlForHash, parameters)
+            AuthConfirmationDTO? authConfirmation = await _contextDapper.QuerySingleOrDefaultAsync<AuthConfirmationDTO>(sqlForHash, parameters)
              ?? throw new UnauthorizedException("Invalid email or password", new Dictionary<string, string>
                {
                    { "Email", "No user found for the given email" }
@@ -59,7 +59,7 @@ namespace API.Controllers
             }
 
             string userSelectSql = "EXEC PasswordSchema.spUser_GetOne @Email=@Email";
-            User? user = await _contextDapper.LoadDataSingle<User>(userSelectSql, parameters);
+            User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(userSelectSql, parameters);
 
             if (user == null || user.Id == Guid.Empty)
             {
@@ -81,11 +81,11 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            HttpResponseDTO<AuthResponseDto> httpResponse = new()
+            HttpResponseDTO<AuthResponseDTO> httpResponse = new()
             {
-                Data = new AuthResponseDto()
+                Data = new AuthResponseDTO()
                 {
-                    User = new UserDto
+                    User = new UserDTO
                     {
                         Id = user.Id,
                         Email = user.Email,
@@ -105,7 +105,7 @@ namespace API.Controllers
         */
         [AllowAnonymous]
         [HttpPost("Sign-up")]
-        public async Task<ActionResult<AuthResponseDto>> SignUp(AuthSignUpDto signUpDto)
+        public async Task<ActionResult<AuthResponseDTO>> SignUp(AuthSignUpDTO signUpDto)
         {
 
             string selectExistingUserSql = "EXEC PasswordSchema.spFor_Existing @Email=@Email";
@@ -163,9 +163,9 @@ namespace API.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            AuthResponseDto response = new()
+            AuthResponseDTO response = new()
             {
-                User = new UserDto
+                User = new UserDTO
                 {
                     Id = user.Id,
                     Email = user.Email,
@@ -174,7 +174,7 @@ namespace API.Controllers
                 MasterPasswordSalt = user.MasterPasswordSalt
             };
 
-            HttpResponseDTO<AuthResponseDto> httpResponse = new()
+            HttpResponseDTO<AuthResponseDTO> httpResponse = new()
             {
                 Data = response,
                 Message = "User created successfully",
@@ -188,29 +188,13 @@ namespace API.Controllers
         [HttpGet("Check-session")]
         */
         [HttpGet("Check-session")]
-        public async Task<ActionResult<AuthResponseDto>> CheckSession()
+        public async Task<ActionResult<AuthResponseDTO>> CheckSession()
         {
-            string userId = User.FindFirstValue("userId") ?? "";
-
-            AuthResponseDto authRes = new()
-            {
-                User = null,
-                MasterPasswordSalt = []
-            };
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                throw new UnauthorizedException("User not authenticated", new Dictionary<string, string>
-                {
-                    { "Authentication", "No valid authentication token found" }
-                });
-
-            }
-
+            Guid userGuid = User.GetUserId();
 
             string userIdSelectSql = "EXEC PasswordSchema.spUser_GetOne @Id=@Id";
             DynamicParameters parameters = new();
-            parameters.Add("@Id", Guid.Parse(userId));
+            parameters.Add("@Id", userGuid);
 
             User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(userIdSelectSql, parameters);
 
@@ -224,17 +208,18 @@ namespace API.Controllers
 
             }
 
-            authRes.User = new UserDto
+            HttpResponseDTO<AuthResponseDTO> httpResponse = new()
             {
-                Id = user.Id,
-                Email = user.Email,
-                Username = user.Username,
-            };
-            authRes.MasterPasswordSalt = user.MasterPasswordSalt;
-
-            HttpResponseDTO<AuthResponseDto> httpResponse = new()
-            {
-                Data = authRes,
+                Data = new()
+                {
+                    User = new UserDTO
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        Username = user.Username,
+                    },
+                    MasterPasswordSalt = user.MasterPasswordSalt
+                },
                 Message = "User is authenticated"
             };
 
@@ -244,60 +229,47 @@ namespace API.Controllers
         [HttpGet("Refresh-token")]
         */
         [HttpGet("Refresh-token")]
-        public async Task<ActionResult<AuthResponseDto>> RefreshToken()
+        public async Task<ActionResult<AuthResponseDTO>> RefreshToken()
         {
-            string userId = User.FindFirstValue("userId") ?? "";
-            User.ToString();
+            // User.ToString();
 
-            if (string.IsNullOrEmpty(userId))
-            {
-                throw new UnauthorizedException("User not authenticated", new Dictionary<string, string>
-                {
-                    { "Authentication", "No valid authentication token found" }
-                });
-
-            }
+            Guid userGuid = User.GetUserId();
 
             string userIdSelectSql = "EXEC PasswordSchema.spUser_GetOne @Id=@Id";
             DynamicParameters parameters = new();
-            parameters.Add("@Id", Guid.Parse(userId));
-            User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(userIdSelectSql, parameters);
+            parameters.Add("@Id", userGuid);
 
-            if (user == null || user.Id == Guid.Empty)
-            {
-
-                throw new NotFoundException("User not found", new Dictionary<string, string>
+            User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(userIdSelectSql, parameters)
+             ?? throw new NotFoundException("User not found", new Dictionary<string, string>
                  {
                     { "User", "No user found for the given authentication token" }
                  });
 
-            }
+
 
             string token = _authService.CreateToken(user.Id!.ToString()!);
 
             Response.Cookies.Append("AuthToken", token, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true, 
+                Secure = true,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
-            AuthResponseDto response = new()
+            HttpResponseDTO<AuthResponseDTO> httpResponse = new()
             {
-
-                User = new UserDto
+                Data = new()
                 {
-                    Id = user.Id,
-                    Email = user.Email,
-                    Username = user.Username,
-                },
-                MasterPasswordSalt = user.MasterPasswordSalt
-            };
 
-            HttpResponseDTO<AuthResponseDto> httpResponse = new()
-            {
-                Data = response,
+                    User = new UserDTO
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        Username = user.Username,
+                    },
+                    MasterPasswordSalt = user.MasterPasswordSalt
+                },
                 Message = "Token refreshed successfully",
                 StatusCode = 200
 
@@ -309,19 +281,17 @@ namespace API.Controllers
         [HttpPost("Sign-out")]
         */
         [HttpPost("Sign-out")]
-        public new ActionResult<AuthResponseDto> SignOut()
+        public new ActionResult<AuthResponseDTO> SignOut()
         {
             Response.Cookies.Delete("AuthToken");
 
-            AuthResponseDto response = new()
+            HttpResponseDTO<AuthResponseDTO> httpResponse = new()
             {
-                User = null,
-                MasterPasswordSalt = []
-            };
-
-            HttpResponseDTO<AuthResponseDto> httpResponse = new()
-            {
-                Data = response,
+                Data = new()
+                {
+                    User = null,
+                    MasterPasswordSalt = []
+                },
                 Message = "Sign-out successful",
                 StatusCode = 200
 

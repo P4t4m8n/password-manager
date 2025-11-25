@@ -5,7 +5,7 @@ using API.Interfaces;
 
 namespace API.Data
 {
-    public class DataContextDapper : IDataContext
+    public sealed class DataContextDapper : IDataContext
     {
         private readonly IConfiguration _config;
         private readonly string _connectionString = "";
@@ -23,11 +23,7 @@ namespace API.Data
             return await dbConnection.QueryAsync<T>(sql, parameters);
         }
 
-        public async Task<T?> LoadDataSingle<T>(string sql, DynamicParameters? parameters)
-        {
-            using IDbConnection dbConnection = new SqlConnection(_connectionString);
-            return await dbConnection.QuerySingleOrDefaultAsync<T>(sql, parameters);
-        }
+
         public async Task<T?> QuerySingleOrDefaultAsync<T>(string sql, DynamicParameters? parameters)
         {
             using IDbConnection dbConnection = new SqlConnection(_connectionString);
@@ -40,11 +36,6 @@ namespace API.Data
             return await dbConnection.ExecuteAsync(sql, parameters);
         }
 
-        public async Task<T?> InsertAndReturn<T>(string sql, DynamicParameters? parameters)
-        {
-            using IDbConnection dbConnection = new SqlConnection(_connectionString);
-            return await dbConnection.QuerySingleOrDefaultAsync<T>(sql, parameters);
-        }
 
 
 

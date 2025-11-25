@@ -1,6 +1,6 @@
 namespace API.Dtos.Http
 {
-    public class HttpErrorResponseDTO
+    public sealed class HttpErrorResponseDTO
     {
         public required string Message { get; set; }
         public required int StatusCode { get; set; }

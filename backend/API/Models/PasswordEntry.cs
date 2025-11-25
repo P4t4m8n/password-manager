@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using API.Interfaces;
 namespace API.Models
 {
-    public class PasswordEntry : IGuid, ICrudDate
+    public sealed class PasswordEntry : IGuid, ICrudDate
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

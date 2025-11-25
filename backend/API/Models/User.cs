@@ -4,7 +4,7 @@ using API.Interfaces;
 
 namespace API.Models
 {
-    public class User : IGuid, ICrudDate
+    public sealed class User : IGuid, ICrudDate
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

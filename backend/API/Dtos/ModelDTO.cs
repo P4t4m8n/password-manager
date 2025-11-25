@@ -1,4 +1,7 @@
-public class Dto
+
+namespace API.Dtos;
+
+public class ModelDTO
 {
     public Guid? Id { get; set; }
     public DateTime? CreatedAt { get; set; }

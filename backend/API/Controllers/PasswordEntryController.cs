@@ -1,13 +1,13 @@
 
 using Microsoft.AspNetCore.Mvc;
 using API.QueryParams;
-using System.Security.Claims;
 using Dapper;
 using API.Interfaces;
-using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using API.Dtos.PasswordEntry;
 using API.Dtos.Http;
+using API.Exceptions;
+using API.Extensions;
 
 namespace API.Controllers
 {
@@ -24,26 +24,11 @@ namespace API.Controllers
         }
 
         [HttpGet("")]
-        public async Task<ActionResult<List<PasswordEntryDto>>> GetEntries([FromQuery] PasswordEntryQueryParams queryParams)
+        public async Task<ActionResult<IEnumerable<PasswordEntryDTO>>> GetEntries([FromQuery] PasswordEntryQueryParams queryParams)
         {
 
-            string userId = User.FindFirstValue("userId") ?? "";
+            Guid userGuid = User.GetUserId();
 
-            if (userId == null)
-            {
-                HttpErrorResponseDTO errorResponse = new()
-                {
-                    Message = "Unauthorized access.",
-                    StatusCode = 401,
-                    Errors = new Dictionary<string, string>
-                     {
-                          { "Authentication", "User is not authenticated." }
-                     }
-                };
-                return Unauthorized(errorResponse);
-            }
-
-            Guid userGuid = Guid.Parse(userId);
             int limit = queryParams.Limit ?? 10;
             int offset = queryParams.Offset ?? 0;
 
@@ -61,68 +46,54 @@ namespace API.Controllers
             parameters.Add("@Limit", limit);
             parameters.Add("@Offset", offset);
 
-            IEnumerable<PasswordEntry> entries = await _contextDapper.LoadData<PasswordEntry>(selectSql, parameters);
+            IEnumerable<PasswordEntryDTO> entries = await _contextDapper.LoadData<PasswordEntryDTO>(selectSql, parameters);
 
-            HttpResponseDTO<IEnumerable<PasswordEntry>> response = new()
+            HttpResponseDTO<IEnumerable<PasswordEntryDTO>> httpResponse = new()
             {
                 Data = entries,
-                Message = "Entries retrieved successfully."
+                Message = "Entries retrieved successfully.",
+                StatusCode = 200
+
             };
 
-            return Ok(response);
+            return Ok(httpResponse);
         }
 
         [HttpGet("{entryId}")]
-        public async Task<ActionResult<PasswordEntryDto>> GetEntryById(Guid entryId)
+        public async Task<ActionResult<PasswordEntryDTO>> GetEntryById(Guid entryId)
         {
-            string userId = User.FindFirstValue("userId") ?? "";
-
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
-            Guid userGuid = Guid.Parse(userId);
+            Guid userGuid = User.GetUserId();
 
             string selectSql = @"EXEC PasswordSchema.spPasswordEntry_Select_ById
                                  @UserId=@UserId,
                                  @EntryId=@EntryId;";
 
-            DynamicParameters parameters = new DynamicParameters();
+            DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
             parameters.Add("@EntryId", entryId);
 
-            PasswordEntryDto? entry = await _contextDapper.LoadDataSingle<PasswordEntryDto>(selectSql, parameters);
+            PasswordEntryDTO? entry = await _contextDapper.QuerySingleOrDefaultAsync<PasswordEntryDTO>(selectSql, parameters)
+             ?? throw new NotFoundException("Password Entry not found", new Dictionary<string, string>
+                {
+                    { "EntryId", entryId.ToString() }
+                });
 
-            if (entry is null)
-            {
-                return NotFound();
-            }
-
-            HttpResponseDTO<PasswordEntryDto> response = new()
+            HttpResponseDTO<PasswordEntryDTO> httpResponse = new()
             {
                 Data = entry,
                 Message = "Entry retrieved successfully."
             };
 
-            return Ok(response);
+            return Ok(httpResponse);
         }
 
-        [HttpPost("edit")]
-        public async Task<ActionResult<PasswordEntryDto>> CreateEntry(PasswordEntryEditDto entryDto)
+        [HttpPost("")]
+        public async Task<ActionResult<PasswordEntryDTO>> CreateEntry(PasswordEntryCreateDTO entryDto)
         {
-            try
-            {
-                string userId = User.FindFirstValue("userId") ?? "";
 
-                if (userId == null)
-                {
-                    return Unauthorized();
-                }
+            Guid userGuid = User.GetUserId();
 
-                Guid userGuid = Guid.Parse(userId);
-
-                string insertSql = @"EXEC PasswordSchema.spPasswordEntry_Insert
+            string insertSql = @"EXEC PasswordSchema.spPasswordEntry_Insert
                                      @UserId=@UserId,
                                      @EntryName=@EntryName,
                                      @WebsiteUrl=@WebsiteUrl,
@@ -132,57 +103,36 @@ namespace API.Controllers
                                      @Notes=@Notes;";
 
 
-                DynamicParameters parameters = new();
-                parameters.Add("@UserId", userGuid);
-                parameters.Add("@EntryName", entryDto.EntryName);
-                parameters.Add("@WebsiteUrl", entryDto.WebsiteUrl);
-                parameters.Add("@EntryUserName", entryDto.EntryUserName);
-                parameters.Add("@EncryptedPassword", entryDto.EncryptedPassword);
-                parameters.Add("@IV", entryDto.IV);
-                parameters.Add("@Notes", entryDto.Notes);
+            DynamicParameters parameters = new();
+            parameters.Add("@UserId", userGuid);
+            parameters.Add("@EntryName", entryDto.EntryName);
+            parameters.Add("@WebsiteUrl", entryDto.WebsiteUrl);
+            parameters.Add("@EntryUserName", entryDto.EntryUserName);
+            parameters.Add("@EncryptedPassword", entryDto.EncryptedPassword);
+            parameters.Add("@IV", entryDto.IV);
+            parameters.Add("@Notes", entryDto.Notes);
 
-                PasswordEntryDto? entry = await _contextDapper.InsertAndReturn<PasswordEntryDto>(insertSql, parameters);
-
-                if (entry == null)
+            PasswordEntryDTO? entry = await _contextDapper.QuerySingleOrDefaultAsync<PasswordEntryDTO>(insertSql, parameters)
+             ?? throw new UnexpectedCaughtException("Failed to create password entry", new Dictionary<string, string>
                 {
-                    // This case might occur if the OUTPUT clause fails or returns nothing.
-                    return BadRequest("Failed to create the entry.");
-                }
-                HttpResponseDTO<PasswordEntryDto> response = new()
-                {
-                    Data = entry,
-                    Message = "Entry created successfully."
-                };
+                        { "Insertion", "No entry was created in the database." }
+                });
 
-                return Ok(response);
-            }
-            catch (Exception ex)
+            HttpResponseDTO<PasswordEntryDTO> httpResponse = new()
             {
-                HttpErrorResponseDTO errorResponse = new()
-                {
-                    Message = "An error occurred while processing your request.",
-                    StatusCode = 500,
-                    Errors = new Dictionary<string, string>
-                     {
-                          { "ExceptionMessage", ex.Message }
-                     }
-                };
+                Data = entry,
+                Message = "Entry created successfully."
+            };
 
-                return StatusCode(500, errorResponse);
-            }
+            return Ok(httpResponse);
+
+
         }
 
-        [HttpPut("edit/{entryId}")]
-        public async Task<ActionResult<PasswordEntryDto>> UpdateEntry(Guid entryId, PasswordEntryEditDto entryDto)
+        [HttpPut("{entryId}")]
+        public async Task<ActionResult<PasswordEntryDTO>> UpdateEntry(Guid entryId, PasswordEntryUpdateDTO entryDto)
         {
-            string? userId = User.FindFirstValue("userId");
-
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
-            Guid userGuid = Guid.Parse(userId);
+            Guid userGuid = User.GetUserId();
 
             string updateSql = @"EXEC PasswordSchema.spPasswordEntry_Update
                                  @UserId=@UserId,
@@ -194,7 +144,7 @@ namespace API.Controllers
                                  @IV=@IV,
                                  @Notes=@Notes;";
 
-            DynamicParameters parameters = new DynamicParameters();
+            DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
             parameters.Add("@EntryId", entryId);
             parameters.Add("@EntryName", entryDto.EntryName);
@@ -204,37 +154,52 @@ namespace API.Controllers
             parameters.Add("@IV", entryDto.IV);
             parameters.Add("@Notes", entryDto.Notes);
 
-            PasswordEntryDto? entry = await _contextDapper.InsertAndReturn<PasswordEntryDto>(updateSql, parameters);
+            PasswordEntryDTO? entry = await _contextDapper.QuerySingleOrDefaultAsync<PasswordEntryDTO>(updateSql, parameters)
+            ?? throw new UnexpectedCaughtException("Failed to update password entry", new Dictionary<string, string>
+                {
+                        { "Update", "No entry was updated in the database." }
+                });
 
-            if (entry == null)
+            HttpResponseDTO<PasswordEntryDTO> httpResponse = new()
             {
-                return NotFound();
-            }
+                Data = entry,
+                Message = "Entry updated successfully."
+            };
 
-            return Ok(entry);
+            return Ok(httpResponse);
         }
 
-        [HttpDelete("delete/{entryId}")]
+        [HttpDelete("{entryId}")]
         public async Task<ActionResult> DeleteEntry(Guid entryId)
         {
-            string userId = User.FindFirstValue("userId") ?? "";
+            Guid userGuid = User.GetUserId();
+
 
             string deleteSql = @"EXEC PasswordSchema.spPasswordEntry_Delete
                                  @UserId=@UserId,
                                  @EntryId=@EntryId;";
 
-            DynamicParameters parameters = new DynamicParameters();
-            parameters.Add("@UserId", userId);
+            DynamicParameters parameters = new();
+            parameters.Add("@UserId", userGuid);
             parameters.Add("@EntryId", entryId);
 
             int rowsAffected = await _contextDapper.ExecuteSql(deleteSql, parameters);
 
             if (rowsAffected == 0)
             {
-                return NotFound();
+                throw new NotFoundException("Password Entry not found", new Dictionary<string, string>
+                {
+                    { "EntryId", entryId.ToString() }
+                });
             }
 
-            return NoContent();
+            HttpResponseDTO<object> httpResponse = new()
+            {
+                Data = null,
+                Message = "Entry deleted successfully."
+            };
+
+            return Ok(httpResponse);
         }
     }
 }

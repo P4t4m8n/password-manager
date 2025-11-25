@@ -1,7 +1,7 @@
 
 namespace API.Dtos.Google;
 
-public class GoogleUserInfoDto
+public class GoogleUserInfoDTO
 {
     public string? Id { get; set; }
     public string? Email { get; set; }

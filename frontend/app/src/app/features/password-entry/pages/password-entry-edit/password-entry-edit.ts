@@ -38,12 +38,15 @@ export class PasswordEntryEdit {
   private passwordEntryService = inject(PasswordEntryService);
   private router = inject(Router);
 
+  private originalPasswordForUpdateCheck: string | null = null;
+
   passwordEntryFormGroup = this.formBuilder.group({
     entryName: [''],
     websiteUrl: [''],
     entryUserName: [''],
     password: [''],
     notes: [''],
+    id: [''],
   });
 
   ngOnInit() {
@@ -70,7 +73,9 @@ export class PasswordEntryEdit {
             entryUserName: entry.entryUserName,
             password: decryptedPassword,
             notes: entry.notes,
+            id: entry.id,
           });
+          this.originalPasswordForUpdateCheck = decryptedPassword;
         },
         error: (err) => {
           console.error('Error loading password entry', err);
@@ -83,42 +88,52 @@ export class PasswordEntryEdit {
   }
 
   async onSubmit() {
-    const { entryName, websiteUrl, entryUserName, password, notes } =
+    const { entryName, websiteUrl, entryUserName, password, notes, id } =
       this.passwordEntryFormGroup.value;
 
     if (!password) {
       console.error('Password is required.');
       return;
     }
-    if (!this.cryptoService.checkEncryptionKeyInitialized()) {
-      const masterPassword = await this.dialogService.openMasterPasswordDialog();
-      if (!masterPassword) {
-        console.error('Master password is required to encrypt the password entry.');
-        return;
-      }
-      const plainSalt = this.authService.get_master_password_salt();
-      if (!plainSalt) {
-        console.error('Master password salt is missing.');
-        return;
-      }
 
-      const salt = this.cryptoService.base64ToArrayBuffer(plainSalt);
-      await this.cryptoService.deriveMasterEncryptionKey({ masterPassword, salt });
-    }
+    const isPasswordChanged = password !== this.originalPasswordForUpdateCheck;
 
-    const encryptedPassword = await this.cryptoService.encryptPassword(password);
-
-    const passwordEntryDto: IPasswordEntryDto = {
+    let passwordEntryDto: IPasswordEntryDto = {
       entryName: entryName || '',
       websiteUrl: websiteUrl || '',
       entryUserName: entryUserName || '',
-      encryptedPassword: this.cryptoService.arrayBufferToBase64(encryptedPassword.encrypted),
-      iv: this.cryptoService.arrayBufferToBase64(encryptedPassword.iv),
       notes: notes || '',
+      id: id || '',
     };
+
+    if (isPasswordChanged) {
+      if (!this.cryptoService.checkEncryptionKeyInitialized()) {
+        const masterPassword = await this.dialogService.openMasterPasswordDialog();
+        if (!masterPassword) {
+          console.error('Master password is required to encrypt the password entry.');
+          return;
+        }
+        const plainSalt = this.authService.get_master_password_salt();
+        if (!plainSalt) {
+          console.error('Master password salt is missing.');
+          return;
+        }
+
+        const salt = this.cryptoService.base64ToArrayBuffer(plainSalt);
+        await this.cryptoService.deriveMasterEncryptionKey({ masterPassword, salt });
+      }
+
+      const encryptedPassword = await this.cryptoService.encryptPassword(password);
+
+      passwordEntryDto.encryptedPassword = this.cryptoService.arrayBufferToBase64(
+        encryptedPassword.encrypted
+      );
+      passwordEntryDto.iv = this.cryptoService.arrayBufferToBase64(encryptedPassword.iv);
+    }
+
     this.passwordEntryHttpService.save(passwordEntryDto).subscribe({
       next: (res) => {
-        this.router.navigate(['/entries', res.id]);
+        this.router.navigate(['/entries/details', res.data.id]);
       },
       error: (err) => {
         console.error('Error saving password entry:', err);

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace API.Dtos.Auth;
 
-public class AuthSignUpDto : AuthSignInDto
+public sealed class AuthSignUpDTO : AuthSignInDTO
 {
 
     [Required(ErrorMessage = "Username is required")]

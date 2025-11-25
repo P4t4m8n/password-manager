@@ -1,5 +1,7 @@
 
 
+using API.Dtos.Http;
+using API.Exceptions;
 using API.Interfaces;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +11,7 @@ namespace API.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController : ControllerBase
+    public sealed class UserController : ControllerBase
     {
         private readonly IDataContext _contextDapper;
 
@@ -22,16 +24,25 @@ namespace API.Controllers
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             string sql = "DELETE FROM PasswordSchema.[User] WHERE Id = @Id";
-            DynamicParameters parameters = new DynamicParameters();
+            DynamicParameters parameters = new();
             parameters.Add("@Id", id);
 
             int rowsAffected = await _contextDapper.ExecuteSql(sql, parameters);
             if (rowsAffected == 0)
             {
-                return NotFound();
+                throw new UnexpectedCaughtException("Failed to delete user", new Dictionary<string, string>
+                {
+                        { "Deletion", "No user was deleted in the database." }
+                });
             }
 
-            return NoContent();
+            HttpResponseDTO<object> httpResponse = new()
+            {
+                Data = null,
+                Message = "User deleted successfully."
+            };
+
+            return Ok(httpResponse);
         }
     }
 }

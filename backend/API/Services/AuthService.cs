@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace API.Services
 {
-    public class AuthService : IAuthService
+    public sealed class AuthService : IAuthService
     {
         private readonly IConfiguration _config;
 

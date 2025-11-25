@@ -2,11 +2,10 @@ using System.Net;
 using System.Text.Json;
 using API.Dtos.Http;
 using API.Exceptions;
-using Microsoft.AspNetCore.Mvc;
 
 namespace API.Middleware
 {
-    public class ErrorHandlingMiddleware
+    public sealed class ErrorHandlingMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ErrorHandlingMiddleware> _logger;

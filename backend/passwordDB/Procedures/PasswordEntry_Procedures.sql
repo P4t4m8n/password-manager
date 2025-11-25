@@ -31,7 +31,7 @@ CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Select_ById
     @EntryId UNIQUEIDENTIFIER
 AS
 BEGIN
-    SELECT Id, EntryName, WebsiteUrl, EntryUserName, EncryptedPassword, IV, Notes
+    SELECT Id, EntryName, WebsiteUrl, EntryUserName, EncryptedPassword, IV, Notes, UserId, CreatedAt, UpdatedAt
     FROM PasswordSchema.PasswordEntry
     WHERE UserId = @UserId AND Id = @EntryId;
 END

@@ -2,9 +2,9 @@ namespace API.Dtos.Auth;
 
 using API.Dtos.User;
 
-public class AuthResponseDto
+public sealed class AuthResponseDTO
 {
-    public UserDto? User { get; set; }
+    public UserDTO? User { get; set; }
     public required byte[] MasterPasswordSalt { get; set; }
 
 }

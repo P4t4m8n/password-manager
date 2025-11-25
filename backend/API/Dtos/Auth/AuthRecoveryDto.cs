@@ -1,7 +1,7 @@
 
 namespace API.Dtos.Auth;
 
-public class AuthRecoveryDto
+public sealed class AuthRecoveryDTO
 {
     public byte[]? NewEncryptedMasterKeyWithRecovery { get; set; }
     public byte[]? NewMasterPasswordSalt { get; set; }

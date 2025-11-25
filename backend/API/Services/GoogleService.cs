@@ -5,7 +5,7 @@ using System.Text;
 
 namespace API.Services
 {
-    public class GoogleService : IGoogleService
+    public sealed class GoogleService : IGoogleService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
@@ -41,7 +41,7 @@ namespace API.Services
                 return ex.ToString();
             }
         }
-        public async Task<GoogleUserInfoDto?> GetGoogleUserInfoAsync(string accessToken)
+        public async Task<GoogleUserInfoDTO?> GetGoogleUserInfoAsync(string accessToken)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v2/userinfo");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
@@ -50,7 +50,7 @@ namespace API.Services
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<GoogleUserInfoDto>(content)!;
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<GoogleUserInfoDTO>(content)!;
             }
             else
             {
