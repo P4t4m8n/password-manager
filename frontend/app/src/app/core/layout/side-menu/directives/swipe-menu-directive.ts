@@ -7,7 +7,7 @@ import { SwipeMenuService } from '../services/swipe-menu-service';
 export class SwipeMenuDirective {
   private sideMenuService = inject(SwipeMenuService);
   private touchStartX = 0;
-  private readonly minSwipeDistance = 5000;
+  private readonly minSwipeDistance = 50;
 
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent): void {

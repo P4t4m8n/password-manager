@@ -6,14 +6,17 @@ import { Subject } from 'rxjs';
   providedIn: 'root',
 })
 export class ToastService {
-  data!: IToastData;
+  data: IToastData = {
+    title: '',
+    content: '',
+    show: false,
+    type: toastTypes.success,
+    progressWidth: '100%',
+  };
   public open = new Subject<IToastData>();
 
   initiate(data: IToastData) {
-    console.log('🚀 ~ ToastService ~ initiate ~ data:', data);
-
     this.data = { ...data, show: true, progressWidth: '100%' };
-    console.log("🚀 ~ ToastService ~ initiate ~ this.data:", this.data)
     this.open.next(this.data);
   }
 

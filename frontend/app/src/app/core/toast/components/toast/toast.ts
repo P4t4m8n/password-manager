@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { ToastService } from '../../services/toast-service';
 import { NgClass } from '@angular/common';
 
@@ -13,9 +13,11 @@ export class Toast implements OnInit {
   progressInterval!: number;
 
   private toastService = inject(ToastService);
+  private cd = inject(ChangeDetectorRef);
 
   ngOnInit() {
     this.toastService.open.subscribe((data) => {
+      this.cd.detectChanges();
       if (data.show) {
         this.countDown();
       }
@@ -44,7 +46,7 @@ export class Toast implements OnInit {
   }
 
   get isOpenClass() {
-    return this?.data.show ? 'open' : 'closed';
+    return this.data?.show ? 'open' : 'closed';
   }
 
   stopCountDown() {

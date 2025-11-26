@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-master-password-dialog',
@@ -15,6 +16,15 @@ export class MasterPasswordDialog {
 
   private resolvePromise: ((value: string | null) => void) | null = null;
 
+  private router = inject(Router);
+
+  navigateToRecovery(): void {
+    if (this.resolvePromise) {
+      this.resolvePromise(null);
+      this.resolvePromise = null;
+    }
+    this.router.navigate(['/recovery']);
+  }
   open(): Promise<string | null> {
     return new Promise((resolve) => {
       this.resolvePromise = resolve;

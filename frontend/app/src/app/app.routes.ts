@@ -5,6 +5,7 @@ import { MainLayout } from './core/layout/main/main-root/main-layout';
 import { PASSWORD_ENTRIES_ROUTES } from './features/password-entry/consts/routes.const';
 import { PASSWORD_GENERATOR_ROUTES } from './features/password-generator/consts/password-generator-routes.const';
 import { SETTINGS_ROUTES } from './features/settings/const/settings-routes.const';
+import { MASTER_PASSWORD_ROUTES } from './features/crypto/master-password/const/master-password-routes.const';
 
 export const routes: Routes = [
   {
@@ -16,6 +17,7 @@ export const routes: Routes = [
       ...PASSWORD_ENTRIES_ROUTES,
       ...PASSWORD_GENERATOR_ROUTES,
       ...SETTINGS_ROUTES,
+      ...MASTER_PASSWORD_ROUTES,
     ],
   },
   { path: 'auth', component: AuthIndex },

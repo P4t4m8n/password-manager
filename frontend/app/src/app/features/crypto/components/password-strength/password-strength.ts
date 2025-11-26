@@ -23,7 +23,6 @@ export class PasswordStrength {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['password']) {
-      console.log(this.password);
       const { strength, timeToCrack } = this.passwordService.evaluatePasswordStrength(
         this.password!
       );

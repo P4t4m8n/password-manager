@@ -42,11 +42,11 @@ export class PasswordGenerator implements OnInit {
   public timeToCrack: string = '1 day';
 
   checkboxInputs = [
-    { label: 'Include Lowercase Letters', formControlName: 'includesLowercase' },
-    { label: 'Include Uppercase Letters', formControlName: 'includeUppercase' },
-    { label: 'Include Numbers', formControlName: 'includeNumbers' },
-    { label: 'Include Symbols', formControlName: 'includeSymbols' },
-    { label: 'Include Similar Characters', formControlName: 'includeSimilarCharacters' },
+    { label: 'Lowercase Letters', formControlName: 'includesLowercase' },
+    { label: 'Uppercase Letters', formControlName: 'includeUppercase' },
+    { label: 'Numbers', formControlName: 'includeNumbers' },
+    { label: 'Symbols', formControlName: 'includeSymbols' },
+    { label: 'Similar Characters', formControlName: 'includeSimilarCharacters' },
   ];
 
   passwordGeneratorFormGroup = this.formBuilder.group({
@@ -56,8 +56,9 @@ export class PasswordGenerator implements OnInit {
     includeUppercase: [true],
     includeSimilarCharacters: [false],
     includesLowercase: [true],
-    password: [''],
   });
+
+  passwordControl = this.formBuilder.control('');
 
   ngOnInit() {
     this.passwordGeneratorFormGroup.valueChanges.subscribe((value) => {
@@ -93,7 +94,7 @@ export class PasswordGenerator implements OnInit {
       includeSimilarCharacters
     );
 
-    this.passwordGeneratorFormGroup.patchValue({ password }, { emitEvent: false });
+    this.passwordControl.setValue(password, { emitEvent: false });
 
     const { strength, timeToCrack } = this.passwordService.evaluatePasswordStrength(password);
     this.passwordStrength = strength as TPasswordStrength;
@@ -102,7 +103,7 @@ export class PasswordGenerator implements OnInit {
 
   async copyToClipboard() {
     try {
-      const password = this.passwordGeneratorFormGroup.value.password;
+      const password = this.passwordControl.value;
       await this.clipboardService.copyToClipboard(password);
     } catch (err) {
       console.error('Failed to copy password:', err);
@@ -110,7 +111,7 @@ export class PasswordGenerator implements OnInit {
   }
 
   emitPasswordSelected() {
-    const password = this.passwordGeneratorFormGroup.value.password;
+    const password = this.passwordControl.value;
     if (password) {
       this.passwordSelected.emit(password);
     }

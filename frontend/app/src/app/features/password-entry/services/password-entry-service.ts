@@ -42,7 +42,6 @@ export class PasswordEntryService {
         this.cryptoService.base64ToArrayBuffer(encryptedPassword),
         this.cryptoService.base64ToArrayBuffer(iv)
       );
-      console.log("🚀 ~ PasswordEntryService ~ decryptPassword ~ decryptedPassword:", decryptedPassword)
       return decryptedPassword;
     } catch (error) {
       console.error('🚀 ~ PasswordEntryPreview ~ onShowPassword ~ error:', error);
