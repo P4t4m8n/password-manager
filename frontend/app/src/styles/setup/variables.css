@@ -4,6 +4,9 @@
   --accent: rgb(255, 94, 91);
   --main-gray: rgb(209, 209, 209);
   --raw-accent: 255, 94, 91;
+
+  --main-text-color: rgb(50, 50, 50);
+  --secondary-text-color: rgb(100, 100, 100);
   --font-family: 'Courier New', monospace;
   --font-size-base: 1rem;
   --shadow: 8px 8px 0px var(--primary);

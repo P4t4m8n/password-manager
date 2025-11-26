@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { PasswordGenerator } from '../../pages/password-generator/password-generator';
+import { PasswordGenerator } from '../password-generator/password-generator';
 import { DialogDirective } from '../../../../core/directives/dialog.directive';
 import { IconPasswordGenerator } from '../../../../core/icons/icon-password-generator/icon-password-generator';
 

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { PasswordGenerator } from '../pages/password-generator/password-generator';
+import { PasswordGeneratorPage } from '../pages/password-generator-page/password-generator-page';
 
 export const PASSWORD_GENERATOR_PATHS = {
   passwordGenerator: 'password-generator',
@@ -8,7 +8,7 @@ export const PASSWORD_GENERATOR_PATHS = {
 export const PASSWORD_GENERATOR_ROUTES: Routes = [
   {
     path: PASSWORD_GENERATOR_PATHS.passwordGenerator,
-    component: PasswordGenerator,
+    component: PasswordGeneratorPage,
   },
 ];
 

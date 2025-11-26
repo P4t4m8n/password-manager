@@ -1,15 +1,17 @@
 import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
-import { TPasswordStrength } from '../../types/password-generator.type';
+import { NgClass } from '@angular/common';
 import { FormBuilder, ɵInternalFormsSharedModule, ReactiveFormsModule } from '@angular/forms';
-import { IconCopyPassword } from '../../../../core/icons/icon-copy-password/icon-copy-password';
 
+import { IconCopyPassword } from '../../../../core/icons/icon-copy-password/icon-copy-password';
 import { PasswordGeneratorService } from '../../services/password-generator-service';
-import { IconPlus } from '../../../../core/icons/icon-plus/icon-plus';
 import { IconWarn } from '../../../../core/icons/icon-warn/icon-warn';
 import { IconCheck } from '../../../../core/icons/icon-check/icon-check';
 import { IconShield } from '../../../../core/icons/icon-shield/icon-shield';
 import { IconError } from '../../../../core/icons/icon-error/icon-error';
-import { NgClass } from '@angular/common';
+
+import { TPasswordStrength } from '../../types/password-generator.type';
+import { ClipboardService } from '../../../../core/services/clipboard-service';
+import { ToastService } from '../../../../core/toast/services/toast-service';
 
 @Component({
   selector: 'app-password-generator',
@@ -31,10 +33,13 @@ export class PasswordGenerator implements OnInit {
   @Output() passwordSelected = new EventEmitter<string>();
   @Output() dialogClosed = new EventEmitter<void>();
 
-  passwordStrength: TPasswordStrength = 'medium';
-  timeToCrack: string = '1 day';
   private passwordService = inject(PasswordGeneratorService);
   private formBuilder = inject(FormBuilder);
+  private clipboardService = inject(ClipboardService);
+  private toastService = inject(ToastService);
+
+  public passwordStrength: TPasswordStrength = 'medium';
+  public timeToCrack: string = '1 day';
 
   checkboxInputs = [
     { label: 'Include Lowercase Letters', formControlName: 'includesLowercase' },
@@ -96,14 +101,9 @@ export class PasswordGenerator implements OnInit {
   }
 
   async copyToClipboard() {
-    const password = this.passwordGeneratorFormGroup.value.password;
-
-    if (!password) {
-      return;
-    }
-
     try {
-      await navigator.clipboard.writeText(password);
+      const password = this.passwordGeneratorFormGroup.value.password;
+      await this.clipboardService.copyToClipboard(password);
     } catch (err) {
       console.error('Failed to copy password:', err);
     }
