@@ -15,7 +15,7 @@ using API.Extensions;
 namespace API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Auth")]
     public sealed class AuthController : ControllerBase
     {
 

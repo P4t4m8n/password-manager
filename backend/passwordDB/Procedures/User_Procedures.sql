@@ -57,3 +57,16 @@ BEGIN
     VALUES
         (@Email, @Username, @PasswordHash, @PasswordSalt, @MasterPasswordSalt, @EncryptedMasterKeyWithRecovery, @RecoveryIV);
 END
+
+GO
+
+CREATE OR ALTER PROCEDURE PasswordSchema.spUser_Select_MasterPasswordRecoveryData
+    @UserId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SELECT EncryptedMasterKeyWithRecovery, RecoveryIV
+    FROM PasswordSchema.[User]
+    WHERE Id = @UserId;
+END
+
+GO

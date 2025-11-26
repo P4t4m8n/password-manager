@@ -1,16 +1,19 @@
 
 
 using API.Dtos.Http;
+using API.Dtos.User;
 using API.Exceptions;
 using API.Interfaces;
 using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using API.Extensions;
 
 namespace API.Controllers
 {
-
+    [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/User")]
     public sealed class UserController : ControllerBase
     {
         private readonly IDataContext _contextDapper;
@@ -20,26 +23,26 @@ namespace API.Controllers
             _contextDapper = contextDapper;
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteUser(Guid id)
+        [HttpGet("master-password-recovery")]
+        public async Task<ActionResult<HttpResponseDTO<MasterKeyRecoveryResponseDTO>>> GetMasterPasswordRecovery()
         {
-            string sql = "DELETE FROM PasswordSchema.[User] WHERE Id = @Id";
+            Guid userGuid = User.GetUserId();
+
+            string selectSql = @"EXEC PasswordSchema.spUser_Select_MasterPasswordRecoveryData
+                                 @UserId=@UserId;";
+
             DynamicParameters parameters = new();
-            parameters.Add("@Id", id);
+            parameters.Add("@UserId", userGuid);
 
-            int rowsAffected = await _contextDapper.ExecuteSql(sql, parameters);
-            if (rowsAffected == 0)
-            {
-                throw new UnexpectedCaughtException("Failed to delete user", new Dictionary<string, string>
-                {
-                        { "Deletion", "No user was deleted in the database." }
-                });
-            }
+            MasterKeyRecoveryResponseDTO? recoveryData = await _contextDapper
+            .QuerySingleOrDefaultAsync<MasterKeyRecoveryResponseDTO>(selectSql, parameters)
+            ?? throw new NotFoundException("User recovery data not found.");
 
-            HttpResponseDTO<object> httpResponse = new()
+            HttpResponseDTO<MasterKeyRecoveryResponseDTO> httpResponse = new()
             {
-                Data = null,
-                Message = "User deleted successfully."
+                Data = recoveryData,
+                Message = "Master password recovery data retrieved successfully.",
+                StatusCode = 200
             };
 
             return Ok(httpResponse);
