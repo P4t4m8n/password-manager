@@ -1,12 +1,11 @@
-import { Directive, ElementRef, OnInit, Output, EventEmitter, HostListener } from '@angular/core';
+import { Directive, ElementRef, Output, EventEmitter, HostListener, inject } from '@angular/core';
 
 @Directive()
 export class DialogDirective {
   @Output() dialogClosed = new EventEmitter<void>();
 
+  private el: ElementRef<HTMLElement> = inject(ElementRef);
   private dialogElement: HTMLDialogElement | null = null;
-
-  constructor(private el: ElementRef<HTMLElement>) {}
 
   ngAfterViewInit(): void {
     this.dialogElement = this.el.nativeElement.querySelector('dialog');

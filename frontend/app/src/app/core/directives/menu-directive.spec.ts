@@ -1,8 +1,8 @@
-import { ModalDirective } from './modal-directive';
+import { MenuDirective } from './menu-directive';
 
 describe('ModalDirective', () => {
   it('should create an instance', () => {
-    const directive = new ModalDirective();
+    const directive = new MenuDirective();
     expect(directive).toBeTruthy();
   });
 });

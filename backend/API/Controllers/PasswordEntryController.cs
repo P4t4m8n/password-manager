@@ -8,6 +8,7 @@ using API.Dtos.PasswordEntry;
 using API.Dtos.Http;
 using API.Exceptions;
 using API.Extensions;
+using System.Data;
 
 namespace API.Controllers
 {
@@ -200,6 +201,52 @@ namespace API.Controllers
             };
 
             return Ok(httpResponse);
+        }
+
+        [HttpPatch("update-after-recovery")]
+        public async Task<ActionResult<IEnumerable<PasswordEntryDTO>>> UpdateEntriesAfterRecovery(List<PasswordEntryUpdateDTO> updateDtos)
+        {
+            Guid userGuid = User.GetUserId();
+
+            DataTable tvp = new();
+            tvp.Columns.Add("Id", typeof(Guid));
+            tvp.Columns.Add("EncryptedPassword", typeof(byte[]));
+            tvp.Columns.Add("IV", typeof(string));
+
+            foreach (var dto in updateDtos)
+            {
+                tvp.Rows.Add(dto.Id, dto.EncryptedPassword, dto.IV);
+            }
+            string updateSql = @"
+                UPDATE pe
+                SET pe.EncryptedPassword = e.EncryptedPassword,
+                pe.IV = e.IV
+FROM PasswordSchema.PasswordEntry pe
+INNER JOIN @Entries e ON pe.Id = e.Id
+WHERE pe.UserId = @UserId;";
+
+
+            DynamicParameters parameters = new();
+            parameters.Add("@UserId", userGuid);
+            parameters.Add(
+                "@Entries",
+                tvp.AsTableValuedParameter("PasswordSchema.PasswordEntryUpdateAfterRecoveryTable")
+            );
+
+            int rowsAffected = await _contextDapper.ExecuteSql(updateSql, parameters);
+
+            HttpResponseDTO<int> httpResponse = new()
+            {
+                Data = rowsAffected,
+                Message = "Entries updated successfully after recovery."
+            };
+
+            return Ok(httpResponse);
+
+
+
+
+
         }
     }
 }

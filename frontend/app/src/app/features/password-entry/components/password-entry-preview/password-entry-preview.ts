@@ -2,13 +2,13 @@ import { Component, inject, Input } from '@angular/core';
 import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
 import { CryptoService } from '../../../crypto/services/crypto.service';
-import { AuthService } from '../../../Auth/services/auth.service';
-import { MasterPasswordDialogService } from '../../../crypto/master-password/services/master-password-dialog-service';
+import { AuthService } from '../../../auth/services/auth.service';
 import { BehaviorSubject } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
-import { IconFavorite } from "../../../../core/icons/icon-favorite/icon-favorite";
-import { IconCopyPassword } from "../../../../core/icons/icon-copy-password/icon-copy-password";
-import { PasswordEntryPreviewActions } from "../password-entry-preview-actions/password-entry-preview-actions";
+import { IconFavorite } from '../../../../core/icons/icon-favorite/icon-favorite';
+import { IconCopyPassword } from '../../../../core/icons/icon-copy-password/icon-copy-password';
+import { PasswordEntryPreviewActions } from '../password-entry-preview-actions/password-entry-preview-actions';
+import { MasterPasswordDialogService } from '../../../master-password/services/master-password-dialog-service';
 
 @Component({
   selector: 'app-password-entry-preview',
@@ -36,7 +36,9 @@ export class PasswordEntryPreview {
     }
 
     if (!this.cryptoService.checkEncryptionKeyInitialized()) {
-      const masterPassword = await this.masterPasswordDialogService.openMasterPasswordDialog();
+      const masterPassword = await this.masterPasswordDialogService.openDialogWithProps({
+        mode: 'unlock',
+      });
       if (!masterPassword) {
         console.error('Master password is required to encrypt the password entry.');
         return;

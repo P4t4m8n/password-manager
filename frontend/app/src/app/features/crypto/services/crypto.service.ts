@@ -10,7 +10,7 @@ export class CryptoService {
   checkEncryptionKeyInitialized(): boolean {
     return this.encryptionKey !== null;
   }
-  
+
   async deriveMasterEncryptionKey({
     masterPassword,
     salt,
@@ -194,5 +194,35 @@ export class CryptoService {
     link.download = `recovery-key-${username}.txt`;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  async handleMasterPasswordCreation(masterPassword: string): Promise<{
+    recoveryIVBase64: string;
+    encryptedMasterKeyWithRecoveryBase64: string;
+    masterPasswordSaltBase64: string;
+    recoveryKey: Uint8Array<ArrayBuffer>;
+  }> {
+    const masterPasswordSalt = this.generateSalt();
+    await this.deriveMasterEncryptionKey({
+      masterPassword,
+      salt: masterPasswordSalt,
+    });
+
+    const recoveryKey = this.generateRecoveryKey();
+    const { encrypted: encryptedMasterKeyWithRecovery, iv: recoveryIV } =
+      await this.encryptMasterKeyWithRecovery(recoveryKey);
+
+    const masterPasswordSaltBase64 = this.arrayBufferToBase64(masterPasswordSalt);
+    const encryptedMasterKeyWithRecoveryBase64 = this.arrayBufferToBase64(
+      encryptedMasterKeyWithRecovery
+    );
+    const recoveryIVBase64 = this.arrayBufferToBase64(recoveryIV);
+
+    return {
+      recoveryIVBase64,
+      encryptedMasterKeyWithRecoveryBase64,
+      masterPasswordSaltBase64,
+      recoveryKey
+    };
   }
 }

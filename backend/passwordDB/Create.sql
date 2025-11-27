@@ -89,6 +89,19 @@ END
 GO
 
 IF NOT EXISTS (SELECT *
+FROM sys.types
+WHERE name = 'PasswordEntryUpdateAfterRecoveryTable' AND is_table_type = 1)
+BEGIN
+    CREATE TYPE PasswordSchema.PasswordEntryUpdateAfterRecoveryTable AS TABLE
+(
+        Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+        EncryptedPassword VARBINARY(MAX) NOT NULL,
+        IV NVARCHAR(255) NOT NULL
+);
+END
+GO
+
+IF NOT EXISTS (SELECT *
 FROM sys.indexes
 WHERE name = 'IDX_PasswordEntry_UserId' AND object_id = OBJECT_ID('PasswordSchema.PasswordEntry'))
 BEGIN

@@ -1,10 +1,7 @@
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import {  Component, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../Auth/services/auth.service';
-import { MasterPasswordDialogService } from '../../../crypto/master-password/services/master-password-dialog-service';
-import { CryptoService } from '../../../crypto/services/crypto.service';
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
-import { BehaviorSubject, filter, map, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, map, Observable, switchMap, tap } from 'rxjs';
 import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { AsyncPipe } from '@angular/common';
 import { BackButton } from '../../../../core/components/back-button/back-button';

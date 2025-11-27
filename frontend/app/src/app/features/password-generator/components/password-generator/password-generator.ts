@@ -11,7 +11,6 @@ import { IconError } from '../../../../core/icons/icon-error/icon-error';
 
 import { TPasswordStrength } from '../../types/password-generator.type';
 import { ClipboardService } from '../../../../core/services/clipboard-service';
-import { ToastService } from '../../../../core/toast/services/toast-service';
 
 @Component({
   selector: 'app-password-generator',
@@ -36,7 +35,6 @@ export class PasswordGenerator implements OnInit {
   private passwordService = inject(PasswordGeneratorService);
   private formBuilder = inject(FormBuilder);
   private clipboardService = inject(ClipboardService);
-  private toastService = inject(ToastService);
 
   public passwordStrength: TPasswordStrength = 'medium';
   public timeToCrack: string = '1 day';

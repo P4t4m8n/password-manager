@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '../../Auth/guards/auth-guard';
+import { authGuard } from '../../auth/guards/auth-guard';
 import { PasswordEntries } from '../pages/password-entries/password-entries';
 import { PasswordEntryDetails } from '../pages/password-entry-details/password-entry-details';
 import { PasswordEntryEdit } from '../pages/password-entry-edit/password-entry-edit';

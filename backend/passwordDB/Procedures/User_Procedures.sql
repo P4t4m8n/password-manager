@@ -70,3 +70,21 @@ BEGIN
 END
 
 GO
+
+CREATE OR ALTER PROCEDURE PasswordSchema.spUser_Update_MasterPasswordRecovery
+    @UserId UNIQUEIDENTIFIER,
+    @EncryptedMasterKeyWithRecovery VARBINARY(MAX),
+    @RecoveryIV VARBINARY(MAX),
+    @MasterPasswordSalt VARBINARY(MAX)
+AS
+BEGIN
+    UPDATE PasswordSchema.[User]
+    SET EncryptedMasterKeyWithRecovery = @EncryptedMasterKeyWithRecovery,
+        RecoveryIV = @RecoveryIV,
+        MasterPasswordSalt = @MasterPasswordSalt
+    WHERE Id = @UserId;
+
+    SELECT Id, Email, Username, MasterPasswordSalt
+    FROM PasswordSchema.[User]
+    WHERE Id = @UserId;
+END

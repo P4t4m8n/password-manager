@@ -10,9 +10,9 @@ import {
 } from '@angular/core';
 
 @Directive({
-  selector: '[modal]',
+  selector: '[menu]',
 })
-export class ModalDirective implements OnInit {
+export class MenuDirective implements OnInit {
   @Output() clickOutside = new EventEmitter();
   private el = inject(ElementRef);
   private renderer = inject(Renderer2);

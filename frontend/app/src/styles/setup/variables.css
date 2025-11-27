@@ -1,5 +1,5 @@
 :root {
-  --primary: #000000;
+  --primary: oklch(0% 0 0);
   --secondary: rgb(240, 240, 240);
   --accent: rgb(255, 94, 91);
   --main-gray: rgb(209, 209, 209);

@@ -77,7 +77,7 @@ namespace API.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Strict,
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
@@ -283,8 +283,14 @@ namespace API.Controllers
         [HttpPost("Sign-out")]
         public new ActionResult<AuthResponseDTO> SignOut()
         {
-            Response.Cookies.Delete("AuthToken");
-
+            Response.Cookies.Delete("AuthToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/",
+                Domain = "localhost"
+            });
             HttpResponseDTO<AuthResponseDTO> httpResponse = new()
             {
                 Data = new()

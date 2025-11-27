@@ -1,7 +1,7 @@
 
 namespace API.Dtos.PasswordEntry;
 
-public partial class PasswordEntryUpdateDTO
+public partial class PasswordEntryUpdateDTO: ModelDTO
 {
     public string? EntryName { get; set; }
     public string? WebsiteUrl { get; set; }

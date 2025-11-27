@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '../../Auth/guards/auth-guard';
+import { authGuard } from '../../auth/guards/auth-guard';
 import { SettingsIndex } from '../pages/settings-index/settings-index';
 
 export const SETTINGS_PATHS = {

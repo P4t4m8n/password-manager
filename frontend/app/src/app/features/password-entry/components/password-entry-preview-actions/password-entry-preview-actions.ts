@@ -2,12 +2,12 @@ import { Component, inject, Input } from '@angular/core';
 import { IconDots } from '../../../../core/icons/icon-dots/icon-dots';
 import { IconTrash } from '../../../../core/icons/icon-trash/icon-trash';
 import { RouterLink } from '@angular/router';
-import { ModalDirective } from '../../../../core/directives/modal-directive';
+import { MenuDirective } from '../../../../core/directives/menu-directive';
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
 
 @Component({
   selector: 'app-password-entry-preview-actions',
-  imports: [IconDots, IconTrash, RouterLink, ModalDirective],
+  imports: [IconDots, IconTrash, RouterLink, MenuDirective],
   templateUrl: './password-entry-preview-actions.html',
   styleUrl: './password-entry-preview-actions.css',
 })

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { IconProfile } from './icon-profile';
+import { ConfirmationDialog } from './confirmation-dialog';
 
-describe('IconProfile', () => {
-  let component: IconProfile;
-  let fixture: ComponentFixture<IconProfile>;
+describe('ConfirmationDialog', () => {
+  let component: ConfirmationDialog;
+  let fixture: ComponentFixture<ConfirmationDialog>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [IconProfile]
+      imports: [ConfirmationDialog]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(IconProfile);
+    fixture = TestBed.createComponent(ConfirmationDialog);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

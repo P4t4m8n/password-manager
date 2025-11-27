@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Form, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, TitleCasePipe } from '@angular/common';
 
 import { BehaviorSubject, map, Subscription, tap } from 'rxjs';
@@ -8,9 +8,10 @@ import { BehaviorSubject, map, Subscription, tap } from 'rxjs';
 import { CryptoService } from '../../../crypto/services/crypto.service';
 import { AuthService } from '../../services/auth.service';
 
-import { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/AuthDto';
-import { IHttpErrorResponseDto } from '../../../../core/interfaces/http-error-response-dto';
 import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/routes.const';
+
+import type { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/AuthDto';
+import type { IHttpErrorResponseDto } from '../../../../core/interfaces/http-error-response-dto';
 
 @Component({
   selector: 'app-auth-index',
@@ -26,7 +27,7 @@ export class AuthIndex {
 
   private subscription: Subscription = new Subscription();
 
-  private isSignIn = new BehaviorSubject<boolean>(false);
+  private isSignIn = new BehaviorSubject<boolean>(true);
   isSignIn$ = this.isSignIn.asObservable();
 
   signInInputs = [
@@ -198,41 +199,15 @@ export class AuthIndex {
       return;
     }
 
-    // const masterPasswordSalt = this.cryptoService.generateSalt();
-    // await this.cryptoService.deriveMasterEncryptionKey({
-    //   masterPassword,
-    //   salt: masterPasswordSalt,
-    // });
+    const signUpDto: IAuthSignUpDto & { masterPassword: string } = {
+      email,
+      password,
+      confirmPassword,
+      username,
+      masterPassword,
+    };
 
-    // const recoveryKey = this.cryptoService.generateRecoveryKey();
-
-    // const { encrypted: encryptedMasterKeyWithRecovery, iv: recoveryIV } =
-    //   await this.cryptoService.encryptMasterKeyWithRecovery(recoveryKey);
-
-    // const masterPasswordSaltBase64 = this.cryptoService.arrayBufferToBase64(masterPasswordSalt);
-    // const encryptedMasterKeyWithRecoveryBase64 = this.cryptoService.arrayBufferToBase64(
-    //   encryptedMasterKeyWithRecovery
-    // );
-    // const recoveryIVBase64 = this.cryptoService.arrayBufferToBase64(recoveryIV);
-
-    // const signUpDto: IAuthSignUpDto = {
-    //   email,
-    //   password,
-    //   confirmPassword,
-    //   username,
-    //   masterPasswordSalt: masterPasswordSaltBase64,
-    //   encryptedMasterKeyWithRecovery: encryptedMasterKeyWithRecoveryBase64,
-    //   recoveryIV: recoveryIVBase64,
-    // };
-    (
-      await this.authService.signUp({
-        email,
-        password,
-        confirmPassword,
-        username,
-        masterPassword,
-      })
-    ).subscribe({
+    (await this.authService.signUp(signUpDto)).subscribe({
       next: () => {
         this.router.navigate(['/' + PASSWORD_ENTRIES_PATHS.passwordEntities]);
       },

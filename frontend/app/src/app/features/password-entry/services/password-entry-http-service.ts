@@ -70,6 +70,24 @@ export class PasswordEntryHttpService {
       );
   }
 
+  public updateAfterRecovery(updatedEntries: IPasswordEntryDto[]) {
+    return this.httpClient
+      .put<IHttpResponseDto<IPasswordEntryDto[]>>(
+        `${this.coreAPIUrl}/update-after-recovery`,
+        updatedEntries,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap((res) => {
+          this._passwordEntries$.next(res.data);
+        }),
+        catchError((err) => {
+          console.error('Error updating password entries after recovery', err);
+          throw err;
+        })
+      );
+  }
+
   private create(dto: IPasswordEntryDto) {
     return this.httpClient
       .post<IHttpResponseDto<IPasswordEntryDto>>(`${this.coreAPIUrl}`, dto, {

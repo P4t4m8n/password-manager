@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { IPasswordEntryDto } from '../interfaces/passwordEntry';
-import { AuthService } from '../../Auth/services/auth.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { CryptoService } from '../../crypto/services/crypto.service';
-import { MasterPasswordDialogService } from '../../crypto/master-password/services/master-password-dialog-service';
+import { MasterPasswordDialogService } from '../../master-password/services/master-password-dialog-service';
 
 @Injectable({
   providedIn: 'root',
@@ -22,7 +22,9 @@ export class PasswordEntryService {
     }
 
     if (!this.cryptoService.checkEncryptionKeyInitialized()) {
-      const masterPassword = await this.masterPasswordDialogService.openMasterPasswordDialog();
+      const masterPassword = await this.masterPasswordDialogService.openDialogWithProps({
+        mode: 'unlock',
+      });
       if (!masterPassword) {
         console.error('Master password is required to encrypt the password entry.');
         return null;
