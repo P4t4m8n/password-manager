@@ -1,16 +1,17 @@
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, map, retry, tap } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, retry, tap } from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { IPasswordEntryDto } from '../interfaces/passwordEntry';
 import { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
+import { ErrorService } from '../../../core/services/error-service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PasswordEntryHttpService {
-  httpClient: HttpClient = inject(HttpClient);
+  private _httpClient: HttpClient = inject(HttpClient);
 
-  private coreAPIUrl = 'http://localhost:5222/api/Password-entry';
+  private _coreAPIUrl = 'http://localhost:5222/api/Password-entry';
 
   private _passwordEntries$ = new BehaviorSubject<IPasswordEntryDto[]>([]);
   public passwordEntries$ = this._passwordEntries$.asObservable();
@@ -20,8 +21,8 @@ export class PasswordEntryHttpService {
     if (searchParams?.entryName) {
       params = params.set('EntryName', searchParams.entryName);
     }
-    return this.httpClient
-      .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.coreAPIUrl}`, {
+    return this._httpClient
+      .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this._coreAPIUrl}`, {
         withCredentials: true,
         params,
       })
@@ -31,49 +32,44 @@ export class PasswordEntryHttpService {
         }),
         catchError((err) => {
           this._passwordEntries$.next([]);
-          console.error('Error fetching password entries', err);
-          throw err;
+          return ErrorService.handleError(err);
         })
       );
   }
 
   public getById(id: string) {
-    return this.httpClient
-      .get<IHttpResponseDto<IPasswordEntryDto>>(`${this.coreAPIUrl}/${id}`, {
+    return this._httpClient
+      .get<IHttpResponseDto<IPasswordEntryDto>>(`${this._coreAPIUrl}/${id}`, {
         withCredentials: true,
       })
       .pipe(
         map((res) => res.data),
-        catchError((err) => {
-          console.error(`Error fetching password entry with id ${id}`, err);
-          throw err;
-        })
+        catchError(ErrorService.handleError)
       );
   }
 
   public save(dto: IPasswordEntryDto) {
-    return dto.id ? this.update(dto) : this.create(dto);
+    return dto.id ? this._update(dto) : this._create(dto);
   }
 
   public delete(id: string) {
-    return this.httpClient
-      .delete<void>(`${this.coreAPIUrl}/${id}`, { withCredentials: true })
+    return this._httpClient
+      .delete<void>(`${this._coreAPIUrl}/${id}`, { withCredentials: true })
       .pipe(
         tap(() => {
           const passwordEntities = this._passwordEntries$.value.filter((pe) => pe.id !== id);
           this._passwordEntries$.next(passwordEntities);
         }),
-        catchError((err) => {
-          console.error(`Error deleting password entry with id ${id}`, err);
-          throw err;
-        })
+        catchError(ErrorService.handleError)
       );
   }
 
-  public updateAfterRecovery(updatedEntries: IPasswordEntryDto[]) {
-    return this.httpClient
-      .put<IHttpResponseDto<IPasswordEntryDto[]>>(
-        `${this.coreAPIUrl}/update-after-recovery`,
+  public updateAfterRecovery(
+    updatedEntries: IPasswordEntryDto[]
+  ): Observable<IHttpResponseDto<IPasswordEntryDto[]>> {
+    return this._httpClient
+      .patch<IHttpResponseDto<IPasswordEntryDto[]>>(
+        `${this._coreAPIUrl}/update-after-recovery`,
         updatedEntries,
         { withCredentials: true }
       )
@@ -81,16 +77,13 @@ export class PasswordEntryHttpService {
         tap((res) => {
           this._passwordEntries$.next(res.data);
         }),
-        catchError((err) => {
-          console.error('Error updating password entries after recovery', err);
-          throw err;
-        })
+        catchError(ErrorService.handleError)
       );
   }
 
-  private create(dto: IPasswordEntryDto) {
-    return this.httpClient
-      .post<IHttpResponseDto<IPasswordEntryDto>>(`${this.coreAPIUrl}`, dto, {
+  private _create(dto: IPasswordEntryDto) {
+    return this._httpClient
+      .post<IHttpResponseDto<IPasswordEntryDto>>(`${this._coreAPIUrl}`, dto, {
         withCredentials: true,
       })
       .pipe(
@@ -100,16 +93,13 @@ export class PasswordEntryHttpService {
           return pe;
         }),
         retry(1),
-        catchError((err) => {
-          console.error('Error creating password entry', err);
-          throw err;
-        })
+        catchError(ErrorService.handleError)
       );
   }
 
-  private update(dto: IPasswordEntryDto) {
-    return this.httpClient
-      .put<IHttpResponseDto<IPasswordEntryDto>>(`${this.coreAPIUrl}/${dto.id}`, dto, {
+  private _update(dto: IPasswordEntryDto) {
+    return this._httpClient
+      .put<IHttpResponseDto<IPasswordEntryDto>>(`${this._coreAPIUrl}/${dto.id}`, dto, {
         withCredentials: true,
       })
       .pipe(
@@ -120,10 +110,7 @@ export class PasswordEntryHttpService {
           this._passwordEntries$.next(passwordEntities);
         }),
         retry(1),
-        catchError((err) => {
-          console.error('Error updating password entry', err);
-          throw err;
-        })
+        catchError(ErrorService.handleError)
       );
   }
 }

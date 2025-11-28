@@ -84,7 +84,7 @@ export class AuthService {
   }
 
   refreshToken() {
-    return this.httpClient
+    const x = this.httpClient
       .get<IHttpResponseDto<IAuthResponseDto>>(`${this.coreAPIUrl}/Refresh-token`, {
         withCredentials: true,
       })
@@ -107,12 +107,11 @@ export class AuthService {
           this._session_user.next(res.data.user);
           this.masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
         }),
-        catchError((err) => {
+        catchError(() => {
           this._session_user.next(null);
           this.masterPasswordSaltSessionService.masterPasswordSalt = null;
           return of(null);
-        }),
-        catchError(ErrorService.handleError)
+        })
       );
   }
 

@@ -1,24 +1,33 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { MasterPasswordDialogService } from '../../master-password/services/master-password-dialog-service';
+import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
 
+type TCredentials = {
+  recoveryIVBase64: string;
+  encryptedMasterKeyWithRecoveryBase64: string;
+  masterPasswordSaltBase64: string;
+  recoveryKey: Uint8Array<ArrayBuffer>;
+};
 @Injectable({
   providedIn: 'root',
 })
 export class CryptoService {
-  private encryptionKey: CryptoKey | null = null;
-  private masterKey: string | null = null;
+  private _encryptionKey: CryptoKey | null = null;
+  private _masterKey: string | null = null;
 
-  checkEncryptionKeyInitialized(): boolean {
-    return this.encryptionKey !== null;
+  private _masterPasswordDialogService = inject(MasterPasswordDialogService);
+  private _masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
+
+  checkEncryptionKeyInitialized(): this is { _encryptionKey: CryptoKey } {
+    return this._encryptionKey !== null;
   }
 
   async deriveMasterEncryptionKey({
     masterPassword,
-    salt,
-    iterations = 100000,
+    saltBuffer,
   }: {
     masterPassword: string;
-    salt: Uint8Array<ArrayBuffer>;
-    iterations?: number;
+    saltBuffer: Uint8Array<ArrayBuffer>;
   }): Promise<CryptoKey> {
     const encoder = new TextEncoder();
     const passwordBuffer = encoder.encode(masterPassword);
@@ -27,10 +36,12 @@ export class CryptoService {
       'deriveKey',
     ]);
 
+    const iterations = 100000;
+
     const derivedKey = await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: saltBuffer,
         iterations: iterations,
         hash: 'SHA-256',
       },
@@ -40,8 +51,8 @@ export class CryptoService {
       ['encrypt', 'decrypt']
     );
 
-    this.encryptionKey = derivedKey;
-    this.masterKey = masterPassword;
+    this._encryptionKey = derivedKey;
+    this._masterKey = masterPassword;
 
     return derivedKey;
   }
@@ -57,9 +68,7 @@ export class CryptoService {
   async encryptPassword(
     plaintext: string
   ): Promise<{ encrypted: Uint8Array<ArrayBuffer>; iv: Uint8Array<ArrayBuffer> }> {
-    if (!this.encryptionKey) {
-      throw new Error('Encryption key not initialized. Call deriveMasterEncryptionKey first.');
-    }
+    await this.initializeMasterPassword();
 
     const encoder = new TextEncoder();
     const data = encoder.encode(plaintext);
@@ -70,7 +79,7 @@ export class CryptoService {
         name: 'AES-GCM',
         iv: iv,
       },
-      this.encryptionKey,
+      this._encryptionKey!,
       data
     );
 
@@ -80,20 +89,24 @@ export class CryptoService {
     };
   }
 
-  async decryptPassword(
-    encrypted: Uint8Array<ArrayBuffer>,
-    iv: Uint8Array<ArrayBuffer>
-  ): Promise<string> {
-    if (!this.encryptionKey) {
+  async decryptPassword(encryptedPasswordStr?: string, ivStr?: string): Promise<string> {
+    if (!this._encryptionKey) {
       throw new Error('Encryption key not initialized. Call deriveMasterEncryptionKey first.');
     }
+
+    if (!encryptedPasswordStr || !ivStr) {
+      throw new Error('Encrypted password or IV is missing');
+    }
+
+    const encrypted = this.base64ToArrayBuffer(encryptedPasswordStr);
+    const iv = this.base64ToArrayBuffer(ivStr);
 
     const decryptedBuffer = await crypto.subtle.decrypt(
       {
         name: 'AES-GCM',
         iv: iv,
       },
-      this.encryptionKey,
+      this._encryptionKey,
       encrypted
     );
 
@@ -108,7 +121,7 @@ export class CryptoService {
   async encryptMasterKeyWithRecovery(
     recoveryKey: Uint8Array<ArrayBuffer>
   ): Promise<{ encrypted: Uint8Array<ArrayBuffer>; iv: Uint8Array<ArrayBuffer> }> {
-    if (!this.masterKey) {
+    if (!this._masterKey) {
       throw new Error('Master key not available');
     }
 
@@ -121,7 +134,7 @@ export class CryptoService {
     );
 
     const encoder = new TextEncoder();
-    const masterKeyBuffer = encoder.encode(this.masterKey);
+    const masterKeyBuffer = encoder.encode(this._masterKey);
     const iv = this.generateIV();
 
     const encryptedBuffer = await crypto.subtle.encrypt(
@@ -179,8 +192,8 @@ export class CryptoService {
   }
 
   clearSensitiveData(): void {
-    this.encryptionKey = null;
-    this.masterKey = null;
+    this._encryptionKey = null;
+    this._masterKey = null;
   }
 
   downloadRecoveryKey(recoveryKey: Uint8Array, username: string): void {
@@ -196,16 +209,11 @@ export class CryptoService {
     URL.revokeObjectURL(url);
   }
 
-  async handleMasterPasswordCreation(masterPassword: string): Promise<{
-    recoveryIVBase64: string;
-    encryptedMasterKeyWithRecoveryBase64: string;
-    masterPasswordSaltBase64: string;
-    recoveryKey: Uint8Array<ArrayBuffer>;
-  }> {
+  async handleMasterPasswordCreation(masterPassword: string): Promise<TCredentials> {
     const masterPasswordSalt = this.generateSalt();
     await this.deriveMasterEncryptionKey({
       masterPassword,
-      salt: masterPasswordSalt,
+      saltBuffer: masterPasswordSalt,
     });
 
     const recoveryKey = this.generateRecoveryKey();
@@ -222,7 +230,28 @@ export class CryptoService {
       recoveryIVBase64,
       encryptedMasterKeyWithRecoveryBase64,
       masterPasswordSaltBase64,
-      recoveryKey
+      recoveryKey,
     };
+  }
+
+  async initializeMasterPassword(): Promise<void> {
+    if (this.checkEncryptionKeyInitialized()) return;
+
+    const masterPassword = await this._masterPasswordDialogService.openDialogWithProps({
+      mode: 'unlock',
+    });
+
+    if (!masterPassword) {
+      throw new Error('Master password is required to initialize encryption key.');
+    }
+
+    if (!this._masterPasswordSaltSessionService.checkSaltInitialized()) {
+      throw new Error('Master password salt is missing.');
+    }
+    const saltBuffer = this.base64ToArrayBuffer(
+      this._masterPasswordSaltSessionService.currentSalt!
+    );
+
+    await this.deriveMasterEncryptionKey({ masterPassword, saltBuffer });
   }
 }

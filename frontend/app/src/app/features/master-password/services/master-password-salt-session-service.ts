@@ -18,4 +18,8 @@ export class MasterPasswordSaltSessionService {
   get currentSalt(): string | null {
     return this._masterPasswordSalt.getValue();
   }
+
+  checkSaltInitialized(): this is { currentSalt: string } {
+    return this.currentSalt !== null;
+  }
 }

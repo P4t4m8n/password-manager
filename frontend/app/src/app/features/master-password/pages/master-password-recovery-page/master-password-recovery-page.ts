@@ -9,6 +9,8 @@ import { CryptoService } from '../../../crypto/services/crypto.service';
 import { PasswordEntryHttpService } from '../../../password-entry/services/password-entry-http-service';
 import { ConfirmationDialogService } from '../../../../core/confirmation-dialog/services/confirmation-dialog-service';
 import { ShowMasterPasswordDialogService } from '../../services/show-master-password-dialog-service';
+import { IPasswordEntryDto } from '../../../password-entry/interfaces/passwordEntry';
+import { MasterPasswordSaltSessionService } from '../../services/master-password-salt-session-service';
 
 @Component({
   selector: 'app-master-password-recovery-page',
@@ -19,12 +21,13 @@ import { ShowMasterPasswordDialogService } from '../../services/show-master-pass
 export class MasterPasswordRecoveryPage implements OnInit {
   private masterPasswordHttpService = inject(MasterPasswordHttpService);
   private formBuilder = inject(FormBuilder);
-  private cryptoService = inject(CryptoService);
+  private _cryptoService = inject(CryptoService);
   private authService = inject(AuthService);
   private masterPasswordDialogService = inject(MasterPasswordDialogService);
   private confirmationDialogService = inject(ConfirmationDialogService);
   private passwordEntryHttpService = inject(PasswordEntryHttpService);
   private showMasterPasswordService = inject(ShowMasterPasswordDialogService);
+  private masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
 
   recoveryKeyControl = this.formBuilder.control('');
 
@@ -51,13 +54,13 @@ export class MasterPasswordRecoveryPage implements OnInit {
       console.error('Recovery key is required');
       return;
     }
-    const recoveryKey = this.cryptoService.base64ToArrayBuffer(this.recoveryKeyControl.value);
-    const recoveryIV = this.cryptoService.base64ToArrayBuffer(this.recoveryData.recoveryIV);
-    const encryptedMasterKeyWithRecovery = this.cryptoService.base64ToArrayBuffer(
+    const recoveryKey = this._cryptoService.base64ToArrayBuffer(this.recoveryKeyControl.value);
+    const recoveryIV = this._cryptoService.base64ToArrayBuffer(this.recoveryData.recoveryIV);
+    const encryptedMasterKeyWithRecovery = this._cryptoService.base64ToArrayBuffer(
       this.recoveryData.encryptedMasterKeyWithRecovery
     );
 
-    const masterPassword = await this.cryptoService.decryptMasterKeyWithRecovery(
+    const masterPassword = await this._cryptoService.decryptMasterKeyWithRecovery(
       encryptedMasterKeyWithRecovery,
       recoveryKey,
       recoveryIV
@@ -79,40 +82,31 @@ export class MasterPasswordRecoveryPage implements OnInit {
     const newMasterPassword = await this.masterPasswordDialogService.openDialogWithProps({
       mode: 'new',
     });
+
     if (!newMasterPassword) {
       console.error('New master password is required');
       return;
     }
-    await this.updateMasterKey(newMasterPassword);
+    await this.updateMasterKey(masterPassword, newMasterPassword);
   }
 
-  async updateMasterKey(newMasterPassword: string) {
+  async updateMasterKey(oldMasterPassword: string, newMasterPassword: string) {
     try {
-      if (!this.cryptoService.checkEncryptionKeyInitialized()) {
-        const masterPassword = await this.masterPasswordDialogService.openDialogWithProps({
-          mode: 'unlock',
-        });
-        if (!masterPassword) {
-          console.error('Master password is required to encrypt the password entry.');
-          return;
-        }
-
-        const plainSalt = this.authService.get_master_password_salt();
-        if (!plainSalt) {
-          console.error('Master password salt is missing.');
-          return;
-        }
-
-        const salt = this.cryptoService.base64ToArrayBuffer(plainSalt);
-        await this.cryptoService.deriveMasterEncryptionKey({ masterPassword, salt });
+      if (!this.masterPasswordSaltSessionService.checkSaltInitialized()) {
+        throw new Error('Master password salt is missing in session.');
       }
+
+      const saltBuffer = this._cryptoService.base64ToArrayBuffer(
+        this.masterPasswordSaltSessionService.currentSalt!
+      );
+
+      await this._cryptoService.deriveMasterEncryptionKey({
+        masterPassword: oldMasterPassword,
+        saltBuffer,
+      });
 
       const { data: allPasswordEntries } = await firstValueFrom(
         this.passwordEntryHttpService.get()
-      );
-      console.log(
-        '🚀 ~ MasterPasswordRecoveryPage ~ updateMasterKey ~ allPasswordEntries:',
-        allPasswordEntries
       );
 
       const decryptedEntries = await Promise.all(
@@ -123,12 +117,16 @@ export class MasterPasswordRecoveryPage implements OnInit {
             console.error('Encrypted password or IV is missing.');
             return;
           }
-          const decryptedPassword = await this.cryptoService.decryptPassword(
-            this.cryptoService.base64ToArrayBuffer(encryptedPassword),
-            this.cryptoService.base64ToArrayBuffer(iv)
+          const decryptedPassword = await this._cryptoService.decryptPassword(
+            encryptedPassword,
+            iv
           );
           return { ...entry, decryptedPassword };
         })
+      );
+      console.log(
+        '🚀 ~ MasterPasswordRecoveryPage ~ updateMasterKey ~ decryptedEntries:',
+        decryptedEntries
       );
 
       const {
@@ -136,7 +134,7 @@ export class MasterPasswordRecoveryPage implements OnInit {
         recoveryIVBase64,
         encryptedMasterKeyWithRecoveryBase64,
         masterPasswordSaltBase64,
-      } = await this.cryptoService.handleMasterPasswordCreation(newMasterPassword);
+      } = await this._cryptoService.handleMasterPasswordCreation(newMasterPassword);
 
       await firstValueFrom(
         this.masterPasswordHttpService.updateMasterPassword({
@@ -146,24 +144,43 @@ export class MasterPasswordRecoveryPage implements OnInit {
         })
       );
 
-      this.cryptoService.downloadRecoveryKey(
+      this._cryptoService.downloadRecoveryKey(
         recoveryKey,
         this.authService.get_session_user()?.email ?? ''
       );
 
       const reEncryptedEntriesPromises = decryptedEntries.map(async (entry) => {
         if (!entry) return;
-        const { encrypted, iv } = await this.cryptoService.encryptPassword(entry.decryptedPassword);
+        const { encrypted, iv } = await this._cryptoService.encryptPassword(
+          entry.decryptedPassword
+        );
         return {
           ...entry,
-          encryptedPassword: this.cryptoService.arrayBufferToBase64(encrypted),
-          iv: this.cryptoService.arrayBufferToBase64(iv),
+          encryptedPassword: this._cryptoService.arrayBufferToBase64(encrypted),
+          iv: this._cryptoService.arrayBufferToBase64(iv),
         };
       });
-      console.log(
-        '🚀 ~ MasterPasswordRecoveryPage ~ updateMasterKey ~ reEncryptedEntriesPromises:',
-        reEncryptedEntriesPromises
-      );
+
+      const reEncryptedEntries: IPasswordEntryDto[] = (
+        await Promise.all(reEncryptedEntriesPromises)
+      ).map((entry) => ({
+        id: entry?.id,
+        entryName: entry?.entryName,
+        websiteUrl: entry?.websiteUrl,
+        entryUserName: entry?.entryUserName,
+        encryptedPassword: entry?.encryptedPassword,
+        iv: entry?.iv,
+        notes: entry?.notes,
+      }));
+
+      this.passwordEntryHttpService.updateAfterRecovery(reEncryptedEntries).subscribe({
+        next: () => {
+          console.log('Password entries updated successfully after master password recovery.');
+        },
+        error: (error) => {
+          console.error('Error updating password entries after master password recovery:', error);
+        },
+      });
     } catch (error) {
       console.error('Error updating master key:', error);
     }

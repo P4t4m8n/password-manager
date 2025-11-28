@@ -1,4 +1,4 @@
-import {  Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
 import { BehaviorSubject, map, Observable, switchMap, tap } from 'rxjs';
@@ -9,12 +9,12 @@ import { IconPencil } from '../../../../core/icons/icon-pencil/icon-pencil';
 import { IconOpenExternal } from '../../../../core/icons/icon-open-external/icon-open-external';
 import { IconCopyPassword } from '../../../../core/icons/icon-copy-password/icon-copy-password';
 import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
-import { PasswordEntryService } from '../../services/password-entry-service';
 import { PasswordStrength } from '../../../crypto/components/password-strength/password-strength';
 import { ClipboardService } from '../../../../core/services/clipboard-service';
 import { IconTrash } from '../../../../core/icons/icon-trash/icon-trash';
 import { IconFavorite } from '../../../../core/icons/icon-favorite/icon-favorite';
 import { IconTag } from '../../../../core/icons/icon-tag/icon-tag';
+import { CryptoService } from '../../../crypto/services/crypto.service';
 
 @Component({
   selector: 'app-password-entry-details',
@@ -35,19 +35,18 @@ import { IconTag } from '../../../../core/icons/icon-tag/icon-tag';
   styleUrl: './password-entry-details.css',
 })
 export class PasswordEntryDetails {
-  private clipboardService = inject(ClipboardService);
+  private _clipboardService = inject(ClipboardService);
+  private _cryptoService = inject(CryptoService);
+  private _passwordEntryHttpService = inject(PasswordEntryHttpService);
 
-  private passwordEntryHttpService = inject(PasswordEntryHttpService);
-  private passwordEntryService = inject(PasswordEntryService);
-
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
+  private _route = inject(ActivatedRoute);
+  private _router = inject(Router);
 
   private _passwordEntry = new BehaviorSubject<IPasswordEntryDto | null>(null);
   public passwordEntry$: Observable<IPasswordEntryDto | null> = this._passwordEntry.asObservable();
 
   private _showPassword = new BehaviorSubject<boolean>(false);
-  showPassword$ = this._showPassword.asObservable();
+  public showPassword$ = this._showPassword.asObservable();
 
   private _revealedPassword = new BehaviorSubject<string | null>(null);
   public revealedPassword$ = this._revealedPassword.asObservable();
@@ -56,15 +55,15 @@ export class PasswordEntryDetails {
   public showToast$ = this._showToast.asObservable();
 
   ngOnInit() {
-    this.passwordEntry$ = this.route.params.pipe(
+    this.passwordEntry$ = this._route.params.pipe(
       map((params) => params['entryId']),
-      switchMap((entryId) => this.passwordEntryHttpService.getById(entryId)),
+      switchMap((entryId) => this._passwordEntryHttpService.getById(entryId)),
       tap(async (entry) => {
         this._passwordEntry.next(entry);
-        const decrypted = await this.passwordEntryService.decryptPassword({
-          encryptedPassword: this._passwordEntry.value?.encryptedPassword,
-          iv: this._passwordEntry.value?.iv,
-        });
+        const decrypted = await this._cryptoService.decryptPassword(
+          entry.encryptedPassword,
+          entry.iv
+        );
         this._revealedPassword.next(decrypted);
       })
     );
@@ -75,17 +74,17 @@ export class PasswordEntryDetails {
   }
 
   async copyPasswordToClipboard(): Promise<void> {
-    const decryptedPassword = await this.passwordEntryService.decryptPassword({
-      encryptedPassword: this._passwordEntry.value?.encryptedPassword,
-      iv: this._passwordEntry.value?.iv,
-    });
+    const decryptedPassword = await this._cryptoService.decryptPassword(
+      this._passwordEntry.value?.encryptedPassword,
+      this._passwordEntry.value?.iv
+    );
 
     if (!decryptedPassword) {
       return;
     }
 
     try {
-      await this.clipboardService.copyToClipboard(decryptedPassword);
+      await this._clipboardService.copyToClipboard(decryptedPassword);
       this._showToast.next(true);
       setTimeout(() => this._showToast.next(false), 2000);
     } catch (err) {
@@ -94,15 +93,15 @@ export class PasswordEntryDetails {
   }
 
   async copyToClipboard(text?: string): Promise<void> {
-    return this.clipboardService.copyToClipboard(text);
+    return this._clipboardService.copyToClipboard(text);
   }
 
   onDelete() {
     const entryId = this._passwordEntry.value?.id;
     if (entryId) {
-      this.passwordEntryHttpService.delete(entryId).subscribe({
+      this._passwordEntryHttpService.delete(entryId).subscribe({
         next: () => {
-          this.router.navigate(['/entries']);
+          this._router.navigate(['/entries']);
         },
         error: (err) => {
           console.error('Failed to delete password entry:', err);
