@@ -1,8 +1,13 @@
+using API.Dtos.Auth;
+using API.Dtos.Http;
+
 namespace API.Interfaces
 {
     public interface IAuthService
     {
-        byte[] GetPasswordHash(string password, byte[] salt);
-        string CreateToken(string userId);
+        Task<AuthResponseDTO> SignInAsync(AuthSignInDTO dto, HttpResponse response);
+        Task<AuthResponseDTO> SignUpAsync(AuthSignUpDTO dto, HttpResponse response);
+        Task<AuthResponseDTO> CheckSessionAsync(Guid userId);
+        Task<AuthResponseDTO> RefreshTokenAsync(Guid userId, HttpResponse response);
     }
 }

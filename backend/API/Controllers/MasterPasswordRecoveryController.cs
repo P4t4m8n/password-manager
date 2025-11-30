@@ -2,14 +2,11 @@
 
 using API.Dtos.Http;
 using API.Dtos.User;
-using API.Exceptions;
 using API.Interfaces;
-using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using API.Extensions;
 using API.Dtos.Auth;
-using API.Models;
 
 namespace API.Controllers
 {
@@ -18,28 +15,18 @@ namespace API.Controllers
     [Route("api/Master-password-recovery")]
     public sealed class MasterPasswordRecoveryController : ControllerBase
     {
-        private readonly IDataContext _contextDapper;
+        private readonly IMasterPasswordRecoveryService _masterPasswordRecoveryService;
 
-        public MasterPasswordRecoveryController(IDataContext contextDapper)
+        public MasterPasswordRecoveryController(IMasterPasswordRecoveryService masterPasswordRecoveryService)
         {
-            _contextDapper = contextDapper;
+            _masterPasswordRecoveryService = masterPasswordRecoveryService;
         }
 
         [HttpGet("")]
         public async Task<ActionResult<HttpResponseDTO<MasterKeyRecoveryResponseDTO>>> GetMasterPasswordRecovery()
         {
             Guid userGuid = User.GetUserId();
-
-            string selectSql = @"EXEC PasswordSchema.spUser_Select_MasterPasswordRecoveryData
-                                 @UserId=@UserId;";
-
-            DynamicParameters parameters = new();
-            parameters.Add("@UserId", userGuid);
-
-            MasterKeyRecoveryResponseDTO? recoveryData = await _contextDapper
-            .QuerySingleOrDefaultAsync<MasterKeyRecoveryResponseDTO>(selectSql, parameters)
-            ?? throw new NotFoundException("User recovery data not found.");
-
+            MasterKeyRecoveryResponseDTO? recoveryData = await _masterPasswordRecoveryService.GetMasterPasswordRecoveryAsync(userGuid);
             HttpResponseDTO<MasterKeyRecoveryResponseDTO> httpResponse = new()
             {
                 Data = recoveryData,
@@ -47,7 +34,7 @@ namespace API.Controllers
                 StatusCode = 200
             };
 
-            return Ok(httpResponse);
+            return StatusCode(httpResponse.StatusCode, httpResponse);
         }
 
         [HttpPatch("")]
@@ -55,30 +42,17 @@ namespace API.Controllers
         {
             Guid userGuid = User.GetUserId();
 
-            string updateSql = @"EXEC PasswordSchema.spUser_Update_MasterPasswordRecovery
-                                 @UserId=@UserId,
-                                 @EncryptedMasterKeyWithRecovery=@EncryptedMasterKeyWithRecovery,
-                                 @RecoveryIV=@RecoveryIV,
-                                 @MasterPasswordSalt=@MasterPasswordSalt;";
-
-            DynamicParameters parameters = new();
-            parameters.Add("@UserId", userGuid);
-            parameters.Add("@EncryptedMasterKeyWithRecovery", updateDto.EncryptedMasterKeyWithRecovery);
-            parameters.Add("@RecoveryIV", updateDto.RecoveryIV);
-            parameters.Add("@MasterPasswordSalt", updateDto.MasterPasswordSalt);
-
-            User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(updateSql, parameters)
-             ?? throw new NotFoundException("User not found.");
+            byte[] masterPasswordSalt = await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(userGuid, updateDto);
 
             HttpResponseDTO<byte[]> httpResponse = new()
             {
-                Data = user.MasterPasswordSalt,
+                Data = masterPasswordSalt,
                 Message = "Master password recovery updated successfully.",
                 StatusCode = 201
 
             };
 
-            return Ok(httpResponse);
+            return StatusCode(httpResponse.StatusCode, httpResponse);
         }
     }
 }

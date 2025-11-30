@@ -88,7 +88,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddScoped<IDataContext, DataContextDapper>();
 builder.Services.AddScoped<IGoogleService, GoogleService>();
+builder.Services.AddScoped<ICryptoService, CryptoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPasswordEntryService, PasswordEntryService>();
+builder.Services.AddScoped<IMasterPasswordRecoveryService, MasterPasswordRecoveryService>();
+
 
 
 var app = builder.Build();
