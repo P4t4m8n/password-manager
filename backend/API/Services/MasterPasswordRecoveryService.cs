@@ -18,7 +18,10 @@ namespace API.Services
 
         public async Task<MasterKeyRecoveryResponseDTO> GetMasterPasswordRecoveryAsync(Guid userGuid)
         {
-            string selectSql = @"EXEC PasswordSchema.spUser_Select_MasterPasswordRecoveryData
+
+            
+            string selectSql
+             = @"EXEC PasswordSchema.spUser_Select_MasterPasswordRecoveryData
                                  @UserId=@UserId;";
 
             DynamicParameters parameters = new();

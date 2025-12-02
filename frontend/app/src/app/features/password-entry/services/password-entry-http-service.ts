@@ -99,7 +99,7 @@ export class PasswordEntryHttpService {
 
   private _update(dto: IPasswordEntryDto) {
     return this._httpClient
-      .put<IHttpResponseDto<IPasswordEntryDto>>(`${this._coreAPIUrl}/${dto.id}`, dto, {
+      .patch<IHttpResponseDto<IPasswordEntryDto>>(`${this._coreAPIUrl}/${dto.id}`, dto, {
         withCredentials: true,
       })
       .pipe(

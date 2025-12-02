@@ -1,7 +1,7 @@
 import { TitleCasePipe, CommonModule, NgComponentOutlet } from '@angular/common';
 import { Component, OnInit, inject, HostBinding } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
-import { Subject, BehaviorSubject, takeUntil, filter } from 'rxjs';
+import { Subject,  takeUntil, filter } from 'rxjs';
 import { IAuthDto } from '../../../../../features/auth/interfaces/AuthDto';
 import { AuthService } from '../../../../../features/auth/services/auth.service';
 import { IconCloseOpen } from '../../../../icons/icon-close-open/icon-close-open';
@@ -23,7 +23,7 @@ import { IconSignout } from '../../../../icons/icon-signout/icon-signout';
     RouterLinkActive,
     IconProfile,
     IconSignout,
-  ],
+],
   templateUrl: './side-menu.html',
   styleUrl: './side-menu.css',
 })
@@ -32,9 +32,6 @@ export class SideMenu implements OnInit {
   private router = inject(Router);
   private sideMenuService = inject(SwipeMenuService);
   private destroy$ = new Subject<void>();
-
-  isOpen = new BehaviorSubject<boolean>(true);
-  isOpen$ = this.isOpen.asObservable();
 
   navRoutes = NAV_ROUTES;
 

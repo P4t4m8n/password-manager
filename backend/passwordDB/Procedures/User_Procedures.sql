@@ -81,7 +81,8 @@ BEGIN
     UPDATE PasswordSchema.[User]
     SET EncryptedMasterKeyWithRecovery = @EncryptedMasterKeyWithRecovery,
         RecoveryIV = @RecoveryIV,
-        MasterPasswordSalt = @MasterPasswordSalt
+        MasterPasswordSalt = @MasterPasswordSalt,
+        UpdatedAt = GETDATE()
     WHERE Id = @UserId;
 
     SELECT Id, Email, Username, MasterPasswordSalt

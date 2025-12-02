@@ -40,6 +40,7 @@ export class MasterPasswordDialog extends AbstractDialog<string | null> {
   navigateToRecovery(): void {
     this.cancel();
     this.router.navigate(['/recovery']);
+    this.resolve(null);
   }
 
   override submit(): void {

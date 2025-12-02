@@ -31,8 +31,6 @@ namespace API.Services
 
             AppendAuthCookie(user.Id.ToString(), response);
 
-
-
             return CreateAuthResponse(user);
         }
         public async Task<AuthResponseDTO> SignUpAsync(AuthSignUpDTO signUpDto, HttpResponse response)

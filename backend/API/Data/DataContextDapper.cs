@@ -13,7 +13,8 @@ namespace API.Data
         public DataContextDapper(IConfiguration config)
         {
             _config = config;
-            _connectionString = _config.GetConnectionString("DefaultConnection") ?? "";
+            _connectionString = _config["DefaultConnection"]
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
         }
 

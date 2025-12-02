@@ -1,4 +1,5 @@
 import { IEntity } from '../../../core/interfaces/entity';
+import { TCredentials } from '../../crypto/types/credentials.type';
 
 export interface IAuthDto extends IEntity {
   username: string;
@@ -10,12 +11,10 @@ export interface IAuthSignInDto {
   password?: string;
 }
 
-export interface IAuthSignUpDto extends IAuthSignInDto {
+export interface IAuthSignUpDto extends IAuthSignInDto, Partial<TCredentials> {
   username?: string;
   confirmPassword?: string;
-  encryptedMasterKeyWithRecovery?: string;
-  recoveryIV?: string;
-  masterPasswordSalt?: string;
+
 }
 
 export interface IAuthResponseDto {

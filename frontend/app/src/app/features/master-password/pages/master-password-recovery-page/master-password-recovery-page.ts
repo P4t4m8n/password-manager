@@ -1,35 +1,32 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { MasterPasswordHttpService } from '../../services/master-password-http-service';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IMasterPasswordRecoveryResponseDTO } from '../../interfaces/masterPasswordRecoveryResponseDTO';
 import { MasterPasswordDialogService } from '../../services/master-password-dialog-service';
-import { firstValueFrom } from 'rxjs';
-import { AuthService } from '../../../auth/services/auth.service';
-import { CryptoService } from '../../../crypto/services/crypto.service';
-import { PasswordEntryHttpService } from '../../../password-entry/services/password-entry-http-service';
 import { ConfirmationDialogService } from '../../../../core/confirmation-dialog/services/confirmation-dialog-service';
 import { ShowMasterPasswordDialogService } from '../../services/show-master-password-dialog-service';
-import { IPasswordEntryDto } from '../../../password-entry/interfaces/passwordEntry';
-import { MasterPasswordSaltSessionService } from '../../services/master-password-salt-session-service';
+import { BackButton } from '../../../../core/components/back-button/back-button';
+import { FetchingErrorDialogService } from '../../../../core/fetching-error-dialog/services/fetching-error-dialog-service';
+import { MasterPasswordRecoveryService } from '../../services/master-password-recovery-service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-master-password-recovery-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, BackButton],
   templateUrl: './master-password-recovery-page.html',
   styleUrl: './master-password-recovery-page.css',
 })
 export class MasterPasswordRecoveryPage implements OnInit {
   private masterPasswordHttpService = inject(MasterPasswordHttpService);
-  private formBuilder = inject(FormBuilder);
-  private _cryptoService = inject(CryptoService);
-  private authService = inject(AuthService);
   private masterPasswordDialogService = inject(MasterPasswordDialogService);
   private confirmationDialogService = inject(ConfirmationDialogService);
-  private passwordEntryHttpService = inject(PasswordEntryHttpService);
   private showMasterPasswordService = inject(ShowMasterPasswordDialogService);
-  private masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
+  private fetchingErrorDialogService = inject(FetchingErrorDialogService);
+  private masterPasswordRecoveryService = inject(MasterPasswordRecoveryService);
 
-  recoveryKeyControl = this.formBuilder.control('');
+  private router = inject(Router);
+
+  recoveryKeyControl = new FormControl('', [Validators.required]);
 
   private recoveryData: IMasterPasswordRecoveryResponseDTO | null = null;
 
@@ -38,151 +35,88 @@ export class MasterPasswordRecoveryPage implements OnInit {
       next: (data) => {
         this.recoveryData = data;
       },
-      error: (error) => {
-        console.error('Error fetching master password recovery data:', error);
+      error: () => {
+        this.fetchingErrorDialogService.openDialogWithProps({
+          message: 'Failed to fetch master password recovery data.',
+          backPath: '/entries',
+          backButtonText: 'Go to Entries',
+        });
       },
     });
   }
 
-  async onDecryptRecovery() {
-    if (!this.recoveryData) {
-      console.error('No recovery data available');
-      return;
-    }
-
-    if (!this.recoveryKeyControl.value) {
-      console.error('Recovery key is required');
-      return;
-    }
-    const recoveryKey = this._cryptoService.base64ToArrayBuffer(this.recoveryKeyControl.value);
-    const recoveryIV = this._cryptoService.base64ToArrayBuffer(this.recoveryData.recoveryIV);
-    const encryptedMasterKeyWithRecovery = this._cryptoService.base64ToArrayBuffer(
-      this.recoveryData.encryptedMasterKeyWithRecovery
-    );
-
-    const masterPassword = await this._cryptoService.decryptMasterKeyWithRecovery(
-      encryptedMasterKeyWithRecovery,
-      recoveryKey,
-      recoveryIV
-    );
-    console.log(
-      '🚀 ~ MasterPasswordRecoveryPage ~ onDecryptRecovery ~ masterPassword:',
-      masterPassword
-    );
-
-    const isUpdateMaster = await this.confirmationDialogService.openDialog();
-
-    if (!isUpdateMaster) {
-      await this.showMasterPasswordService.openDialogWithProps({
-        masterPassword,
-      });
-      return;
-    }
-
-    const newMasterPassword = await this.masterPasswordDialogService.openDialogWithProps({
-      mode: 'new',
-    });
-
-    if (!newMasterPassword) {
-      console.error('New master password is required');
-      return;
-    }
-    await this.updateMasterKey(masterPassword, newMasterPassword);
+  isSubmitDisabled(): boolean {
+    return this.recoveryKeyControl.invalid;
   }
 
-  async updateMasterKey(oldMasterPassword: string, newMasterPassword: string) {
+  async onDecryptRecovery() {
     try {
-      if (!this.masterPasswordSaltSessionService.checkSaltInitialized()) {
-        throw new Error('Master password salt is missing in session.');
+      if (!this.recoveryData) {
+        throw new Error('No recovery data available.');
       }
 
-      const saltBuffer = this._cryptoService.base64ToArrayBuffer(
-        this.masterPasswordSaltSessionService.currentSalt!
+      if (
+        this.recoveryKeyControl.invalid ||
+        this.recoveryKeyControl.value === '' ||
+        this.recoveryKeyControl.value === null
+      ) {
+        throw new Error('Recovery key is required.');
+      }
+
+      const masterPassword =
+        await this.masterPasswordRecoveryService.decryptMasterPasswordWithRecovery({
+          encryptedMasterKeyWithRecovery: this.recoveryData.encryptedMasterKeyWithRecovery,
+          recoveryKey: this.recoveryKeyControl.value,
+          recoveryIV: this.recoveryData.recoveryIV,
+        });
+
+      const isUpdateMaster = await this.confirmationDialogService.openDialog();
+      let newMasterPassword = null;
+
+      if (!isUpdateMaster) {
+        await this.showMasterPasswordService.openDialogWithProps({
+          masterPassword,
+        });
+
+        const isRecrateRecoveryKey = await this.confirmationDialogService.openDialogWithProps({
+          message: 'Do you want to create a new recovery key?',
+        });
+
+        if (isRecrateRecoveryKey) {
+          newMasterPassword = masterPassword;
+        } else {
+          this.router.navigate(['/entries']);
+          return;
+        }
+      }
+
+      if (!newMasterPassword) {
+        newMasterPassword = await this.masterPasswordDialogService.openDialogWithProps({
+          mode: 'new',
+        });
+      }
+
+      if (!newMasterPassword) {
+        this.fetchingErrorDialogService.openDialogWithProps({
+          message: 'New master password is required to update the master key.',
+          backPath: '/entries',
+          backButtonText: 'Go to Entries',
+        });
+        return;
+      }
+
+      await this.masterPasswordRecoveryService.updateMasterKeyAndReEncryptEntries(
+        masterPassword,
+        newMasterPassword
       );
 
-      await this._cryptoService.deriveMasterEncryptionKey({
-        masterPassword: oldMasterPassword,
-        saltBuffer,
-      });
-
-      const { data: allPasswordEntries } = await firstValueFrom(
-        this.passwordEntryHttpService.get()
-      );
-
-      const decryptedEntries = await Promise.all(
-        allPasswordEntries.map(async (entry) => {
-          const encryptedPassword = entry.encryptedPassword;
-          const iv = entry.iv;
-          if (!encryptedPassword || !iv) {
-            console.error('Encrypted password or IV is missing.');
-            return;
-          }
-          const decryptedPassword = await this._cryptoService.decryptPassword(
-            encryptedPassword,
-            iv
-          );
-          return { ...entry, decryptedPassword };
-        })
-      );
-      console.log(
-        '🚀 ~ MasterPasswordRecoveryPage ~ updateMasterKey ~ decryptedEntries:',
-        decryptedEntries
-      );
-
-      const {
-        recoveryKey,
-        recoveryIVBase64,
-        encryptedMasterKeyWithRecoveryBase64,
-        masterPasswordSaltBase64,
-      } = await this._cryptoService.handleMasterPasswordCreation(newMasterPassword);
-
-      await firstValueFrom(
-        this.masterPasswordHttpService.updateMasterPassword({
-          recoveryIV: recoveryIVBase64,
-          encryptedMasterKeyWithRecovery: encryptedMasterKeyWithRecoveryBase64,
-          masterPasswordSalt: masterPasswordSaltBase64,
-        })
-      );
-
-      this._cryptoService.downloadRecoveryKey(
-        recoveryKey,
-        this.authService.get_session_user()?.email ?? ''
-      );
-
-      const reEncryptedEntriesPromises = decryptedEntries.map(async (entry) => {
-        if (!entry) return;
-        const { encrypted, iv } = await this._cryptoService.encryptPassword(
-          entry.decryptedPassword
-        );
-        return {
-          ...entry,
-          encryptedPassword: this._cryptoService.arrayBufferToBase64(encrypted),
-          iv: this._cryptoService.arrayBufferToBase64(iv),
-        };
-      });
-
-      const reEncryptedEntries: IPasswordEntryDto[] = (
-        await Promise.all(reEncryptedEntriesPromises)
-      ).map((entry) => ({
-        id: entry?.id,
-        entryName: entry?.entryName,
-        websiteUrl: entry?.websiteUrl,
-        entryUserName: entry?.entryUserName,
-        encryptedPassword: entry?.encryptedPassword,
-        iv: entry?.iv,
-        notes: entry?.notes,
-      }));
-
-      this.passwordEntryHttpService.updateAfterRecovery(reEncryptedEntries).subscribe({
-        next: () => {
-          console.log('Password entries updated successfully after master password recovery.');
-        },
-        error: (error) => {
-          console.error('Error updating password entries after master password recovery:', error);
-        },
-      });
     } catch (error) {
-      console.error('Error updating master key:', error);
+      console.error('Error during master password recovery:', error);
+      this.fetchingErrorDialogService.openDialogWithProps({
+        message: 'An error occurred during the recovery process.',
+        backPath: '/entries',
+        backButtonText: 'Go to Entries',
+      });
     }
   }
 }

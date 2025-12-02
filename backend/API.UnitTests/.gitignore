@@ -18,34 +18,7 @@
 
 # Mono auto generated files
 mono_crash.*
-[Bb]in/
-[Oo]bj/
-*.user
-*.suo
-*.userprefs
-.vs/
-appsettings.Development.json
-appsettings.json
 
-# Angular / Node
-node_modules/
-dist/
-.angular/
-*.log
-npm-debug.log*
-
-# Database
-*.mdf
-*.ldf
-*.bak
-
-# IDE
-.vscode/
-.idea/
-
-# Environment
-.env
-.env.local
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

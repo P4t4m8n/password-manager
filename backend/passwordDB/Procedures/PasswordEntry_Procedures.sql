@@ -82,7 +82,8 @@ BEGIN
           EntryUserName = CASE WHEN @EntryUserName IS NOT NULL THEN @EntryUserName ELSE EntryUserName END,
           EncryptedPassword = CASE WHEN @EncryptedPassword IS NOT NULL THEN @EncryptedPassword ELSE EncryptedPassword END,
           IV = CASE WHEN @IV IS NOT NULL THEN @IV ELSE IV END,
-          Notes = CASE WHEN @Notes IS NOT NULL THEN @Notes ELSE Notes END
+          Notes = CASE WHEN @Notes IS NOT NULL THEN @Notes ELSE Notes END,
+          UpdatedAt = GETDATE()
     OUTPUT INSERTED.Id, INSERTED.EntryName, INSERTED.WebsiteUrl, INSERTED.EntryUserName, INSERTED.EncryptedPassword, INSERTED.IV, INSERTED.Notes
     WHERE UserId = @UserId AND Id = @EntryId;
 END
@@ -96,4 +97,25 @@ AS
 BEGIN
     DELETE FROM PasswordSchema.PasswordEntry
     WHERE UserId = @UserId AND Id = @EntryId;
+END
+
+GO
+CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Update_AfterRecovery
+    @UserId UNIQUEIDENTIFIER,
+    @Entries PasswordSchema.PasswordEntryUpdateAfterRecoveryTable READONLY
+AS
+BEGIN
+    UPDATE pe
+    SET 
+        pe.EncryptedPassword = e.EncryptedPassword,
+        pe.IV = e.IV,
+        pe.UpdatedAt = GETDATE()
+    FROM PasswordSchema.PasswordEntry pe
+        INNER JOIN @Entries e ON pe.Id = e.Id
+    WHERE pe.UserId = @UserId;
+
+    SELECT pe.Id, pe.EntryName, pe.WebsiteUrl, pe.EntryUserName, pe.EncryptedPassword, pe.IV, pe.Notes
+    FROM PasswordSchema.PasswordEntry pe
+        INNER JOIN @Entries e ON pe.Id = e.Id
+    WHERE pe.UserId = @UserId;
 END

@@ -1,13 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { MasterPasswordDialogService } from '../../master-password/services/master-password-dialog-service';
 import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
+import { TCredentials } from '../types/credentials.type';
 
-type TCredentials = {
-  recoveryIVBase64: string;
-  encryptedMasterKeyWithRecoveryBase64: string;
-  masterPasswordSaltBase64: string;
-  recoveryKey: Uint8Array<ArrayBuffer>;
-};
 @Injectable({
   providedIn: 'root',
 })
@@ -90,8 +85,12 @@ export class CryptoService {
   }
 
   async decryptPassword(encryptedPasswordStr?: string, ivStr?: string): Promise<string> {
+    await this.initializeMasterPassword();
+
     if (!this._encryptionKey) {
-      throw new Error('Encryption key not initialized. Call deriveMasterEncryptionKey first.');
+      throw new Error(
+        'Encryption key not initialized in decryptPassword-> THIS SHOULD NOT HAPPEN!!!'
+      );
     }
 
     if (!encryptedPasswordStr || !ivStr) {
@@ -209,7 +208,9 @@ export class CryptoService {
     URL.revokeObjectURL(url);
   }
 
-  async handleMasterPasswordCreation(masterPassword: string): Promise<TCredentials> {
+  async handleMasterPasswordCreation(
+    masterPassword: string
+  ): Promise<TCredentials & { recoveryKey: Uint8Array<ArrayBuffer> }> {
     const masterPasswordSalt = this.generateSalt();
     await this.deriveMasterEncryptionKey({
       masterPassword,
@@ -227,9 +228,9 @@ export class CryptoService {
     const recoveryIVBase64 = this.arrayBufferToBase64(recoveryIV);
 
     return {
-      recoveryIVBase64,
-      encryptedMasterKeyWithRecoveryBase64,
-      masterPasswordSaltBase64,
+      recoveryIV: recoveryIVBase64,
+      encryptedMasterKeyWithRecovery: encryptedMasterKeyWithRecoveryBase64,
+      masterPasswordSalt: masterPasswordSaltBase64,
       recoveryKey,
     };
   }
@@ -253,5 +254,26 @@ export class CryptoService {
     );
 
     await this.deriveMasterEncryptionKey({ masterPassword, saltBuffer });
+  }
+
+  async handleDecryptMasterKeyWithRecovery({
+    recoveryKey,
+    recoveryIV,
+    encryptedMasterKeyWithRecovery,
+  }: {
+    recoveryKey: string;
+    recoveryIV: string;
+    encryptedMasterKeyWithRecovery: string;
+  }) {
+    const recoveryKeyBuffer = this.base64ToArrayBuffer(recoveryKey);
+    const recoveryIVBuffer = this.base64ToArrayBuffer(recoveryIV);
+    const encryptedMasterKeyWithRecoveryBuffer = this.base64ToArrayBuffer(
+      encryptedMasterKeyWithRecovery
+    );
+    return await this.decryptMasterKeyWithRecovery(
+      encryptedMasterKeyWithRecoveryBuffer,
+      recoveryKeyBuffer,
+      recoveryIVBuffer
+    );
   }
 }

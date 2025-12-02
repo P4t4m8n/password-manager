@@ -12,6 +12,7 @@ import type {
 } from '../interfaces/AuthDto';
 import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
 import { ErrorService } from '../../../core/services/error-service';
+import { TPrettify } from '../../../core/types/prettify.type';
 
 @Injectable({
   providedIn: 'root',
@@ -40,22 +41,18 @@ export class AuthService {
       );
   }
 
-  async signUp(dto: IAuthSignUpDto & { masterPassword: string }) {
+  async signUp(dto: TPrettify<IAuthSignUpDto & { masterPassword: string }>) {
     const { masterPassword, email, ...rest } = dto;
 
-    const {
-      recoveryKey,
-      recoveryIVBase64,
-      encryptedMasterKeyWithRecoveryBase64,
-      masterPasswordSaltBase64,
-    } = await this.cryptoService.handleMasterPasswordCreation(masterPassword);
+    const { recoveryKey, recoveryIV, encryptedMasterKeyWithRecovery, masterPasswordSalt } =
+      await this.cryptoService.handleMasterPasswordCreation(masterPassword);
 
     const signUpDto: IAuthSignUpDto = {
       ...rest,
       email,
-      masterPasswordSalt: masterPasswordSaltBase64,
-      encryptedMasterKeyWithRecovery: encryptedMasterKeyWithRecoveryBase64,
-      recoveryIV: recoveryIVBase64,
+      masterPasswordSalt,
+      encryptedMasterKeyWithRecovery,
+      recoveryIV,
     };
 
     return this.httpClient

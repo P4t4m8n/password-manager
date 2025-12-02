@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
 import { BehaviorSubject, map, Observable, switchMap, tap } from 'rxjs';
 import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { BackButton } from '../../../../core/components/back-button/back-button';
 import { IconPencil } from '../../../../core/icons/icon-pencil/icon-pencil';
 import { IconOpenExternal } from '../../../../core/icons/icon-open-external/icon-open-external';
@@ -30,6 +30,7 @@ import { CryptoService } from '../../../crypto/services/crypto.service';
     IconTrash,
     IconFavorite,
     IconTag,
+    DatePipe
   ],
   templateUrl: './password-entry-details.html',
   styleUrl: './password-entry-details.css',

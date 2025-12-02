@@ -153,13 +153,9 @@ namespace API.Services
             {
                 tvp.Rows.Add(dto.Id, dto.EncryptedPassword, dto.IV);
             }
-            string updateSql = @"
-                UPDATE pe
-                SET pe.EncryptedPassword = e.EncryptedPassword,
-                pe.IV = e.IV
-                FROM PasswordSchema.PasswordEntry pe
-                INNER JOIN @Entries e ON pe.Id = e.Id
-                WHERE pe.UserId = @UserId;";
+            string updateSql = @"EXEC PasswordSchema.spPasswordEntry_Update_AfterRecovery
+                                 @UserId=@UserId,
+                                 @Entries=@Entries;";
 
 
             DynamicParameters parameters = new();

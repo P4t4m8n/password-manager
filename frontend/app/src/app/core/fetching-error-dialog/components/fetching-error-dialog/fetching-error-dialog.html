@@ -1,0 +1,8 @@
+<div class="overlay" (click)="cancel()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <h2>{{ message }}</h2>
+    <div class="actions">
+      <button type="button" class="button-box" (click)="submit()">{{ backButtonText }}</button>
+    </div>
+  </div>
+</div>

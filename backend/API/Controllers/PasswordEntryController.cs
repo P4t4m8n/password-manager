@@ -66,7 +66,7 @@ namespace API.Controllers
 
         }
 
-        [HttpPut("{entryId}")]
+        [HttpPatch("{entryId}")]
         public async Task<ActionResult<HttpResponseDTO<PasswordEntryDTO>>> UpdateEntry(Guid entryId, PasswordEntryUpdateDTO entryDto)
         {
             Guid userGuid = User.GetUserId();

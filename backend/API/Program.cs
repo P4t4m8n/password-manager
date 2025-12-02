@@ -62,11 +62,11 @@ builder.Services.AddCors((options) =>
             });
     });
 
-string? tokenKeyString = builder.Configuration.GetSection("AppSettings:TokenKey").Value;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        string? tokenKeyString = builder.Configuration["Crypto:TokenKey"];
         options.TokenValidationParameters = new TokenValidationParameters()
         {
             ValidateIssuerSigningKey = true,

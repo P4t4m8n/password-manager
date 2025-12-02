@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using API.Exceptions;
 using API.Interfaces;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.IdentityModel.Tokens;
@@ -18,8 +19,18 @@ namespace API.Services
         public byte[] GetPasswordHash(string password, byte[] salt)
         {
 
+            string? passwordKey = _config["Crypto:PasswordKey"];
+
+            if (string.IsNullOrEmpty(passwordKey))
+            {
+                throw new UnexpectedCaughtException("Password key is not configured.", new Dictionary<string, string>
+                {
+                    { "ConfigKey", "Crypto:PasswordKey" }
+                });
+            }
+
             return KeyDerivation.Pbkdf2(
-                password: password,
+                password: password + passwordKey,
                 salt: salt,
                 prf: KeyDerivationPrf.HMACSHA256,
                 iterationCount: 1000000,
@@ -31,8 +42,15 @@ namespace API.Services
         {
             Claim[] claims = [new Claim("userId", userId)];
 
-            string? tokenKeyString = _config.GetSection("AppSettings:TokenKey").Value;
+            string? tokenKeyString = _config["Crypto:TokenKey"];
 
+            if (string.IsNullOrEmpty(tokenKeyString))
+            {
+                throw new UnexpectedCaughtException("Token key is not configured.", new Dictionary<string, string>
+                {
+                    { "ConfigKey", "Crypto:TokenKey" }
+                });
+            }
 
             SymmetricSecurityKey tokenKey = new(Encoding.UTF8.GetBytes(tokenKeyString ?? ""));
 
@@ -47,7 +65,7 @@ namespace API.Services
 
             };
 
-            JwtSecurityTokenHandler tokenHandler = new ();
+            JwtSecurityTokenHandler tokenHandler = new();
 
             SecurityToken token = tokenHandler.CreateToken(desc);
 
