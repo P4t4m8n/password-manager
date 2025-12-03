@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject, Input } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,7 +7,7 @@ import type { TMasterPasswordDialogMode } from '../../types/master-password-type
 
 @Component({
   selector: 'app-master-password-dialog',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './master-password-dialog.html',
   styleUrl: './master-password-dialog.css',
 })

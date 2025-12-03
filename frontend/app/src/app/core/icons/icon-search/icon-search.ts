@@ -6,6 +6,5 @@ import { NgStyle } from '@angular/common';
   selector: 'app-icon-search',
   imports: [NgStyle],
   templateUrl: './icon-search.html',
-  styleUrl: './icon-search.css',
 })
 export class IconSearch extends IconComponent {}

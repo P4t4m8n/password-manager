@@ -6,7 +6,6 @@ import { IconComponent } from '../../abstracts/icon-component';
   selector: 'app-icon-favorite',
   imports: [NgStyle],
   templateUrl: './icon-favorite.html',
-  styleUrl: './icon-favorite.css',
 })
 export class IconFavorite extends IconComponent {
 

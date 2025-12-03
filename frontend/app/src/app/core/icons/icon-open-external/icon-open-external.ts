@@ -6,6 +6,5 @@ import { IconComponent } from '../../abstracts/icon-component';
   selector: 'app-icon-open-external',
   imports: [NgStyle],
   templateUrl: './icon-open-external.html',
-  styleUrl: './icon-open-external.css',
 })
 export class IconOpenExternal extends IconComponent {}

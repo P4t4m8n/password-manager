@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SettingsIndex } from './settings-index';
+import { describe, beforeEach, it, expect } from 'vitest';
 
 describe('SettingsIndex', () => {
   let component: SettingsIndex;

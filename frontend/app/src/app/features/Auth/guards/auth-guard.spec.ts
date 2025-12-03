@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { CanActivateFn } from '@angular/router';
+import { describe, beforeEach, it, expect } from 'vitest';
 
 import { authGuard } from './auth-guard';
 

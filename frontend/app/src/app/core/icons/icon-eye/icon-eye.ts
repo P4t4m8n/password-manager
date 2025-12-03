@@ -6,7 +6,6 @@ import { IconComponent } from '../../abstracts/icon-component';
   selector: 'app-icon-eye',
   imports: [NgStyle],
   templateUrl: './icon-eye.html',
-  styleUrl: './icon-eye.css',
 })
 export class IconEye extends IconComponent {
 

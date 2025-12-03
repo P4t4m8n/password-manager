@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { describe, beforeEach, it, expect } from 'vitest';
 
 import { AuthService } from './auth.service';
 import {
-  HttpClientTestingModule,
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
@@ -20,10 +20,6 @@ describe('AuthService', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
-    httpMock.verify();
-  });
-
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
@@ -39,7 +35,7 @@ describe('AuthService', () => {
       expect(response.data.masterPasswordSalt).toBe('salt123');
     });
 
-    const req = httpMock.expectOne('api/auth/signin');
+    const req = httpMock.expectOne('http://localhost:5222/api/auth/Sign-in');
     expect(req.request.method).toBe('POST');
     req.flush(mockResponse);
   });

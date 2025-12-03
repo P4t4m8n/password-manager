@@ -21,9 +21,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles/styles.css"
-            ]
+            "styles": ["src/styles/styles.css"]
           },
           "configurations": {
             "production": {
@@ -65,18 +63,9 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "tsConfig": "tsconfig.spec.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles/styles.css"
-            ]
+            "include": ["src/**/*.spec.ts"]
           }
         }
       }

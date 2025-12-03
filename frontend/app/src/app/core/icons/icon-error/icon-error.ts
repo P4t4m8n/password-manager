@@ -6,7 +6,6 @@ import { IconComponent } from '../../abstracts/icon-component';
   selector: 'app-icon-error',
   imports: [NgStyle],
   templateUrl: './icon-error.html',
-  styleUrl: './icon-error.css',
 })
 export class IconError extends IconComponent {
 

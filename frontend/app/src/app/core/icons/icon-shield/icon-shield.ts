@@ -6,6 +6,5 @@ import { IconComponent } from '../../abstracts/icon-component';
   selector: 'app-icon-shield',
   imports: [NgStyle],
   templateUrl: './icon-shield.html',
-  styleUrl: './icon-shield.css',
 })
 export class IconShield extends IconComponent {}

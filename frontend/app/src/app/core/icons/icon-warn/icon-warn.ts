@@ -6,7 +6,6 @@ import { IconComponent } from '../../abstracts/icon-component';
   selector: 'app-icon-warn',
   imports: [NgStyle],
   templateUrl: './icon-warn.html',
-  styleUrl: './icon-warn.css',
 })
 export class IconWarn extends IconComponent {
 

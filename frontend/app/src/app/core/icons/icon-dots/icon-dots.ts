@@ -6,7 +6,6 @@ import { NgStyle } from '@angular/common';
   selector: 'app-icon-dots',
   imports: [NgStyle],
   templateUrl: './icon-dots.html',
-  styleUrl: './icon-dots.css',
 })
 export class IconDots extends IconComponent {
 

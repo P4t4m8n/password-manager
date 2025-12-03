@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { MasterPasswordSaltSessionService } from './master-password-salt-session-service';
+import { describe, beforeEach, it, expect } from 'vitest';
 
 describe('MasterPasswordSaltSessionService', () => {
   let service: MasterPasswordSaltSessionService;

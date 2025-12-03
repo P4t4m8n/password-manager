@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { PasswordEntryHttpService } from './password-entry-http-service';
+import { describe, beforeEach, it, expect } from 'vitest';
 
 describe('PasswordEntryHttpService', () => {
   let service: PasswordEntryHttpService;
