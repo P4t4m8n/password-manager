@@ -114,7 +114,7 @@ export class PasswordEntryEdit {
           this._router.navigate(['/entries/details', res.data.id]);
         },
         error: (err) => {
-          throw err;
+          console.error('Error saving password entry', err);
         },
       });
     } catch (error) {

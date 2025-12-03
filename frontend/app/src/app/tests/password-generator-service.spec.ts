@@ -1,0 +1,17 @@
+import { TestBed } from '@angular/core/testing';
+import { describe, beforeEach, it, expect } from 'vitest';
+import { PasswordGeneratorService } from '../features/password-generator/services/password-generator-service';
+
+
+describe('PasswordGeneratorService', () => {
+  let service: PasswordGeneratorService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(PasswordGeneratorService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});
