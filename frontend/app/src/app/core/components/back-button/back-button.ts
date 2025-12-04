@@ -12,14 +12,14 @@ import { IconArrow } from '../../icons/icon-arrow/icon-arrow';
 })
 export class BackButton {
   @Input() locationPath?: string;
-  private location = inject(Location);
-  private router = inject(Router);
+  #location = inject(Location);
+  #router = inject(Router);
 
   onBack(): void {
     if (this.locationPath) {
-      this.router.navigate([this.locationPath]);
+      this.#router.navigate([this.locationPath]);
       return;
     }
-    this.location.back();
+    this.#location.back();
   }
 }

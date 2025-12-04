@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
-import { IToastData, toastTypes } from '../interface/toastData';
 import { Subject } from 'rxjs';
+
+import { toastTypes } from '../enum/toast-type.enum';
+
+import type { IToastData } from '../interface/toast.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +16,7 @@ export class ToastService {
     type: toastTypes.success,
     progressWidth: '100%',
   };
+
   public open = new Subject<IToastData>();
 
   initiate(data: IToastData) {

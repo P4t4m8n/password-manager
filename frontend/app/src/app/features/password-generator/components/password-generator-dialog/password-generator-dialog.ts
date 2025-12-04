@@ -1,19 +1,28 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Output } from '@angular/core';
+
+import { AbstractDialog } from '../../../../core/abstracts/dialog.abstract';
+import { PasswordGeneratorDialogService } from '../../services/password-generator-dialog-service';
+
 import { PasswordGenerator } from '../password-generator/password-generator';
-import { DialogDirective } from '../../../../core/directives/dialog.directive';
-import { IconPasswordGenerator } from '../../../../core/icons/icon-password-generator/icon-password-generator';
 
 @Component({
   selector: 'app-password-generator-dialog',
-  imports: [IconPasswordGenerator, PasswordGenerator],
+  imports: [PasswordGenerator],
   templateUrl: './password-generator-dialog.html',
   styleUrl: './password-generator-dialog.css',
 })
-export class PasswordGeneratorDialog extends DialogDirective {
+export class PasswordGeneratorDialog extends AbstractDialog<string | null> {
   @Output() passwordSelected = new EventEmitter<string>();
 
+  #passwordGeneratorDialogService = inject(PasswordGeneratorDialogService);
+
   onPasswordSelected(password: string) {
-    this.passwordSelected.emit(password);
-    this.close();
+    this.resolve(password);
+  }
+
+  override submit() {}
+
+  onOpen() {
+    this.#passwordGeneratorDialogService.openDialog();
   }
 }

@@ -1,15 +1,15 @@
 export abstract class AbstractDialog<T = string | null> {
-  private resolvePromise: ((value: T) => void) | null = null;
+  #resolvePromise: ((value: T) => void) | null = null;
 
   open(): Promise<T> {
     return new Promise((resolve) => {
-      this.resolvePromise = resolve;
+      this.#resolvePromise = resolve;
     });
   }
   protected resolve(value: T): void {
-    if (this.resolvePromise) {
-      this.resolvePromise(value);
-      this.resolvePromise = null;
+    if (this.#resolvePromise) {
+      this.#resolvePromise(value);
+      this.#resolvePromise = null;
     }
   }
 

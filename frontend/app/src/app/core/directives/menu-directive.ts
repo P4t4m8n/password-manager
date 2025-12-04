@@ -14,34 +14,34 @@ import {
 })
 export class MenuDirective implements OnInit {
   @Output() clickOutside = new EventEmitter();
-  private el = inject(ElementRef);
-  private renderer = inject(Renderer2);
+  #el = inject(ElementRef);
+  #renderer = inject(Renderer2);
 
   ngOnInit(): void {
     setTimeout(() => {
       this.onClick = (ev: MouseEvent) => {
-        const isClickedInside = this.el.nativeElement.contains(ev.target);
+        const isClickedInside = this.#el.nativeElement.contains(ev.target);
         if (!isClickedInside) this.clickOutside.emit();
       };
     }, 0);
   }
 
   ngAfterViewInit(): void {
-    this.adjustPosition();
+    this.#adjustPosition();
   }
 
-  private adjustPosition() {
-    const element = this.el.nativeElement;
+  #adjustPosition() {
+    const element = this.#el.nativeElement;
 
-    this.renderer.removeStyle(element, 'top');
-    this.renderer.removeStyle(element, 'bottom');
+    this.#renderer.removeStyle(element, 'top');
+    this.#renderer.removeStyle(element, 'bottom');
 
     const rect = element.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
 
     if (rect.bottom > viewportHeight) {
-      this.renderer.setStyle(element, 'top', 'auto');
-      this.renderer.setStyle(element, 'bottom', '100%');
+      this.#renderer.setStyle(element, 'top', 'auto');
+      this.#renderer.setStyle(element, 'bottom', '100%');
     }
   }
 
@@ -50,6 +50,6 @@ export class MenuDirective implements OnInit {
 
   @HostListener('window:resize')
   onResize() {
-    this.adjustPosition();
+    this.#adjustPosition();
   }
 }

@@ -1,28 +1,30 @@
 import { inject, Injectable } from '@angular/core';
+
+import { toastTypes } from '../toast/enum/toast-type.enum';
+
 import { ToastService } from '../toast/services/toast-service';
-import { toastTypes } from '../toast/interface/toastData';
+import { ErrorService } from './error-service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ClipboardService {
-  private toastService = inject(ToastService);
+  #toastService = inject(ToastService);
+  #errorService = inject(ErrorService);
 
   async copyToClipboard(text?: string | null): Promise<void> {
-    if (!text) {
-      throw new Error('No text provided to copy to clipboard');
-    }
-
     try {
+      if (!text) {
+        throw new Error('No text provided to copy to clipboard');
+      }
       await navigator.clipboard.writeText(text);
-      this.toastService.initiate({
+      this.#toastService.initiate({
         title: 'Success',
         content: 'Password copied to clipboard!',
         type: toastTypes.success,
       });
     } catch (err) {
-      console.error('Failed to copy password:', err);
-      throw err;
+      this.#errorService.handleError(err, { showToast: true });
     }
   }
 }

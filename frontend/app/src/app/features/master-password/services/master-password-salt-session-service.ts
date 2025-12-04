@@ -5,18 +5,18 @@ import { BehaviorSubject } from 'rxjs';
   providedIn: 'root',
 })
 export class MasterPasswordSaltSessionService {
-  private _masterPasswordSalt = new BehaviorSubject<string | null>(null);
+  #masterPasswordSalt = new BehaviorSubject<string | null>(null);
 
   get masterPasswordSalt$() {
-    return this._masterPasswordSalt.asObservable();
+    return this.#masterPasswordSalt.asObservable();
   }
 
   set masterPasswordSalt(salt: string | null) {
-    this._masterPasswordSalt.next(salt);
+    this.#masterPasswordSalt.next(salt);
   }
 
   get currentSalt(): string | null {
-    return this._masterPasswordSalt.getValue();
+    return this.#masterPasswordSalt.getValue();
   }
 
   checkSaltInitialized(): this is { currentSalt: string } {

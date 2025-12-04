@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
+
 import {
   LETTERS_LOWERCASE,
   LETTERS_UPPERCASE,
   NUMBERS,
   SYMBOLS,
 } from '../consts/password-generator-store.const';
-import { TPasswordStrength } from '../types/password-generator.type';
-import { IPasswordOptions } from '../interfaces/password-options.interface';
+
+import type { TPasswordStrength } from '../types/password-generator.type';
+import type { IPasswordOptions } from '../interfaces/password-options.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -62,20 +64,20 @@ export class PasswordGeneratorService {
     if (hasSymbols) poolSize += SYMBOLS.length;
 
     const entropy = length * Math.log2(poolSize);
-    const strength = this.getStrengthKey(length, varietyCount, entropy);
-    const timeToCrack = this.getTimeToCrack(strength, entropy);
+    const strength = this.#getStrengthKey(length, varietyCount, entropy);
+    const timeToCrack = this.#getTimeToCrack(strength, entropy);
 
     return { strength, timeToCrack };
   }
 
-  private getStrengthKey(length: number, varietyCount: number, entropy: number): TPasswordStrength {
+  #getStrengthKey(length: number, varietyCount: number, entropy: number): TPasswordStrength {
     if (length < 8 || varietyCount < 2) return 'weak';
     if (length < 12 || varietyCount < 3 || entropy < 50) return 'medium';
     if (length < 16 || varietyCount < 4 || entropy < 80) return 'strong';
     return 'very-strong';
   }
 
-  private getTimeToCrack(strength: TPasswordStrength, entropy: number): string {
+  #getTimeToCrack(strength: TPasswordStrength, entropy: number): string {
     switch (strength) {
       case 'weak':
         return entropy < 28 ? 'instant' : entropy < 36 ? 'few seconds' : 'few minutes';

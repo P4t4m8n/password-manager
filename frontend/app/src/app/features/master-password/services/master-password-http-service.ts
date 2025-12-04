@@ -2,34 +2,35 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, tap } from 'rxjs';
 
-import type { Observable } from 'rxjs';
-import type { IMasterPasswordRecoveryResponseDTO } from '../interfaces/masterPasswordRecoveryResponseDTO';
-import { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
-import { IMasterKeyRecoveryEditDTO } from '../../user/interfaces/UserDTO';
 import { MasterPasswordSaltSessionService } from './master-password-salt-session-service';
 import { ErrorService } from '../../../core/services/error-service';
+
 import { environment } from '../../../core/consts/environment';
+
+import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
+import type { IMasterKeyRecoveryEditDTO } from '../../user/interfaces/user-dto';
+import type { Observable } from 'rxjs';
+import type { IMasterPasswordRecoveryResponseDTO } from '../interfaces/master-password-recovery-response-dto';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MasterPasswordHttpService {
-  private _errorService = inject(ErrorService);
-  private _httpClient = inject(HttpClient);
-  private _coreAPIUrl = `${environment.apiUrl}/master-password-recovery`;
+  #errorService = inject(ErrorService);
+  #httpClient = inject(HttpClient);
+  #masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
 
-  private _masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
+  #CORE_API_URL = `${environment.apiUrl}/master-password-recovery`;
 
   public getMasterPasswordRecovery(): Observable<IMasterPasswordRecoveryResponseDTO> {
-    return this._httpClient
-      .get<IHttpResponseDto<IMasterPasswordRecoveryResponseDTO>>(this._coreAPIUrl, {
+    return this.#httpClient
+      .get<IHttpResponseDto<IMasterPasswordRecoveryResponseDTO>>(this.#CORE_API_URL, {
         withCredentials: true,
       })
       .pipe(
         map((res) => res.data),
         catchError((err) => {
-          console.error(`Error fetching master password recovery data`, err);
-          throw err;
+          return this.#errorService.handleError(err, { showToast: false });
         })
       );
   }
@@ -37,8 +38,8 @@ export class MasterPasswordHttpService {
   public updateMasterPassword(
     dto: IMasterKeyRecoveryEditDTO
   ): Observable<IHttpResponseDto<string>> {
-    return this._httpClient
-      .patch<IHttpResponseDto<string>>(this._coreAPIUrl, dto, {
+    return this.#httpClient
+      .patch<IHttpResponseDto<string>>(this.#CORE_API_URL, dto, {
         withCredentials: true,
       })
       .pipe(
@@ -48,9 +49,9 @@ export class MasterPasswordHttpService {
               'Master password update failed: received non-null salt - THIS SHOULD NOT HAPPEN!'
             );
           }
-          this._masterPasswordSaltSessionService.masterPasswordSalt = res.data;
+          this.#masterPasswordSaltSessionService.masterPasswordSalt = res.data;
         }),
-        catchError((err) => this._errorService.handleError(err, { showToast: false }))
+        catchError((err) => this.#errorService.handleError(err, { showToast: false }))
       );
   }
 }

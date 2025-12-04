@@ -1,5 +1,6 @@
-import { Component, HostListener, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+
 import { SideMenu } from '../../side-menu/components/side-menu/side-menu';
 import { SwipeMenuDirective } from '../../side-menu/directives/swipe-menu-directive';
 

@@ -1,11 +1,14 @@
 import { Component, inject, Input, SimpleChanges } from '@angular/core';
+import { NgClass } from '@angular/common';
+
+import { PasswordGeneratorService } from '../../../password-generator/services/password-generator-service';
+
 import { IconError } from '../../../../core/icons/icon-error/icon-error';
 import { IconWarn } from '../../../../core/icons/icon-warn/icon-warn';
 import { IconCheck } from '../../../../core/icons/icon-check/icon-check';
 import { IconShield } from '../../../../core/icons/icon-shield/icon-shield';
-import { TPasswordStrength } from '../../../password-generator/types/password-generator.type';
-import { PasswordGeneratorService } from '../../../password-generator/services/password-generator-service';
-import { NgClass } from '@angular/common';
+
+import type { TPasswordStrength } from '../../../password-generator/types/password-generator.type';
 
 @Component({
   selector: 'app-password-strength',
@@ -14,7 +17,7 @@ import { NgClass } from '@angular/common';
   styleUrl: './password-strength.css',
 })
 export class PasswordStrength {
-  private passwordService = inject(PasswordGeneratorService);
+  #passwordGeneratorService = inject(PasswordGeneratorService);
 
   @Input() password: string | null = '';
 
@@ -23,7 +26,7 @@ export class PasswordStrength {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['password']) {
-      const { strength, timeToCrack } = this.passwordService.evaluatePasswordStrength(
+      const { strength, timeToCrack } = this.#passwordGeneratorService.evaluatePasswordStrength(
         this.password!
       );
       this.passwordStrength = strength;

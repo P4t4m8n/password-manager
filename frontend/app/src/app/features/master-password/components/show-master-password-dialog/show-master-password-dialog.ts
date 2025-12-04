@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
-import { AbstractDialog } from '../../../../core/abstracts/dialog/dialog.abstract';
 import { BehaviorSubject, map, takeWhile, tap, timer } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 
+import { AbstractDialog } from '../../../../core/abstracts/dialog.abstract';
 @Component({
   selector: 'app-show-master-password-dialog',
   imports: [AsyncPipe],
@@ -12,8 +12,8 @@ import { AsyncPipe } from '@angular/common';
 export class ShowMasterPasswordDialog extends AbstractDialog<void> {
   @Input({ required: true }) masterPassword!: string;
 
-  private _timeLeftBeforeClosing = new BehaviorSubject<number>(30);
-  timeLeftBeforeClosing$ = this._timeLeftBeforeClosing.asObservable();
+  #timeLeftBeforeClosing = new BehaviorSubject<number>(30);
+  timeLeftBeforeClosing$ = this.#timeLeftBeforeClosing.asObservable();
 
   ngOnInit(): void {
     this.timeLeftBeforeClosing$ = timer(0, 1000).pipe(
@@ -31,6 +31,6 @@ export class ShowMasterPasswordDialog extends AbstractDialog<void> {
   }
 
   onDestroy(): void {
-    this._timeLeftBeforeClosing.complete();
+    this.#timeLeftBeforeClosing.complete();
   }
 }

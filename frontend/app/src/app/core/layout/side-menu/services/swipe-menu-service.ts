@@ -5,23 +5,23 @@ import { BehaviorSubject } from 'rxjs';
   providedIn: 'root',
 })
 export class SwipeMenuService {
-  private isOpen = new BehaviorSubject<boolean>(false);
-  isOpen$ = this.isOpen.asObservable();
+  #isOpen = new BehaviorSubject<boolean>(false);
+  isOpen$ = this.#isOpen.asObservable();
 
   toggle() {
     console;
-    this.isOpen.next(!this.isOpen.value);
+    this.#isOpen.next(!this.#isOpen.value);
   }
 
   open() {
-    this.isOpen.next(true);
+    this.#isOpen.next(true);
   }
 
   close() {
-    this.isOpen.next(false);
+    this.#isOpen.next(false);
   }
 
   getValue() {
-    return this.isOpen.value;
+    return this.#isOpen.value;
   }
 }

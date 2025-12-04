@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { AbstractDialog } from '../../abstracts/dialog/dialog.abstract';
+import { AbstractDialog } from '../../../abstracts/dialog.abstract';
 
 @Component({
   selector: 'app-confirmation-dialog',

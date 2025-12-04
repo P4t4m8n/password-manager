@@ -1,32 +1,37 @@
 import { inject, Injectable } from '@angular/core';
-import { AuthService } from '../../auth/services/auth.service';
+import { firstValueFrom } from 'rxjs';
+
+import { AuthHttpService } from '../../auth/services/auth-http-service';
 import { CryptoService } from '../../crypto/services/crypto.service';
 import { PasswordEntryHttpService } from '../../password-entry/services/password-entry-http-service';
 import { MasterPasswordHttpService } from './master-password-http-service';
 import { MasterPasswordSaltSessionService } from './master-password-salt-session-service';
-import { firstValueFrom } from 'rxjs';
+
 import { TCredentials } from '../../crypto/types/credentials.type';
+import { IPasswordEntryDto } from '../../password-entry/interfaces/passwordEntry';
 
 type TDecryptMasterPasswordProps = Omit<TCredentials, 'masterPasswordSalt'> & {
   recoveryKey: string;
 };
 
+type TDecryptedEntries = Array<IPasswordEntryDto & { decryptedPassword: string }>;
+
 @Injectable({
   providedIn: 'root',
 })
 export class MasterPasswordRecoveryService {
-  private _cryptoService = inject(CryptoService);
-  private _masterPasswordHttpService = inject(MasterPasswordHttpService);
-  private _passwordEntryHttpService = inject(PasswordEntryHttpService);
-  private _masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
-  private _authService = inject(AuthService);
+  #cryptoService = inject(CryptoService);
+  #masterPasswordHttpService = inject(MasterPasswordHttpService);
+  #passwordEntryHttpService = inject(PasswordEntryHttpService);
+  #masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
+  #authService = inject(AuthHttpService);
 
   async decryptMasterPasswordWithRecovery({
     encryptedMasterKeyWithRecovery,
     recoveryKey,
     recoveryIV,
   }: TDecryptMasterPasswordProps): Promise<string> {
-    return await this._cryptoService.handleDecryptMasterKeyWithRecovery({
+    return await this.#cryptoService.handleDecryptMasterKeyWithRecovery({
       encryptedMasterKeyWithRecovery,
       recoveryKey,
       recoveryIV,
@@ -37,36 +42,36 @@ export class MasterPasswordRecoveryService {
     oldMasterPassword: string,
     newMasterPassword: string
   ): Promise<void> {
-    if (!this._masterPasswordSaltSessionService.checkSaltInitialized()) {
+    if (!this.#masterPasswordSaltSessionService.checkSaltInitialized()) {
       throw new Error('Master password salt is missing in session.');
     }
 
-    const saltBuffer = this._cryptoService.base64ToArrayBuffer(
-      this._masterPasswordSaltSessionService.currentSalt!
+    const saltBuffer = this.#cryptoService.base64ToArrayBuffer(
+      this.#masterPasswordSaltSessionService.currentSalt!
     );
 
-    await this._cryptoService.deriveMasterEncryptionKey({
+    await this.#cryptoService.deriveMasterEncryptionKey({
       masterPassword: oldMasterPassword,
       saltBuffer,
     });
 
-    const decryptedEntries = await this._decryptAllEntries();
+    const decryptedEntries = await this.#decryptAllEntries();
 
-    await this._createNewMasterPassword(newMasterPassword);
+    await this.#createNewMasterPassword(newMasterPassword);
 
     // Re-encrypt entries with new master password
-    await this._reEncryptEntries(decryptedEntries);
+    await this.#reEncryptEntries(decryptedEntries);
   }
 
-  private async _decryptAllEntries() {
-    const { data: allPasswordEntries } = await firstValueFrom(this._passwordEntryHttpService.get());
+  async #decryptAllEntries(): Promise<TDecryptedEntries> {
+    const { data: allPasswordEntries } = await firstValueFrom(this.#passwordEntryHttpService.get());
 
     return Promise.all(
       allPasswordEntries.map(async (entry) => {
         if (!entry.encryptedPassword || !entry.iv) {
           throw new Error(`Entry ${entry.id} is missing encrypted password or IV`);
         }
-        const decryptedPassword = await this._cryptoService.decryptPassword(
+        const decryptedPassword = await this.#cryptoService.decryptPassword(
           entry.encryptedPassword,
           entry.iv
         );
@@ -75,12 +80,12 @@ export class MasterPasswordRecoveryService {
     );
   }
 
-  private async _createNewMasterPassword(newMasterPassword: string) {
+  async #createNewMasterPassword(newMasterPassword: string): Promise<void> {
     const { recoveryKey, recoveryIV, encryptedMasterKeyWithRecovery, masterPasswordSalt } =
-      await this._cryptoService.handleMasterPasswordCreation(newMasterPassword);
+      await this.#cryptoService.handleMasterPasswordCreation(newMasterPassword);
 
     const response = await firstValueFrom(
-      this._masterPasswordHttpService.updateMasterPassword({
+      this.#masterPasswordHttpService.updateMasterPassword({
         recoveryIV,
         encryptedMasterKeyWithRecovery,
         masterPasswordSalt,
@@ -91,29 +96,17 @@ export class MasterPasswordRecoveryService {
       throw new Error(`Master password update failed:${response.message ?? ''}`);
     }
 
-    this._cryptoService.downloadRecoveryKey(
+    this.#cryptoService.downloadRecoveryKey(
       recoveryKey,
-      this._authService.get_session_user()?.email ?? ''
+      this.#authService.get_session_user()?.email ?? ''
     );
+    return;
   }
 
-  private async _reEncryptEntries(
-    decryptedEntries: {
-      decryptedPassword: string;
-      entryName?: string | undefined;
-      websiteUrl?: string | undefined;
-      entryUserName?: string | undefined;
-      encryptedPassword?: string | undefined;
-      iv?: string | undefined;
-      notes?: string | undefined;
-      id?: string | undefined;
-      createdAt?: string | Date | undefined;
-      updatedAt?: string | Date | undefined;
-    }[]
-  ): Promise<void> {
+  async #reEncryptEntries(decryptedEntries: TDecryptedEntries): Promise<void> {
     const reEncryptedEntries = await Promise.all(
       decryptedEntries.map(async (entry) => {
-        const { encrypted, iv } = await this._cryptoService.encryptPassword(
+        const { encrypted, iv } = await this.#cryptoService.encryptPassword(
           entry.decryptedPassword
         );
         return {
@@ -121,13 +114,14 @@ export class MasterPasswordRecoveryService {
           entryName: entry.entryName,
           websiteUrl: entry.websiteUrl,
           entryUserName: entry.entryUserName,
-          encryptedPassword: this._cryptoService.arrayBufferToBase64(encrypted),
-          iv: this._cryptoService.arrayBufferToBase64(iv),
+          encryptedPassword: this.#cryptoService.arrayBufferToBase64(encrypted),
+          iv: this.#cryptoService.arrayBufferToBase64(iv),
           notes: entry.notes,
         };
       })
     );
 
-    await firstValueFrom(this._passwordEntryHttpService.updateAfterRecovery(reEncryptedEntries));
+    await firstValueFrom(this.#passwordEntryHttpService.updateAfterRecovery(reEncryptedEntries));
+    return;
   }
 }

@@ -3,6 +3,7 @@ import type { Observable } from 'rxjs';
 
 export interface IErrorHandlerOptions {
   showToast?: boolean;
+  showErrorDialog?: boolean;
   formGroup?: FormGroup;
   customMessage?: string;
 }

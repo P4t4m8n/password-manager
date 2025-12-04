@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
-import { ToastService } from '../../services/toast-service';
 import { NgClass } from '@angular/common';
+
+import { ToastService } from '../../services/toast-service';
 
 @Component({
   selector: 'app-toast',
@@ -12,12 +13,12 @@ export class Toast implements OnInit {
   @ViewChild('element', { static: false }) progressBar!: ElementRef;
   progressInterval!: number;
 
-  private toastService = inject(ToastService);
-  private cd = inject(ChangeDetectorRef);
+  #toastService = inject(ToastService);
+  #cd = inject(ChangeDetectorRef);
 
   ngOnInit() {
-    this.toastService.open.subscribe((data) => {
-      this.cd.detectChanges();
+    this.#toastService.open.subscribe((data) => {
+      this.#cd.detectChanges();
       if (data.show) {
         this.countDown();
       }
@@ -25,17 +26,17 @@ export class Toast implements OnInit {
   }
 
   get data() {
-    return this.toastService.data;
+    return this.#toastService.data;
   }
 
   countDown() {
-    this.progressBar.nativeElement.style.width = this.toastService.data.progressWidth;
+    this.progressBar.nativeElement.style.width = this.#toastService.data.progressWidth;
 
     this.progressInterval = setInterval(() => {
       const width = parseInt(this.progressBar.nativeElement.style.width, 10);
 
       if (width <= 0) {
-        this.toastService.hide();
+        this.#toastService.hide();
         clearInterval(this.progressInterval);
         return;
       }

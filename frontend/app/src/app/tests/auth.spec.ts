@@ -3,18 +3,18 @@ import { describe, beforeEach, it, expect } from 'vitest';
 
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { AuthService } from '../features/auth/services/auth.service';
+import { AuthHttpService } from '../features/auth/services/auth-http-service';
 import { CryptoService } from '../features/crypto/services/crypto.service';
 import { MasterPasswordSaltSessionService } from '../features/master-password/services/master-password-salt-session-service';
 
 describe('AuthService', () => {
-  let service: AuthService;
+  let service: AuthHttpService;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        AuthService,
+        AuthHttpService,
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -29,7 +29,7 @@ describe('AuthService', () => {
         },
       ],
     });
-    service = TestBed.inject(AuthService);
+    service = TestBed.inject(AuthHttpService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 

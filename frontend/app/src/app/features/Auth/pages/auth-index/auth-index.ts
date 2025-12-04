@@ -5,14 +5,12 @@ import { AsyncPipe, TitleCasePipe } from '@angular/common';
 
 import { BehaviorSubject, map, Subscription, tap } from 'rxjs';
 
-import { CryptoService } from '../../../crypto/services/crypto.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthHttpService } from '../../services/auth-http-service';
+import { ErrorService } from '../../../../core/services/error-service';
 
 import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/routes.const';
 
-import type { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/AuthDto';
-import type { IHttpErrorResponseDto } from '../../../../core/interfaces/http-error-response-dto';
-import { ErrorService } from '../../../../core/services/error-service';
+import type { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/auth.interface';
 
 @Component({
   selector: 'app-auth-index',
@@ -21,17 +19,17 @@ import { ErrorService } from '../../../../core/services/error-service';
   styleUrl: './auth-index.css',
 })
 export class AuthIndex {
-  private _authService = inject(AuthService);
-  private _formBuilder = inject(FormBuilder);
-  private _router = inject(Router);
-  private _errorService = inject(ErrorService);
+  #authHttpService = inject(AuthHttpService);
+  #formBuilder = inject(FormBuilder);
+  #router = inject(Router);
+  #errorService = inject(ErrorService);
 
-  private subscription: Subscription = new Subscription();
+  #subscription: Subscription = new Subscription();
 
-  private _isSignIn = new BehaviorSubject<boolean>(true);
-  public isSignIn$ = this._isSignIn.asObservable();
+  #isSignIn = new BehaviorSubject<boolean>(true);
+  public isSignIn$ = this.#isSignIn.asObservable();
 
-  signInInputs = [
+  readonly signInInputs = [
     {
       labelText: 'Email',
       formControlName: 'email',
@@ -52,7 +50,7 @@ export class AuthIndex {
     },
   ];
 
-  signUpInputs = [
+  readonly signUpInputs = [
     {
       labelText: 'Username',
       formControlName: 'username',
@@ -68,13 +66,13 @@ export class AuthIndex {
     },
   ];
 
-  authSignInFormGroup = this._formBuilder.group({
+  authSignInFormGroup = this.#formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
     masterPassword: ['', Validators.required],
   });
 
-  authSignUpFormGroup = this._formBuilder.group({
+  authSignUpFormGroup = this.#formBuilder.group({
     username: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
@@ -102,23 +100,23 @@ export class AuthIndex {
   );
 
   toggleAuthMode() {
-    this._isSignIn.next(!this._isSignIn.getValue());
+    this.#isSignIn.next(!this.#isSignIn.getValue());
   }
 
   async onSubmit(e: Event) {
     e.preventDefault();
-    const control = this.getFormControl();
+    const control = this.#getFormControl();
     control.markAllAsTouched();
     if (control.invalid) {
       return;
     }
 
-    return this._isSignIn.getValue() ? this.signIn() : await this.signUp();
+    return this.#isSignIn.getValue() ? this.#signIn() : await this.#signUp();
   }
 
   getErrorMessage(controlName: string, label: string): string {
     //INFO: Form group ambiguity using as to solve
-    const control = (this.getFormControl() as FormGroup).get(controlName);
+    const control = (this.#getFormControl() as FormGroup).get(controlName);
 
     if (control?.errors?.['serverError']) {
       return control.errors['serverError'];
@@ -139,14 +137,14 @@ export class AuthIndex {
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    this.#subscription.unsubscribe();
   }
 
-  private getFormControl(): FormGroup {
-    return this._isSignIn.getValue() ? this.authSignInFormGroup : this.authSignUpFormGroup;
+  #getFormControl(): FormGroup {
+    return this.#isSignIn.getValue() ? this.authSignInFormGroup : this.authSignUpFormGroup;
   }
 
-  private signIn() {
+  #signIn() {
     const { email, password, masterPassword } = this.authSignInFormGroup.value;
     if (!email || !password || !masterPassword) {
       console.warn(
@@ -155,25 +153,25 @@ export class AuthIndex {
       return;
     }
     const signInDto: IAuthSignInDto = { email: email, password: password };
-    this._authService
+    this.#authHttpService
       .signIn(signInDto)
       .pipe(
-        tap(async (authRes) => {
-          this._router.navigate(['/entries']);
+        tap(async () => {
+          this.#router.navigate(['/entries']);
         })
       )
       .subscribe({
         error: (err) => {
-          this._errorService.handleError(err, {
+          this.#errorService.handleError(err, {
             formGroup: this.authSignInFormGroup,
-            showToast: true,
+            showToast: false,
           });
         },
       });
     return;
   }
 
-  private async signUp() {
+  async #signUp() {
     const { email, password, confirmPassword, username, masterPassword } =
       this.authSignUpFormGroup.value;
     if (!email || !password || !confirmPassword || !username || !masterPassword) {
@@ -191,12 +189,12 @@ export class AuthIndex {
       masterPassword,
     };
 
-    (await this._authService.signUp(signUpDto)).subscribe({
+    (await this.#authHttpService.signUp(signUpDto)).subscribe({
       next: () => {
-        this._router.navigate(['/' + PASSWORD_ENTRIES_PATHS.passwordEntities]);
+        this.#router.navigate(['/' + PASSWORD_ENTRIES_PATHS.passwordEntries]);
       },
       error: (err) => {
-        this._errorService.handleError(err, {
+        this.#errorService.handleError(err, {
           formGroup: this.authSignUpFormGroup,
           showToast: true,
         });

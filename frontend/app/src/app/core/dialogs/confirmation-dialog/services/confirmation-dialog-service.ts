@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 
-import { AbstractDialogService } from '../../abstracts/dialog/dialog-service.abstract';
 
 import { ConfirmationDialog } from '../components/confirmation-dialog';
+import { AbstractDialogService } from '../../../abstracts/dialog-service.abstract';
 
 @Injectable({
   providedIn: 'root',

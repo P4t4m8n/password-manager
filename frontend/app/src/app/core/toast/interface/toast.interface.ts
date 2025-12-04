@@ -1,7 +1,4 @@
-export enum toastTypes {
-  error,
-  success,
-}
+import { toastTypes } from '../enum/toast-type.enum';
 
 export interface IToastData {
   title: string;

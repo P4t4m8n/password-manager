@@ -1,4 +1,4 @@
-import { IEntity } from '../../../core/interfaces/entity';
+import { IEntity } from '../../../core/interfaces/entity.interface';
 
 export interface IPasswordEntryDto extends IEntity {
   entryName?: string;

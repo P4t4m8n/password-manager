@@ -1,20 +1,22 @@
 import { inject, Injectable } from '@angular/core';
+
 import { MasterPasswordDialogService } from '../../master-password/services/master-password-dialog-service';
 import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
-import { TCredentials } from '../types/credentials.type';
+
+import type { TCredentials } from '../types/credentials.type';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CryptoService {
-  private _encryptionKey: CryptoKey | null = null;
-  private _masterKey: string | null = null;
+  #encryptionKey: CryptoKey | null = null;
+  #masterKey: string | null = null;
 
-  private _masterPasswordDialogService = inject(MasterPasswordDialogService);
-  private _masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
+  #masterPasswordDialogService = inject(MasterPasswordDialogService);
+  #masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
 
   checkEncryptionKeyInitialized(): this is { _encryptionKey: CryptoKey } {
-    return this._encryptionKey !== null;
+    return this.#encryptionKey !== null;
   }
 
   async deriveMasterEncryptionKey({
@@ -46,8 +48,8 @@ export class CryptoService {
       ['encrypt', 'decrypt']
     );
 
-    this._encryptionKey = derivedKey;
-    this._masterKey = masterPassword;
+    this.#encryptionKey = derivedKey;
+    this.#masterKey = masterPassword;
 
     return derivedKey;
   }
@@ -74,7 +76,7 @@ export class CryptoService {
         name: 'AES-GCM',
         iv: iv,
       },
-      this._encryptionKey!,
+      this.#encryptionKey!,
       data
     );
 
@@ -87,7 +89,7 @@ export class CryptoService {
   async decryptPassword(encryptedPasswordStr?: string, ivStr?: string): Promise<string> {
     await this.initializeMasterPassword();
 
-    if (!this._encryptionKey) {
+    if (!this.#encryptionKey) {
       throw new Error(
         'Encryption key not initialized in decryptPassword-> THIS SHOULD NOT HAPPEN!!!'
       );
@@ -105,7 +107,7 @@ export class CryptoService {
         name: 'AES-GCM',
         iv: iv,
       },
-      this._encryptionKey,
+      this.#encryptionKey,
       encrypted
     );
 
@@ -120,7 +122,7 @@ export class CryptoService {
   async encryptMasterKeyWithRecovery(
     recoveryKey: Uint8Array<ArrayBuffer>
   ): Promise<{ encrypted: Uint8Array<ArrayBuffer>; iv: Uint8Array<ArrayBuffer> }> {
-    if (!this._masterKey) {
+    if (!this.#masterKey) {
       throw new Error('Master key not available');
     }
 
@@ -133,7 +135,7 @@ export class CryptoService {
     );
 
     const encoder = new TextEncoder();
-    const masterKeyBuffer = encoder.encode(this._masterKey);
+    const masterKeyBuffer = encoder.encode(this.#masterKey);
     const iv = this.generateIV();
 
     const encryptedBuffer = await crypto.subtle.encrypt(
@@ -191,8 +193,8 @@ export class CryptoService {
   }
 
   clearSensitiveData(): void {
-    this._encryptionKey = null;
-    this._masterKey = null;
+    this.#encryptionKey = null;
+    this.#masterKey = null;
   }
 
   downloadRecoveryKey(recoveryKey: Uint8Array, username: string): void {
@@ -238,7 +240,7 @@ export class CryptoService {
   async initializeMasterPassword(): Promise<void> {
     if (this.checkEncryptionKeyInitialized()) return;
 
-    const masterPassword = await this._masterPasswordDialogService.openDialogWithProps({
+    const masterPassword = await this.#masterPasswordDialogService.openDialog({
       mode: 'unlock',
     });
 
@@ -246,11 +248,11 @@ export class CryptoService {
       throw new Error('Master password is required to initialize encryption key.');
     }
 
-    if (!this._masterPasswordSaltSessionService.checkSaltInitialized()) {
+    if (!this.#masterPasswordSaltSessionService.checkSaltInitialized()) {
       throw new Error('Master password salt is missing.');
     }
     const saltBuffer = this.base64ToArrayBuffer(
-      this._masterPasswordSaltSessionService.currentSalt!
+      this.#masterPasswordSaltSessionService.currentSalt!
     );
 
     await this.deriveMasterEncryptionKey({ masterPassword, saltBuffer });

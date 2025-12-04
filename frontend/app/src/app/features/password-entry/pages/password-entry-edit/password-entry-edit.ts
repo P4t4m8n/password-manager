@@ -1,15 +1,21 @@
 import { Component, inject } from '@angular/core';
-import { IconFavorite } from '../../../../core/icons/icon-favorite/icon-favorite';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
-import { PasswordGeneratorDialog } from '../../../password-generator/components/password-generator-dialog/password-generator-dialog';
-import { RevelInputPasswordDirective } from '../../../../core/directives/revel-input-password-directive';
-import { CryptoService } from '../../../crypto/services/crypto.service';
-import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
-import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { filter, map, switchMap } from 'rxjs';
+
+import { CryptoService } from '../../../crypto/services/crypto.service';
+import { ErrorService } from '../../../../core/services/error-service';
+import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
+import { PasswordGeneratorDialogService } from '../../../password-generator/services/password-generator-dialog-service';
+
+import { RevelInputPasswordDirective } from '../../../../core/directives/revel-input-password-directive';
+
+import { IconFavorite } from '../../../../core/icons/icon-favorite/icon-favorite';
+import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
+import { IconPasswordGenerator } from '../../../../core/icons/icon-password-generator/icon-password-generator';
 import { BackButton } from '../../../../core/components/back-button/back-button';
+
+import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 
 @Component({
   selector: 'app-password-entry-edit',
@@ -18,22 +24,25 @@ import { BackButton } from '../../../../core/components/back-button/back-button'
     IconFavorite,
     ReactiveFormsModule,
     IconEye,
-    PasswordGeneratorDialog,
     BackButton,
+    IconPasswordGenerator,
   ],
   templateUrl: './password-entry-edit.html',
   styleUrl: './password-entry-edit.css',
 })
 export class PasswordEntryEdit {
-  private _formBuilder = inject(FormBuilder);
-  private _cryptoService = inject(CryptoService);
-  private _passwordEntryHttpService = inject(PasswordEntryHttpService);
-  private _route = inject(ActivatedRoute);
-  private _router = inject(Router);
+  #formBuilder = inject(FormBuilder);
+  #route = inject(ActivatedRoute);
+  #router = inject(Router);
 
-  private _originalPasswordForUpdateCheck: string | null = null;
+  #cryptoService = inject(CryptoService);
+  #passwordEntryHttpService = inject(PasswordEntryHttpService);
+  #passwordGeneratorDialogService = inject(PasswordGeneratorDialogService);
+  #errorService = inject(ErrorService);
 
-  passwordEntryFormGroup = this._formBuilder.group({
+  #originalPasswordForUpdateCheck: string | null = null;
+
+  passwordEntryFormGroup = this.#formBuilder.group({
     entryName: [''],
     websiteUrl: [''],
     entryUserName: [''],
@@ -43,13 +52,13 @@ export class PasswordEntryEdit {
   });
 
   ngOnInit() {
-    this._route.params
+    this.#route.params
       .pipe(
         map((params) => params['entryId']),
         filter((id) => !!id),
-        switchMap((entryId) => this._passwordEntryHttpService.getById(entryId)),
+        switchMap((entryId) => this.#passwordEntryHttpService.getById(entryId)),
         switchMap(async (entry) => {
-          const decryptedPassword = await this._cryptoService.decryptPassword(
+          const decryptedPassword = await this.#cryptoService.decryptPassword(
             entry.encryptedPassword,
             entry.iv
           );
@@ -67,16 +76,19 @@ export class PasswordEntryEdit {
             notes: entry.notes,
             id: entry.id,
           });
-          this._originalPasswordForUpdateCheck = decryptedPassword;
+          this.#originalPasswordForUpdateCheck = decryptedPassword;
         },
         error: (err) => {
-          console.error('Error loading password entry', err);
+          this.#errorService.handleError(err, { showErrorDialog: true });
         },
       });
   }
 
-  onPasswordGenerated(password: string) {
-    this.passwordEntryFormGroup.patchValue({ password: password });
+  async onPasswordGenerated() {
+    const password = (await this.#passwordGeneratorDialogService.openDialog()) ?? '';
+    this.passwordEntryFormGroup.patchValue({
+      password: password,
+    });
   }
 
   async onSubmit() {
@@ -85,14 +97,10 @@ export class PasswordEntryEdit {
         this.passwordEntryFormGroup.value;
 
       if (!password) {
-        console.error('Password is required.');
-        return;
+        throw new Error('Password is required');
       }
 
-      const isPasswordChanged = password !== this._originalPasswordForUpdateCheck;
-      console.log('originalPasswordForUpdateCheck:', this._originalPasswordForUpdateCheck);
-      console.log('password:', password);
-      console.log('isPasswordChanged:', isPasswordChanged);
+      const isPasswordChanged = password !== this.#originalPasswordForUpdateCheck;
 
       let passwordEntryDto: IPasswordEntryDto = {
         entryName: entryName || '',
@@ -103,26 +111,26 @@ export class PasswordEntryEdit {
       };
 
       if (isPasswordChanged) {
-        const { encrypted, iv } = await this._cryptoService.encryptPassword(password);
+        const { encrypted, iv } = await this.#cryptoService.encryptPassword(password);
 
-        passwordEntryDto.encryptedPassword = this._cryptoService.arrayBufferToBase64(encrypted);
-        passwordEntryDto.iv = this._cryptoService.arrayBufferToBase64(iv);
+        passwordEntryDto.encryptedPassword = this.#cryptoService.arrayBufferToBase64(encrypted);
+        passwordEntryDto.iv = this.#cryptoService.arrayBufferToBase64(iv);
       }
 
-      this._passwordEntryHttpService.save(passwordEntryDto).subscribe({
+      this.#passwordEntryHttpService.save(passwordEntryDto).subscribe({
         next: (res) => {
-          this._router.navigate(['/entries/details', res.data.id]);
-        },
-        error: (err) => {
-          console.error('Error saving password entry', err);
+          this.#router.navigate(['/entries/details', res.data.id]);
         },
       });
     } catch (error) {
-      console.error('Error saving password entry', error);
+      this.#errorService.handleError(error, {
+        showToast: true,
+        formGroup: this.passwordEntryFormGroup,
+      });
     }
   }
 
   onCancel() {
-    this._router.navigate(['/entries']);
+    this.#router.navigate(['/entries']);
   }
 }

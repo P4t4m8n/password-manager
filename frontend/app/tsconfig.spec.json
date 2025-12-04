@@ -1,3 +1,4 @@
+
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
@@ -8,5 +9,5 @@
   },
   "include": [
     "src/**/*.ts"
-  ]
+, "../../trash/dialog.directive.ts"  ]
 }

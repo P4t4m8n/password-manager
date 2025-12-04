@@ -1,15 +1,20 @@
 import { TitleCasePipe, CommonModule, NgComponentOutlet } from '@angular/common';
 import { Component, OnInit, inject, HostBinding } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
-import { Subject,  takeUntil, filter } from 'rxjs';
-import { IAuthDto } from '../../../../../features/auth/interfaces/AuthDto';
-import { AuthService } from '../../../../../features/auth/services/auth.service';
+import { Subject, takeUntil, filter } from 'rxjs';
+
+import { AuthHttpService } from '../../../../../features/auth/services/auth-http-service';
+import { ErrorService } from '../../../../services/error-service';
+import { SwipeMenuService } from '../../services/swipe-menu-service';
+
+import { NAV_ROUTES } from '../../const/side-menu.const';
+
 import { IconCloseOpen } from '../../../../icons/icon-close-open/icon-close-open';
 import { IconLogo } from '../../../../icons/icon-logo/icon-logo';
 import { IconProfile } from '../../../../icons/icon-profile/icon-profile';
-import { SwipeMenuService } from '../../services/swipe-menu-service';
-import { NAV_ROUTES } from './side-menu.const';
 import { IconSignout } from '../../../../icons/icon-signout/icon-signout';
+
+import type { IAuthDto } from '../../../../../features/auth/interfaces/auth.interface';
 
 @Component({
   selector: 'app-side-menu',
@@ -23,58 +28,65 @@ import { IconSignout } from '../../../../icons/icon-signout/icon-signout';
     RouterLinkActive,
     IconProfile,
     IconSignout,
-],
+  ],
   templateUrl: './side-menu.html',
   styleUrl: './side-menu.css',
 })
 export class SideMenu implements OnInit {
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private sideMenuService = inject(SwipeMenuService);
-  private destroy$ = new Subject<void>();
+  #authHttpService = inject(AuthHttpService);
+  #router = inject(Router);
+  #sideMenuService = inject(SwipeMenuService);
+  #destroy$ = new Subject<void>();
+  #errorService = inject(ErrorService);
 
-  navRoutes = NAV_ROUTES;
+  readonly navRoutes = NAV_ROUTES;
 
   session_user: IAuthDto | null = null;
 
   ngOnInit(): void {
-    this.authService.session_user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
-      this.session_user = user;
+    this.#authHttpService.session_user$.pipe(takeUntil(this.#destroy$)).subscribe({
+      next: (user) => {
+        this.session_user = user;
+      },
+      error: (err) => {
+        this.#errorService.handleError(err, { showToast: true });
+      },
     });
 
-    this.router.events
+    this.#router.events
       .pipe(
         filter((e) => e instanceof NavigationEnd),
-        takeUntil(this.destroy$)
+        takeUntil(this.#destroy$)
       )
       .subscribe(() => {
         if (window.innerWidth < 768) {
-          this.sideMenuService.close();
+          this.#sideMenuService.close();
         }
       });
   }
 
   onSignout() {
-    this.authService.signOut().subscribe({
+    this.#authHttpService.signOut().subscribe({
       next: () => {
-        this.router.navigate(['/auth']);
+        this.#router.navigate(['/auth']);
       },
       error: (err) => {
-        console.error('Error during sign out', err);
+        this.#errorService.handleError(err, { showToast: true });
       },
     });
   }
+
   @HostBinding('class.hide')
   get hide() {
-    return !this.sideMenuService.getValue();
+    return !this.#sideMenuService.getValue();
   }
 
   onToggle() {
-    this.sideMenuService.toggle();
+    this.#sideMenuService.toggle();
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    this.#destroy$.next();
+    this.#destroy$.complete();
   }
 }

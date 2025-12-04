@@ -1,16 +1,17 @@
 import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
-import { NgClass } from '@angular/common';
 import { FormBuilder, ɵInternalFormsSharedModule, ReactiveFormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
+
+import { ClipboardService } from '../../../../core/services/clipboard-service';
+import { PasswordGeneratorService } from '../../services/password-generator-service';
 
 import { IconCopyPassword } from '../../../../core/icons/icon-copy-password/icon-copy-password';
-import { PasswordGeneratorService } from '../../services/password-generator-service';
 import { IconWarn } from '../../../../core/icons/icon-warn/icon-warn';
 import { IconCheck } from '../../../../core/icons/icon-check/icon-check';
 import { IconShield } from '../../../../core/icons/icon-shield/icon-shield';
 import { IconError } from '../../../../core/icons/icon-error/icon-error';
 
-import { TPasswordStrength } from '../../types/password-generator.type';
-import { ClipboardService } from '../../../../core/services/clipboard-service';
+import type { TPasswordStrength } from '../../types/password-generator.type';
 
 @Component({
   selector: 'app-password-generator',
@@ -29,17 +30,18 @@ import { ClipboardService } from '../../../../core/services/clipboard-service';
 })
 export class PasswordGenerator implements OnInit {
   @Input() isDialog: boolean = false;
+
   @Output() passwordSelected = new EventEmitter<string>();
   @Output() dialogClosed = new EventEmitter<void>();
 
-  private passwordService = inject(PasswordGeneratorService);
-  private formBuilder = inject(FormBuilder);
-  private clipboardService = inject(ClipboardService);
+  #passwordService = inject(PasswordGeneratorService);
+  #formBuilder = inject(FormBuilder);
+  #clipboardService = inject(ClipboardService);
 
   public passwordStrength: TPasswordStrength = 'medium';
   public timeToCrack: string = '1 day';
 
-  checkboxInputs = [
+  readonly checkboxInputs = [
     { label: 'Lowercase Letters', formControlName: 'includesLowercase' },
     { label: 'Uppercase Letters', formControlName: 'includeUppercase' },
     { label: 'Numbers', formControlName: 'includeNumbers' },
@@ -47,7 +49,7 @@ export class PasswordGenerator implements OnInit {
     { label: 'Similar Characters', formControlName: 'includeSimilarCharacters' },
   ];
 
-  passwordGeneratorFormGroup = this.formBuilder.group({
+  passwordGeneratorFormGroup = this.#formBuilder.group({
     passwordLength: [12],
     includeSymbols: [true],
     includeNumbers: [true],
@@ -56,7 +58,7 @@ export class PasswordGenerator implements OnInit {
     includesLowercase: [true],
   });
 
-  passwordControl = this.formBuilder.control('');
+  passwordControl = this.#formBuilder.control('');
 
   ngOnInit() {
     this.passwordGeneratorFormGroup.valueChanges.subscribe((value) => {
@@ -70,23 +72,23 @@ export class PasswordGenerator implements OnInit {
         return;
       }
 
-      this.generatePassword();
+      this.onGeneratePassword();
     });
 
-    this.generatePassword();
+    this.onGeneratePassword();
   }
 
   get strengthClass(): string {
     return `strength-${this.passwordStrength}`;
   }
 
-  generatePassword() {
+  onGeneratePassword() {
     const formValue = this.passwordGeneratorFormGroup.value;
     const passwordLength = formValue.passwordLength ?? 12;
     const includeSimilarCharacters = formValue.includeSimilarCharacters ?? false;
 
-    const characterPool = this.passwordService.buildCharacterPool(formValue);
-    const password = this.passwordService.generatePassword(
+    const characterPool = this.#passwordService.buildCharacterPool(formValue);
+    const password = this.#passwordService.generatePassword(
       characterPool,
       passwordLength,
       includeSimilarCharacters
@@ -94,28 +96,24 @@ export class PasswordGenerator implements OnInit {
 
     this.passwordControl.setValue(password, { emitEvent: false });
 
-    const { strength, timeToCrack } = this.passwordService.evaluatePasswordStrength(password);
+    const { strength, timeToCrack } = this.#passwordService.evaluatePasswordStrength(password);
     this.passwordStrength = strength as TPasswordStrength;
     this.timeToCrack = timeToCrack;
   }
 
-  async copyToClipboard() {
-    try {
-      const password = this.passwordControl.value;
-      await this.clipboardService.copyToClipboard(password);
-    } catch (err) {
-      console.error('Failed to copy password:', err);
-    }
+  async onCopyToClipboard() {
+    const password = this.passwordControl.value;
+    await this.#clipboardService.copyToClipboard(password);
   }
 
-  emitPasswordSelected() {
+  onEmitPasswordSelected() {
     const password = this.passwordControl.value;
     if (password) {
       this.passwordSelected.emit(password);
     }
   }
 
-  emitDialogClosed() {
+  onEmitDialogClosed() {
     this.dialogClosed.emit();
   }
 }

@@ -1,8 +1,9 @@
-
 import { Component, inject, Input } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AbstractDialog } from '../../../../core/abstracts/dialog/dialog.abstract';
+
+import { AbstractDialog } from '../../../../core/abstracts/dialog.abstract';
+
 import type { TMasterPasswordDialogMode } from '../../types/master-password-types';
 
 @Component({
@@ -13,11 +14,12 @@ import type { TMasterPasswordDialogMode } from '../../types/master-password-type
 })
 export class MasterPasswordDialog extends AbstractDialog<string | null> {
   @Input() mode?: TMasterPasswordDialogMode = 'unlock';
+
   form = inject(FormBuilder).group({
     masterPassword: ['', Validators.required],
   });
 
-  private router = inject(Router);
+  #router = inject(Router);
 
   get title(): string {
     return this.mode === 'unlock' ? 'Enter Master Password' : 'Set Master Password';
@@ -39,7 +41,7 @@ export class MasterPasswordDialog extends AbstractDialog<string | null> {
 
   navigateToRecovery(): void {
     this.cancel();
-    this.router.navigate(['/recovery']);
+    this.#router.navigate(['/recovery']);
     this.resolve(null);
   }
 

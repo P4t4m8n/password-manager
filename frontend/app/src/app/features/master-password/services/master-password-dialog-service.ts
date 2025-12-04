@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MasterPasswordDialog } from '../components/master-password-dialog/master-password-dialog';
-import { AbstractDialogService } from '../../../core/abstracts/dialog/dialog-service.abstract';
+import { AbstractDialogService } from '../../../core/abstracts/dialog-service.abstract';
 
 @Injectable({
   providedIn: 'root',

@@ -1,19 +1,24 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { IHttpErrorResponseDto } from '../interfaces/http-error-response-dto';
-import { Observable, throwError } from 'rxjs';
-import { IErrorHandlerOptions, IErrorService } from '../interfaces/error-service.interface';
 import { FormGroup } from '@angular/forms';
-import { toastTypes } from '../toast/interface/toastData';
+import { Observable, throwError } from 'rxjs';
+
 import { ToastService } from '../toast/services/toast-service';
+import { ErrorDialogService } from '../dialogs/error-dialog/services/error-dialog-service';
+
+import { toastTypes } from '../toast/enum/toast-type.enum';
+
+import type { IErrorHandlerOptions, IErrorService } from '../interfaces/error-service.interface';
+import type { IHttpErrorResponseDto } from '../interfaces/http-error-response-dto';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ErrorService implements IErrorService {
-  private toastService = inject(ToastService);
+  #toastService = inject(ToastService);
+  #errorDialogService = inject(ErrorDialogService);
 
-  private readonly HTTP_ERROR_TITLES: Record<number, string> = {
+  #HTTP_ERROR_TITLES: Record<number, string> = {
     400: 'Bad Request',
     401: 'Unauthorized',
     403: 'Forbidden',
@@ -24,53 +29,73 @@ export class ErrorService implements IErrorService {
   };
 
   handleError(error: unknown, options: IErrorHandlerOptions = {}): Observable<never> {
-    const { showToast = true, formGroup, customMessage } = options;
+    const { showToast = true, customMessage } = options;
 
     if (error instanceof HttpErrorResponse) {
-      return this.handleHttpError(error, showToast, formGroup, customMessage);
+      return this.#handleHttpError({ error, ...options });
     }
 
-    return this.handleClientError(error, showToast, customMessage);
+    return this.#handleClientError({
+      error,
+      showToast,
+      customMessage,
+      showErrorDialog: options.showErrorDialog,
+    });
   }
 
-  private handleHttpError(
-    error: HttpErrorResponse,
-    showToast: boolean,
-    formGroup?: FormGroup,
-    customMessage?: string
-  ): Observable<never> {
+  #handleHttpError({
+    error,
+    showToast,
+    formGroup,
+    customMessage,
+    showErrorDialog,
+  }: IErrorHandlerOptions & { error: HttpErrorResponse }): Observable<never> {
     const appError: IHttpErrorResponseDto = error.error;
 
     if (error.status === 0) {
       const message = customMessage || 'Unable to connect to server. Please check your connection.';
       if (showToast) {
-        this.showErrorToast('Connection Error', message);
+        this.#showErrorToast('Connection Error', message);
       }
+      if (showErrorDialog) {
+        this.#showErrorDialog(message);
+      }
+
       return throwError(() => ({ message, statusCode: 0 }));
     }
 
     if (appError?.errors && formGroup) {
-      this.handleValidationErrors(appError.errors, formGroup);
+      this.#handleValidationErrors(appError.errors, formGroup);
     }
 
     if (showToast) {
-      const title = this.getErrorTitle(error.status);
+      const title = this.#getErrorTitle(error.status);
       const message = customMessage || appError?.message || 'An error occurred';
-      this.showErrorToast(title, message);
+      this.#showErrorToast(title, message);
+    }
+
+    if (showErrorDialog) {
+      const message = customMessage || appError?.message || 'An error occurred';
+      this.#showErrorDialog(message);
     }
 
     return throwError(() => appError);
   }
 
-  private handleClientError(
-    error: unknown,
-    showToast: boolean,
-    customMessage?: string
-  ): Observable<never> {
-    const message = customMessage || this.extractErrorMessage(error);
+  #handleClientError({
+    error,
+    showToast,
+    customMessage,
+    showErrorDialog,
+  }: IErrorHandlerOptions & { error: HttpErrorResponse | unknown }): Observable<never> {
+    const message = customMessage || this.#extractErrorMessage(error);
 
     if (showToast) {
-      this.showErrorToast('Error', message);
+      this.#showErrorToast('Error', message);
+    }
+
+    if (showErrorDialog) {
+      this.#showErrorDialog(message);
     }
 
     console.error('Client error:', error);
@@ -82,10 +107,7 @@ export class ErrorService implements IErrorService {
     }));
   }
 
-  private handleValidationErrors(
-    errors: Record<string, string | string[]>,
-    formGroup: FormGroup
-  ): void {
+  #handleValidationErrors(errors: Record<string, string | string[]>, formGroup: FormGroup): void {
     Object.keys(errors).forEach((fieldName) => {
       const errorValue = errors[fieldName];
       const message = Array.isArray(errorValue) ? errorValue[0] : errorValue;
@@ -98,19 +120,27 @@ export class ErrorService implements IErrorService {
     });
   }
 
-  private showErrorToast(title: string, message: string): void {
-    this.toastService.initiate({
+  #showErrorToast(title: string, message: string): void {
+    this.#toastService.initiate({
       title,
       content: message,
       type: toastTypes.error,
     });
   }
 
-  private getErrorTitle(statusCode: number): string {
-    return this.HTTP_ERROR_TITLES[statusCode] || 'Error';
+  #showErrorDialog(message: string): void {
+    this.#errorDialogService.openDialog({
+      message,
+      backPath: '/',
+      backButtonText: 'Go to Home',
+    });
   }
 
-  private extractErrorMessage(error: unknown): string {
+  #getErrorTitle(statusCode: number): string {
+    return this.#HTTP_ERROR_TITLES[statusCode] || 'Error';
+  }
+
+  #extractErrorMessage(error: unknown): string {
     if (error instanceof Error) {
       return error.message;
     }

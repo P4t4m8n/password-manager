@@ -33,24 +33,24 @@ import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
   styleUrl: './password-entries.css',
 })
 export class PasswordEntries implements OnInit, OnDestroy {
-  private _router = inject(Router);
-  private _route = inject(ActivatedRoute);
-  
-  private _passwordEntryHttpService = inject(PasswordEntryHttpService);
-  private _errorService = inject(ErrorService);
+  #router = inject(Router);
+  #route = inject(ActivatedRoute);
 
-  private _subscription: Subscription = new Subscription();
+  #passwordEntryHttpService = inject(PasswordEntryHttpService);
+  #errorService = inject(ErrorService);
+
+  #subscription: Subscription = new Subscription();
 
   public passwordEntries$: Observable<IPasswordEntryDto[]> =
-    this._passwordEntryHttpService.passwordEntries$;
+    this.#passwordEntryHttpService.passwordEntries$;
 
   public passwordEntriesPaths = PASSWORD_ENTRIES_PATHS;
 
   public searchControl = new FormControl('');
 
   ngOnInit() {
-    this._subscription.add(
-      this._route.queryParams
+    this.#subscription.add(
+      this.#route.queryParams
         .pipe(
           switchMap((params) => {
             const entryName = params['entryName'] || '';
@@ -58,24 +58,24 @@ export class PasswordEntries implements OnInit, OnDestroy {
               this.searchControl.setValue(entryName, { emitEvent: false });
             }
 
-            return this._passwordEntryHttpService.get({ entryName });
+            return this.#passwordEntryHttpService.get({ entryName });
           })
         )
         .subscribe({
           error: (err) => {
-            this._errorService.handleError(err, { showToast: true });
+            this.#errorService.handleError(err, { showToast: true });
           },
         })
     );
 
-    this._subscription.add(
+    this.#subscription.add(
       this.searchControl.valueChanges
         .pipe(
           debounceTime(300),
           distinctUntilChanged(),
           tap((searchTerm) => {
-            this._router.navigate([], {
-              relativeTo: this._route,
+            this.#router.navigate([], {
+              relativeTo: this.#route,
               queryParams: { entryName: searchTerm || null },
               queryParamsHandling: 'merge',
             });
@@ -83,13 +83,13 @@ export class PasswordEntries implements OnInit, OnDestroy {
         )
         .subscribe({
           error: (err) => {
-            this._errorService.handleError(err, { showToast: true });
+            this.#errorService.handleError(err, { showToast: true });
           },
         })
     );
   }
 
   ngOnDestroy() {
-    this._subscription.unsubscribe();
+    this.#subscription.unsubscribe();
   }
 }
