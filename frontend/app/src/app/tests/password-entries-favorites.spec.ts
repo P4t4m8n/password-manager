@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PasswordEntriesFavorites } from '../features/password-entry/pages/password-entries-favorites/password-entries-favorites';
+import { describe, beforeEach, it, expect } from 'vitest';
 
 describe('PasswordEntriesFavorites', () => {
   let component: PasswordEntriesFavorites;
@@ -8,9 +9,8 @@ describe('PasswordEntriesFavorites', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PasswordEntriesFavorites]
-    })
-    .compileComponents();
+      imports: [PasswordEntriesFavorites],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(PasswordEntriesFavorites);
     component = fixture.componentInstance;

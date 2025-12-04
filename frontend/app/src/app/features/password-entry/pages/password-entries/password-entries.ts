@@ -39,7 +39,8 @@ export class PasswordEntries implements OnInit, OnDestroy {
   #passwordEntryHttpService = inject(PasswordEntryHttpService);
   #errorService = inject(ErrorService);
 
-  #subscription: Subscription = new Subscription();
+  //Exposing in run time the subscription for testing purposes
+  private subscription: Subscription = new Subscription();
 
   public passwordEntries$: Observable<IPasswordEntryDto[]> =
     this.#passwordEntryHttpService.passwordEntries$;
@@ -49,7 +50,7 @@ export class PasswordEntries implements OnInit, OnDestroy {
   public searchControl = new FormControl('');
 
   ngOnInit() {
-    this.#subscription.add(
+    this.subscription.add(
       this.#route.queryParams
         .pipe(
           switchMap((params) => {
@@ -68,7 +69,7 @@ export class PasswordEntries implements OnInit, OnDestroy {
         })
     );
 
-    this.#subscription.add(
+    this.subscription.add(
       this.searchControl.valueChanges
         .pipe(
           debounceTime(300),
@@ -90,6 +91,6 @@ export class PasswordEntries implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.#subscription.unsubscribe();
+    this.subscription.unsubscribe();
   }
 }

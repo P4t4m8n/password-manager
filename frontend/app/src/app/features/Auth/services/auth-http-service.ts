@@ -26,7 +26,7 @@ export class AuthHttpService {
   #masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
   #errorService = inject(ErrorService);
 
-  #CORE_API_URL = `${environment.apiUrl}/api/auth`;
+  #CORE_API_URL = `${environment.apiUrl}/auth`;
 
   #session_user = new BehaviorSubject<IAuthDto | null>(null);
   public session_user$ = this.#session_user.asObservable();

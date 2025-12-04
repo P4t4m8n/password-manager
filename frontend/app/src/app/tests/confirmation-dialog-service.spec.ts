@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, beforeEach, it, expect } from 'vitest';
-import { ConfirmationDialogService } from '../core/confirmation-dialog/services/confirmation-dialog-service';
-
+import { ConfirmationDialogService } from '../core/dialogs/confirmation-dialog/services/confirmation-dialog-service';
 
 describe('ConfirmationDialogService', () => {
   let service: ConfirmationDialogService;
