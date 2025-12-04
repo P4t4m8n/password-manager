@@ -8,19 +8,21 @@ import { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
 import { IMasterKeyRecoveryEditDTO } from '../../user/interfaces/UserDTO';
 import { MasterPasswordSaltSessionService } from './master-password-salt-session-service';
 import { ErrorService } from '../../../core/services/error-service';
+import { environment } from '../../../core/consts/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MasterPasswordHttpService {
-  private httpClient = inject(HttpClient);
-  private coreAPIUrl = 'http://localhost:5222/api/master-password-recovery';
+  private _errorService = inject(ErrorService);
+  private _httpClient = inject(HttpClient);
+  private _coreAPIUrl = `${environment.apiUrl}/master-password-recovery`;
 
   private _masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
 
   public getMasterPasswordRecovery(): Observable<IMasterPasswordRecoveryResponseDTO> {
-    return this.httpClient
-      .get<IHttpResponseDto<IMasterPasswordRecoveryResponseDTO>>(this.coreAPIUrl, {
+    return this._httpClient
+      .get<IHttpResponseDto<IMasterPasswordRecoveryResponseDTO>>(this._coreAPIUrl, {
         withCredentials: true,
       })
       .pipe(
@@ -35,8 +37,8 @@ export class MasterPasswordHttpService {
   public updateMasterPassword(
     dto: IMasterKeyRecoveryEditDTO
   ): Observable<IHttpResponseDto<string>> {
-    return this.httpClient
-      .patch<IHttpResponseDto<string>>(this.coreAPIUrl, dto, {
+    return this._httpClient
+      .patch<IHttpResponseDto<string>>(this._coreAPIUrl, dto, {
         withCredentials: true,
       })
       .pipe(
@@ -48,7 +50,7 @@ export class MasterPasswordHttpService {
           }
           this._masterPasswordSaltSessionService.masterPasswordSalt = res.data;
         }),
-        catchError(ErrorService.handleError)
+        catchError((err) => this._errorService.handleError(err, { showToast: false }))
       );
   }
 }

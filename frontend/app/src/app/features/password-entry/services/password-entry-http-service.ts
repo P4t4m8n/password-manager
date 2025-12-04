@@ -10,6 +10,7 @@ import { ErrorService } from '../../../core/services/error-service';
 })
 export class PasswordEntryHttpService {
   private _httpClient: HttpClient = inject(HttpClient);
+  private _errorService: ErrorService = inject(ErrorService);
 
   private _coreAPIUrl = 'http://localhost:5222/api/Password-entry';
 
@@ -32,7 +33,7 @@ export class PasswordEntryHttpService {
         }),
         catchError((err) => {
           this._passwordEntries$.next([]);
-          return ErrorService.handleError(err);
+          return this._errorService.handleError(err, { showToast: true });
         })
       );
   }
@@ -44,7 +45,7 @@ export class PasswordEntryHttpService {
       })
       .pipe(
         map((res) => res.data),
-        catchError(ErrorService.handleError)
+        catchError((err) => this._errorService.handleError(err, { showToast: true }))
       );
   }
 
@@ -60,7 +61,7 @@ export class PasswordEntryHttpService {
           const passwordEntities = this._passwordEntries$.value.filter((pe) => pe.id !== id);
           this._passwordEntries$.next(passwordEntities);
         }),
-        catchError(ErrorService.handleError)
+        catchError((err) => this._errorService.handleError(err, { showToast: true }))
       );
   }
 
@@ -77,7 +78,7 @@ export class PasswordEntryHttpService {
         tap((res) => {
           this._passwordEntries$.next(res.data);
         }),
-        catchError(ErrorService.handleError)
+        catchError((err) => this._errorService.handleError(err, { showToast: true }))
       );
   }
 
@@ -93,7 +94,7 @@ export class PasswordEntryHttpService {
           return pe;
         }),
         retry(1),
-        catchError(ErrorService.handleError)
+        catchError((err) => this._errorService.handleError(err, { showToast: false }))
       );
   }
 
@@ -110,7 +111,7 @@ export class PasswordEntryHttpService {
           this._passwordEntries$.next(passwordEntities);
         }),
         retry(1),
-        catchError(ErrorService.handleError)
+        catchError((err) => this._errorService.handleError(err, { showToast: false }))
       );
   }
 }

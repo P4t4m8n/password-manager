@@ -1,4 +1,5 @@
 import { ApplicationRef, createComponent, EnvironmentInjector, inject, Type } from '@angular/core';
+
 import { AbstractDialog } from './dialog.abstract';
 
 export abstract class AbstractDialogService<

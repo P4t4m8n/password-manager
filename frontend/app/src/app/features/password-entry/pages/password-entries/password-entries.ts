@@ -1,17 +1,22 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
 import { debounceTime, distinctUntilChanged, Observable, Subscription, switchMap, tap } from 'rxjs';
-import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
+
+import { PASSWORD_ENTRIES_PATHS } from '../../consts/routes.const';
+
+import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
+import { ErrorService } from '../../../../core/services/error-service';
+
 import { IconSearch } from '../../../../core/icons/icon-search/icon-search';
 import { IconPlus } from '../../../../core/icons/icon-plus/icon-plus';
 import { IconSafety } from '../../../../core/icons/icon-safety/icon-safety';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { PASSWORD_ENTRIES_PATHS } from '../../consts/routes.const';
-import { CommonModule } from '@angular/common';
 import { PasswordEntryTable } from '../../components/password-entry-table/password-entry-table';
 import { BackButton } from '../../../../core/components/back-button/back-button';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
+import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 @Component({
   selector: 'app-password-entities',
   imports: [
@@ -28,21 +33,24 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
   styleUrl: './password-entries.css',
 })
 export class PasswordEntries implements OnInit, OnDestroy {
-  private passwordEntryService = inject(PasswordEntryHttpService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private subscription: Subscription = new Subscription();
+  private _router = inject(Router);
+  private _route = inject(ActivatedRoute);
+  
+  private _passwordEntryHttpService = inject(PasswordEntryHttpService);
+  private _errorService = inject(ErrorService);
+
+  private _subscription: Subscription = new Subscription();
 
   public passwordEntries$: Observable<IPasswordEntryDto[]> =
-    this.passwordEntryService.passwordEntries$;
+    this._passwordEntryHttpService.passwordEntries$;
 
   public passwordEntriesPaths = PASSWORD_ENTRIES_PATHS;
 
   public searchControl = new FormControl('');
 
   ngOnInit() {
-    this.subscription.add(
-      this.route.queryParams
+    this._subscription.add(
+      this._route.queryParams
         .pipe(
           switchMap((params) => {
             const entryName = params['entryName'] || '';
@@ -50,30 +58,38 @@ export class PasswordEntries implements OnInit, OnDestroy {
               this.searchControl.setValue(entryName, { emitEvent: false });
             }
 
-            return this.passwordEntryService.get({ entryName });
+            return this._passwordEntryHttpService.get({ entryName });
           })
         )
-        .subscribe()
+        .subscribe({
+          error: (err) => {
+            this._errorService.handleError(err, { showToast: true });
+          },
+        })
     );
 
-    this.subscription.add(
+    this._subscription.add(
       this.searchControl.valueChanges
         .pipe(
           debounceTime(300),
           distinctUntilChanged(),
           tap((searchTerm) => {
-            this.router.navigate([], {
-              relativeTo: this.route,
+            this._router.navigate([], {
+              relativeTo: this._route,
               queryParams: { entryName: searchTerm || null },
               queryParamsHandling: 'merge',
             });
           })
         )
-        .subscribe()
+        .subscribe({
+          error: (err) => {
+            this._errorService.handleError(err, { showToast: true });
+          },
+        })
     );
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    this._subscription.unsubscribe();
   }
 }

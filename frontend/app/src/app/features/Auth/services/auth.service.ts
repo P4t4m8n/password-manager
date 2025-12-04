@@ -1,8 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, of, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+
 import { CryptoService } from '../../crypto/services/crypto.service';
-import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
+import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
+import { ErrorService } from '../../../core/services/error-service';
 
 import type {
   IAuthDto,
@@ -10,17 +12,17 @@ import type {
   IAuthSignInDto,
   IAuthSignUpDto,
 } from '../interfaces/AuthDto';
-import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
-import { ErrorService } from '../../../core/services/error-service';
-import { TPrettify } from '../../../core/types/prettify.type';
+import type { TPrettify } from '../../../core/types/prettify.type';
+import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  httpClient: HttpClient = inject(HttpClient);
-  cryptoService = inject(CryptoService);
-  masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
+  private _httpClient: HttpClient = inject(HttpClient);
+  private _cryptoService = inject(CryptoService);
+  private _masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
+  private _errorService = inject(ErrorService);
 
   private coreAPIUrl = 'http://localhost:5222/api/auth';
 
@@ -28,16 +30,16 @@ export class AuthService {
   public session_user$ = this._session_user.asObservable();
 
   signIn(dto: IAuthSignInDto) {
-    return this.httpClient
+    return this._httpClient
       .post<IHttpResponseDto<IAuthResponseDto>>(`${this.coreAPIUrl}/Sign-in`, dto, {
         withCredentials: true,
       })
       .pipe(
         tap((res) => {
           this._session_user.next(res.data.user);
-          this.masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
+          this._masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
         }),
-        catchError(ErrorService.handleError)
+        catchError((err) => this._errorService.handleError(err, { showToast: false }))
       );
   }
 
@@ -45,7 +47,7 @@ export class AuthService {
     const { masterPassword, email, ...rest } = dto;
 
     const { recoveryKey, recoveryIV, encryptedMasterKeyWithRecovery, masterPasswordSalt } =
-      await this.cryptoService.handleMasterPasswordCreation(masterPassword);
+      await this._cryptoService.handleMasterPasswordCreation(masterPassword);
 
     const signUpDto: IAuthSignUpDto = {
       ...rest,
@@ -55,58 +57,58 @@ export class AuthService {
       recoveryIV,
     };
 
-    return this.httpClient
+    return this._httpClient
       .post<IHttpResponseDto<IAuthResponseDto>>(`${this.coreAPIUrl}/Sign-up`, signUpDto, {
         withCredentials: true,
       })
       .pipe(
         tap((res) => {
           this._session_user.next(res.data.user);
-          this.masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
-          this.cryptoService.downloadRecoveryKey(recoveryKey, email!);
+          this._masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
+          this._cryptoService.downloadRecoveryKey(recoveryKey, email!);
         }),
-        catchError(ErrorService.handleError)
+        catchError((err) => this._errorService.handleError(err, { showToast: false }))
       );
   }
 
   signOut() {
-    return this.httpClient.post(`${this.coreAPIUrl}/Sign-out`, {}, { withCredentials: true }).pipe(
+    return this._httpClient.post(`${this.coreAPIUrl}/Sign-out`, {}, { withCredentials: true }).pipe(
       tap(() => {
         this._session_user.next(null);
-        this.masterPasswordSaltSessionService.masterPasswordSalt = null;
-        this.cryptoService.clearSensitiveData();
+        this._masterPasswordSaltSessionService.masterPasswordSalt = null;
+        this._cryptoService.clearSensitiveData();
       }),
-      catchError(ErrorService.handleError)
+      catchError((err) => this._errorService.handleError(err, { showToast: true }))
     );
   }
 
   refreshToken() {
-    const x = this.httpClient
+    const x = this._httpClient
       .get<IHttpResponseDto<IAuthResponseDto>>(`${this.coreAPIUrl}/Refresh-token`, {
         withCredentials: true,
       })
       .pipe(
         tap((res) => {
           this._session_user.next(res.data.user);
-          this.masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
+          this._masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
         }),
-        catchError(ErrorService.handleError)
+        catchError((err) => this._errorService.handleError(err, { showToast: true }))
       );
   }
 
   checkSession() {
-    return this.httpClient
+    return this._httpClient
       .get<IHttpResponseDto<IAuthResponseDto>>(`${this.coreAPIUrl}/Check-session`, {
         withCredentials: true,
       })
       .pipe(
         tap((res) => {
           this._session_user.next(res.data.user);
-          this.masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
+          this._masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
         }),
         catchError(() => {
           this._session_user.next(null);
-          this.masterPasswordSaltSessionService.masterPasswordSalt = null;
+          this._masterPasswordSaltSessionService.masterPasswordSalt = null;
           return of(null);
         })
       );
@@ -114,9 +116,5 @@ export class AuthService {
 
   get_session_user(): IAuthDto | null {
     return this._session_user.getValue();
-  }
-
-  get_master_password_salt(): string | null {
-    return this.masterPasswordSaltSessionService.currentSalt;
   }
 }

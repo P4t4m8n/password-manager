@@ -12,6 +12,7 @@ import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/routes.co
 
 import type { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/AuthDto';
 import type { IHttpErrorResponseDto } from '../../../../core/interfaces/http-error-response-dto';
+import { ErrorService } from '../../../../core/services/error-service';
 
 @Component({
   selector: 'app-auth-index',
@@ -20,15 +21,15 @@ import type { IHttpErrorResponseDto } from '../../../../core/interfaces/http-err
   styleUrl: './auth-index.css',
 })
 export class AuthIndex {
-  private authService = inject(AuthService);
-  private formBuilder = inject(FormBuilder);
-  private cryptoService = inject(CryptoService);
-  private router = inject(Router);
+  private _authService = inject(AuthService);
+  private _formBuilder = inject(FormBuilder);
+  private _router = inject(Router);
+  private _errorService = inject(ErrorService);
 
   private subscription: Subscription = new Subscription();
 
-  private isSignIn = new BehaviorSubject<boolean>(true);
-  isSignIn$ = this.isSignIn.asObservable();
+  private _isSignIn = new BehaviorSubject<boolean>(true);
+  public isSignIn$ = this._isSignIn.asObservable();
 
   signInInputs = [
     {
@@ -67,13 +68,13 @@ export class AuthIndex {
     },
   ];
 
-  authSignInFormGroup = this.formBuilder.group({
+  authSignInFormGroup = this._formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
     masterPassword: ['', Validators.required],
   });
 
-  authSignUpFormGroup = this.formBuilder.group({
+  authSignUpFormGroup = this._formBuilder.group({
     username: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
@@ -101,7 +102,7 @@ export class AuthIndex {
   );
 
   toggleAuthMode() {
-    this.isSignIn.next(!this.isSignIn.getValue());
+    this._isSignIn.next(!this._isSignIn.getValue());
   }
 
   async onSubmit(e: Event) {
@@ -112,7 +113,7 @@ export class AuthIndex {
       return;
     }
 
-    return this.isSignIn.getValue() ? this.signIn() : await this.signUp();
+    return this._isSignIn.getValue() ? this.signIn() : await this.signUp();
   }
 
   getErrorMessage(controlName: string, label: string): string {
@@ -141,28 +142,8 @@ export class AuthIndex {
     this.subscription.unsubscribe();
   }
 
-  private handleServerErrors(err: IHttpErrorResponseDto) {
-    const { errors } = err;
-
-    if (!errors || !Object.keys(errors).length) {
-      return;
-    }
-
-    Object.keys(errors).forEach((key) => {
-      const fieldName = key;
-      const errorValue = errors[key];
-      const message = Array.isArray(errorValue) ? errorValue[0] : errorValue;
-
-      const control = this.getFormControl().get(fieldName);
-      if (control) {
-        control.setErrors({ serverError: message });
-        control.markAsTouched();
-      }
-    });
-  }
-
   private getFormControl(): FormGroup {
-    return this.isSignIn.getValue() ? this.authSignInFormGroup : this.authSignUpFormGroup;
+    return this._isSignIn.getValue() ? this.authSignInFormGroup : this.authSignUpFormGroup;
   }
 
   private signIn() {
@@ -174,16 +155,19 @@ export class AuthIndex {
       return;
     }
     const signInDto: IAuthSignInDto = { email: email, password: password };
-    this.authService
+    this._authService
       .signIn(signInDto)
       .pipe(
         tap(async (authRes) => {
-          this.router.navigate(['/entries']);
+          this._router.navigate(['/entries']);
         })
       )
       .subscribe({
         error: (err) => {
-          this.handleServerErrors(err);
+          this._errorService.handleError(err, {
+            formGroup: this.authSignInFormGroup,
+            showToast: true,
+          });
         },
       });
     return;
@@ -207,12 +191,15 @@ export class AuthIndex {
       masterPassword,
     };
 
-    (await this.authService.signUp(signUpDto)).subscribe({
+    (await this._authService.signUp(signUpDto)).subscribe({
       next: () => {
-        this.router.navigate(['/' + PASSWORD_ENTRIES_PATHS.passwordEntities]);
+        this._router.navigate(['/' + PASSWORD_ENTRIES_PATHS.passwordEntities]);
       },
       error: (err) => {
-        this.handleServerErrors(err);
+        this._errorService.handleError(err, {
+          formGroup: this.authSignUpFormGroup,
+          showToast: true,
+        });
       },
     });
 
