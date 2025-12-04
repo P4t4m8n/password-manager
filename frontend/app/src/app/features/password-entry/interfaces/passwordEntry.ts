@@ -7,5 +7,5 @@ export interface IPasswordEntryDto extends IEntity {
   encryptedPassword?: string;
   iv?: string;
   notes?: string;
+  isFavorite?: boolean;
 }
-

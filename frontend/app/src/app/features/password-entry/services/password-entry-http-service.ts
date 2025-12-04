@@ -16,7 +16,7 @@ export class PasswordEntryHttpService {
   #httpClient: HttpClient = inject(HttpClient);
   #errorService: ErrorService = inject(ErrorService);
 
-  #CORE_API_URL = `${environment.apiUrl}/api/Password-entry`;
+  #CORE_API_URL = `${environment.apiUrl}/Password-entry`;
 
   #passwordEntries$ = new BehaviorSubject<IPasswordEntryDto[]>([]);
   public passwordEntries$ = this.#passwordEntries$.asObservable();
