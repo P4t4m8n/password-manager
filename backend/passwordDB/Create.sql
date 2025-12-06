@@ -1,4 +1,3 @@
-SET QUOTED_IDENTIFIER ON;
 IF NOT EXISTS (SELECT *
 FROM sys.databases
 WHERE name = 'PasswordDB')
@@ -8,7 +7,8 @@ END
 GO
 
 USE PasswordDB;
-
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 IF NOT EXISTS (SELECT *
