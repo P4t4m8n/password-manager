@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Observable, throwError } from 'rxjs';
 
 import { ToastService } from '../toast/services/toast-service';
@@ -17,6 +18,7 @@ import type { IHttpErrorResponseDto } from '../interfaces/http-error-response-dt
 export class ErrorService implements IErrorService {
   #toastService = inject(ToastService);
   #errorDialogService = inject(ErrorDialogService);
+  #router = inject(Router);
 
   #HTTP_ERROR_TITLES: Record<number, string> = {
     400: 'Bad Request',
@@ -62,6 +64,10 @@ export class ErrorService implements IErrorService {
       }
 
       return throwError(() => ({ message, statusCode: 0 }));
+    }
+
+    if (this.#HTTP_ERROR_TITLES[error.status] === 'Unauthorized') {
+      this.#router.navigate(['/auth']);
     }
 
     if (appError?.errors && formGroup) {
