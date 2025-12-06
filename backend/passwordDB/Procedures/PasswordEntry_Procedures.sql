@@ -1,3 +1,5 @@
+SET QUOTED_IDENTIFIER ON;
+
 USE PasswordDB;
 
 GO

@@ -1,0 +1,37 @@
+services:
+  db:
+    build: ./backend/passwordDB
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${SA_PASSWORD}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql/data
+
+  backend:
+    build: ./backend/API
+    ports:
+      - "5222:5222"
+    environment:
+      - DefaultConnection=Server=db;Database=PasswordDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;
+      - Crypto__TokenKey=${TOKEN_KEY}
+      - Crypto__PasswordKey=${PASSWORD_KEY}
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./backend/API:/app
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend/app
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend/app:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  mssql_data:
