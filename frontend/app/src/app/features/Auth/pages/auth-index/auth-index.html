@@ -2,12 +2,13 @@
 
 <form
   (submit)="onSubmit($event)"
-  [formGroup]="(isSignIn$ | async) ? authSignInFormGroup : authSignUpFormGroup"
+  [formGroup]="authSettings.formGroup"
+  [class.sign-up]="!authSettings.isSignIn"
 >
   <h2>{{ authSettings.headerText.toUpperCase() }}</h2>
 
   <ul>
-    @for (input of (authSettings$ | async)?.inputs; track input.formControlName) {
+    @for (input of authSettings?.inputs; track input.formControlName) {
     <li>
       <label [for]="input.formControlName">{{ input.labelText.toUpperCase() }}</label>
       <input
@@ -16,6 +17,7 @@
         [type]="input.type"
         [placeholder]="input.placeHolder"
         class="input-box"
+        autocomplete="new-password"
       />
 
       <span class="error-message">{{

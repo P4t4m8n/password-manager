@@ -36,12 +36,7 @@ export class AuthIndex {
       type: 'email',
       placeHolder: 'Email',
     },
-    {
-      labelText: 'Master Password',
-      formControlName: 'masterPassword',
-      type: 'password',
-      placeHolder: 'Master Password',
-    },
+
     {
       labelText: 'Password',
       formControlName: 'password',
@@ -66,6 +61,13 @@ export class AuthIndex {
     },
   ];
 
+  readonly masterPasswordInput = {
+    labelText: 'Master Password',
+    formControlName: 'masterPassword',
+    type: 'password',
+    placeHolder: 'Master Password',
+  };
+
   authSignInFormGroup = this.#formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
@@ -83,18 +85,26 @@ export class AuthIndex {
   authSettings$ = this.isSignIn$.pipe(
     map((isSignIn) => {
       if (isSignIn) {
+        if (!this.signInInputs.includes(this.masterPasswordInput)) {
+          this.signInInputs.push(this.masterPasswordInput);
+        }
         return {
           headerText: 'Sign-In',
           footerText: "Don't have an account? Sign Up",
           formGroup: this.authSignInFormGroup,
           inputs: this.signInInputs,
+          isSignIn: true,
         };
+      }
+      if (!this.signUpInputs.includes(this.masterPasswordInput)) {
+        this.signUpInputs.push(this.masterPasswordInput);
       }
       return {
         headerText: 'Sign Up',
         footerText: 'Already have an account? Sign In',
         formGroup: this.authSignUpFormGroup,
         inputs: this.signUpInputs,
+        isSignIn: false,
       };
     })
   );
