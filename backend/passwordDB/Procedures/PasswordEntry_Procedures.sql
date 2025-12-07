@@ -1,8 +1,8 @@
 USE PasswordDB;
 
-GO
+-- GO
 
-DROP PROCEDURE PasswordSchema.spPasswordEntry_UPDATE;
+-- DROP PROCEDURE PasswordSchema.spPasswordEntry_UPDATE;
 
 GO
 

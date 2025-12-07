@@ -48,6 +48,36 @@ BEGIN
 
 END
 
+IF NOT EXISTS (SELECT *
+FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE s.name = 'PasswordSchema' AND t.name = 'UserSettings')
+BEGIN
+    CREATE TABLE PasswordSchema.UserSettings
+    (
+        UserId UNIQUEIDENTIFIER PRIMARY KEY,
+
+        MasterPasswordTTLInMinutes INT DEFAULT 10,
+        AutoLockTimeInMinutes INT DEFAULT 5,
+
+        Theme NVARCHAR(20) DEFAULT 'light',
+        CONSTRAINT chk_theme CHECK (Theme IN ('light', 'dark', 'system')),
+
+        MinimumPasswordStrength NVARCHAR(20) DEFAULT 'medium',
+        CONSTRAINT chk_min_password_strength CHECK (MinimumPasswordStrength IN ('weak', 'medium', 'strong', 'very-strong')),
+
+        MasterPasswordStorgeMode NVARCHAR(20) DEFAULT 'none',
+        CONSTRAINT chk_master_password_storage_mode CHECK (MasterPasswordStorgeMode IN ('none', 'session', 'local')),
+
+        FOREIGN KEY (UserId) REFERENCES PasswordSchema.[User](Id) ON DELETE CASCADE,
+
+        CreatedAt DATETIME2 DEFAULT GETDATE(),
+        UpdatedAt DATETIME2 DEFAULT GETDATE()
+
+    );
+
+END
+
 GO
 
 IF NOT EXISTS (SELECT *
