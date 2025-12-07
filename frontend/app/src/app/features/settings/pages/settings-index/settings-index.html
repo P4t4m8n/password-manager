@@ -1,1 +1,63 @@
-<p>settings-index works!</p>
+<app-header [title]="'Settings'"></app-header>
+<form [formGroup]="userSettingsFormGroup" (ngSubmit)="onSubmit()">
+  <ul class="number-inputs-list">
+    @for(numberInput of numberInputs;track numberInput.labelText){
+    <li>
+      <label [for]="numberInput.formControlName"
+        ><h3>
+          {{ numberInput.labelText.toUpperCase() }}
+        </h3>
+        <p>(minutes)</p>
+      </label>
+      <input
+        [id]="numberInput.formControlName"
+        [formControlName]="numberInput.formControlName"
+        type="number"
+        class="input-box"
+      />
+
+      <span class="error-message">{{
+        getErrorMessage(numberInput.formControlName, numberInput.labelText)
+      }}</span>
+    </li>
+    }
+  </ul>
+  <ul class="radio-btns-list">
+    @for (radioInput of radioInputs;track radioInput.labelText){
+
+    <li>
+      <h3>{{ radioInput.labelText.toUpperCase() }}</h3>
+      <ul class="">
+        @for (option of radioInput.options; track option) {
+        <li>
+          <input
+            type="radio"
+            [formControlName]="radioInput.formControlName"
+            [value]="option"
+            [id]="option"
+          />
+          <label [for]="option" class="radio-label">
+            <h4>
+              {{ option }}
+            </h4>
+            <p>{{ getRadioText(option) }}</p>
+          </label>
+        </li>
+        }
+      </ul>
+      <span class="error-message">{{
+        getErrorMessage(radioInput.formControlName, radioInput.labelText)
+      }}</span>
+    </li>
+    }
+  </ul>
+
+  <div class="actions">
+    <button type="button" class="submit-btn" (click)="resetToDefualtSettings()">
+      Reset to Default
+    </button>
+    <button type="submit" [disabled]="userSettingsFormGroup.invalid" class="submit-btn">
+      Save Settings
+    </button>
+  </div>
+</form>
