@@ -1,13 +1,8 @@
-
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    "types": [
-     "vitest",
-    ]
+    "types": ["vitest"]
   },
-  "include": [
-    "src/**/*.ts"
-, "../../trash/dialog.directive.ts"  ]
+  "include": ["src/**/*.ts"]
 }
