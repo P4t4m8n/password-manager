@@ -42,20 +42,41 @@ CREATE OR ALTER PROCEDURE PasswordSchema.spUser_Create
     @UserName NVARCHAR(100),
     @PasswordHash VARBINARY(MAX),
     @PasswordSalt VARBINARY(MAX),
-    @MasterPasswordSalt VARBINARY(MAX) ,
-    @EncryptedMasterKeyWithRecovery VARBINARY(MAX) ,
+    @MasterPasswordSalt VARBINARY(MAX),
+    @EncryptedMasterKeyWithRecovery VARBINARY(MAX),
     @RecoveryIV VARBINARY(MAX)
 AS
 BEGIN
-    INSERT INTO PasswordSchema.[User]
-        (Email,Username, PasswordHash, PasswordSalt, MasterPasswordSalt, EncryptedMasterKeyWithRecovery, RecoveryIV)
-    OUTPUT
-    INSERTED.Id,
-    INSERTED.Email,
-    INSERTED.Username,
-    INSERTED.MasterPasswordSalt
+    SET NOCOUNT ON;
+
+    DECLARE @NewUserId TABLE (Id UNIQUEIDENTIFIER);
+
+    BEGIN TRANSACTION;
+
+    BEGIN TRY
+        INSERT INTO PasswordSchema.[User]
+        (Email, Username, PasswordHash, PasswordSalt, MasterPasswordSalt,
+        EncryptedMasterKeyWithRecovery, RecoveryIV)
+    OUTPUT INSERTED.Id INTO @NewUserId
     VALUES
-        (@Email, @Username, @PasswordHash, @PasswordSalt, @MasterPasswordSalt, @EncryptedMasterKeyWithRecovery, @RecoveryIV);
+        (@Email, @Username, @PasswordHash, @PasswordSalt,
+            @MasterPasswordSalt, @EncryptedMasterKeyWithRecovery, @RecoveryIV);
+        
+        INSERT INTO PasswordSchema.UserSettings
+        (UserId)
+    SELECT Id
+    FROM @NewUserId;
+        
+        SELECT u.Id, u.Email, u.Username, u.MasterPasswordSalt
+    FROM PasswordSchema.[User] u
+        INNER JOIN @NewUserId n ON u.Id = n.Id;
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
 END
 
 GO

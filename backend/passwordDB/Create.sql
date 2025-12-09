@@ -57,17 +57,17 @@ BEGIN
     (
         UserId UNIQUEIDENTIFIER PRIMARY KEY,
 
-        MasterPasswordTTLInMinutes INT DEFAULT 10,
+        MasterPasswordTTLInMinutes INT DEFAULT 30,
         AutoLockTimeInMinutes INT DEFAULT 5,
 
-        Theme NVARCHAR(20) DEFAULT 'light',
+        Theme NVARCHAR(20) DEFAULT 'system',
         CONSTRAINT chk_theme CHECK (Theme IN ('light', 'dark', 'system')),
 
-        MinimumPasswordStrength NVARCHAR(20) DEFAULT 'medium',
+        MinimumPasswordStrength NVARCHAR(20) DEFAULT 'very-strong',
         CONSTRAINT chk_min_password_strength CHECK (MinimumPasswordStrength IN ('weak', 'medium', 'strong', 'very-strong')),
 
-        MasterPasswordStorgeMode NVARCHAR(20) DEFAULT 'none',
-        CONSTRAINT chk_master_password_storage_mode CHECK (MasterPasswordStorgeMode IN ('none', 'session', 'local')),
+        MasterPasswordStorageMode NVARCHAR(20) DEFAULT 'none',
+        CONSTRAINT chk_master_password_storage_mode CHECK (MasterPasswordStorageMode IN ('none', 'session', 'local')),
 
         FOREIGN KEY (UserId) REFERENCES PasswordSchema.[User](Id) ON DELETE CASCADE,
 
