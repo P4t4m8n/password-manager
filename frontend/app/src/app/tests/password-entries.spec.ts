@@ -64,7 +64,7 @@ describe('PasswordEntities', () => {
             subscriber.complete();
           })
       ),
-      passwordEntries$: passwordEntriesSubject.asObservable(),
+      data$: passwordEntriesSubject.asObservable(),
     };
 
     router = {

@@ -1,4 +1,4 @@
-import { PASSWORD_ENTRIES_PATHS } from '../../../../features/password-entry/consts/routes.const';
+import { PASSWORD_ENTRIES_PATHS } from '../../../../features/password-entry/consts/password-entry-routes.const';
 import { PASSWORD_GENERATOR_PATHS } from '../../../../features/password-generator/consts/password-generator-routes.const';
 import { SETTINGS_PATHS } from '../../../../features/settings/const/settings-routes.const';
 

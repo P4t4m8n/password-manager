@@ -1,55 +1,51 @@
-import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, map, Observable, retry, tap } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { catchError, map, Observable, retry, tap } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
 
-import { ErrorService } from '../../../core/services/error-service';
+import { HttpService } from '../../../core/abstracts/http-service';
 
-import { environment } from '../../../core/consts/environment';
-
-import type { IPasswordEntryDto } from '../interfaces/passwordEntry';
+import type { IPasswordEntryDto, IPasswordEntryFilter } from '../interfaces/passwordEntry';
 import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
 
 @Injectable({
   providedIn: 'root',
 })
-export class PasswordEntryHttpService {
-  #httpClient: HttpClient = inject(HttpClient);
-  #errorService: ErrorService = inject(ErrorService);
+export class PasswordEntryHttpService extends HttpService<IPasswordEntryDto[]> {
+  constructor() {
+    super('password-entry');
+  }
 
-  #CORE_API_URL = `${environment.apiUrl}/Password-entry`;
-
-  #passwordEntries$ = new BehaviorSubject<IPasswordEntryDto[]>([]);
-  public passwordEntries$ = this.#passwordEntries$.asObservable();
-
-  public get(searchParams?: { entryName?: string }) {
+  public get(
+    searchParams?: IPasswordEntryFilter
+  ): Observable<IHttpResponseDto<IPasswordEntryDto[]>> {
     let params = new HttpParams();
     if (searchParams?.entryName) {
       params = params.set('EntryName', searchParams.entryName);
     }
-    return this.#httpClient
-      .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.#CORE_API_URL}`, {
-        withCredentials: true,
-        params,
-      })
+
+    const settings = {
+      ...this.httpConfig,
+      params,
+    };
+    return this.httpClient
+      .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.ENDPOINT}`, settings)
       .pipe(
         tap((res) => {
-          this.#passwordEntries$.next(res.data);
+          this.updateState(res.data);
         }),
         catchError((err) => {
-          this.#passwordEntries$.next([]);
-          return this.#errorService.handleError(err, { showToast: true });
+          this.updateState([]);
+          return this.handleError(err, { showToast: true });
         })
       );
   }
 
-  public getById(id: string) {
-    return this.#httpClient
-      .get<IHttpResponseDto<IPasswordEntryDto>>(`${this.#CORE_API_URL}/${id}`, {
-        withCredentials: true,
-      })
+  public getById(id: string): Observable<IPasswordEntryDto> {
+    return this.httpClient
+      .get<IHttpResponseDto<IPasswordEntryDto>>(`${this.ENDPOINT}/${id}`, this.httpConfig)
       .pipe(
         map((res) => res.data),
-        catchError((err) => this.#errorService.handleError(err, { showToast: true }))
+        catchError((err) => this.handleError(err, { showToast: true }))
       );
   }
 
@@ -58,64 +54,62 @@ export class PasswordEntryHttpService {
   }
 
   public delete(id: string) {
-    return this.#httpClient
-      .delete<void>(`${this.#CORE_API_URL}/${id}`, { withCredentials: true })
-      .pipe(
-        tap(() => {
-          const passwordEntities = this.#passwordEntries$.value.filter((pe) => pe.id !== id);
-          this.#passwordEntries$.next(passwordEntities);
-        }),
-        catchError((err) => this.#errorService.handleError(err, { showToast: true }))
-      );
+    return this.httpClient.delete<void>(`${this.ENDPOINT}/${id}`, this.httpConfig).pipe(
+      tap(() => {
+        const passwordEntities = this.state$?.value?.filter((pe) => pe.id !== id) ?? [];
+        this.updateState(passwordEntities);
+      }),
+      catchError((err) => this.handleError(err, { showToast: true }))
+    );
   }
 
   public updateAfterRecovery(
     updatedEntries: IPasswordEntryDto[]
   ): Observable<IHttpResponseDto<IPasswordEntryDto[]>> {
-    return this.#httpClient
+    return this.httpClient
       .patch<IHttpResponseDto<IPasswordEntryDto[]>>(
-        `${this.#CORE_API_URL}/update-after-recovery`,
+        `${this.ENDPOINT}/update-after-recovery`,
         updatedEntries,
-        { withCredentials: true }
+        this.httpConfig
       )
       .pipe(
         tap((res) => {
-          this.#passwordEntries$.next(res.data);
+          this.updateState(res.data);
         }),
-        catchError((err) => this.#errorService.handleError(err, { showToast: true }))
+        catchError((err) => this.handleError(err, { showToast: true }))
       );
   }
 
   #create(dto: IPasswordEntryDto) {
-    return this.#httpClient
-      .post<IHttpResponseDto<IPasswordEntryDto>>(`${this.#CORE_API_URL}`, dto, {
-        withCredentials: true,
-      })
+    return this.httpClient
+      .post<IHttpResponseDto<IPasswordEntryDto>>(`${this.ENDPOINT}`, dto, this.httpConfig)
       .pipe(
         tap((pe) => {
-          const passwordEntities = this.#passwordEntries$.value;
-          this.#passwordEntries$.next([...passwordEntities, pe.data]);
+          const passwordEntities = this.state$?.value ?? [];
+          this.updateState([...passwordEntities, pe.data]);
           return pe;
         }),
         retry(1),
-        catchError((err) => this.#errorService.handleError(err, { showToast: false }))
+        catchError((err) => this.handleError(err, { showToast: false }))
       );
   }
 
   #update(dto: IPasswordEntryDto) {
-    return this.#httpClient
-      .patch<IHttpResponseDto<IPasswordEntryDto>>(`${this.#CORE_API_URL}/${dto.id}`, dto, {
-        withCredentials: true,
-      })
+    return this.httpClient
+      .patch<IHttpResponseDto<IPasswordEntryDto>>(
+        `${this.ENDPOINT}/${dto.id}`,
+        dto,
+        this.httpConfig
+      )
       .pipe(
         tap((updatedEntity) => {
-          const passwordEntities = this.#passwordEntries$.value.map((pe) =>
+          const passwordEntities = this.state$?.value?.map((pe) =>
             pe.id === updatedEntity.data.id ? updatedEntity.data : pe
           );
-          this.#passwordEntries$.next(passwordEntities);
+          this.updateState(passwordEntities ?? []);
         }),
         retry(1),
-        catchError((err) => this.#errorService.handleError(err, { showToast: false }))
+        catchError((err) => this.handleError(err, { showToast: false }))
       );
   }
 }

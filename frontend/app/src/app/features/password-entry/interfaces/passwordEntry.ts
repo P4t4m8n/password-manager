@@ -9,3 +9,7 @@ export interface IPasswordEntryDto extends IEntity {
   notes?: string;
   isFavorite?: boolean;
 }
+
+export interface IPasswordEntryFilter {
+  entryName?: string;
+}

@@ -44,7 +44,7 @@ export class SideMenu implements OnInit {
   session_user: IAuthDto | null = null;
 
   ngOnInit(): void {
-    this.#authHttpService.session_user$.pipe(takeUntil(this.#destroy$)).subscribe({
+    this.#authHttpService.data$.pipe(takeUntil(this.#destroy$)).subscribe({
       next: (user) => {
         this.session_user = user;
       },

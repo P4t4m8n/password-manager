@@ -8,7 +8,7 @@ import { BehaviorSubject, map, Subscription, tap } from 'rxjs';
 import { AuthHttpService } from '../../services/auth-http-service';
 import { ErrorService } from '../../../../core/services/error-service';
 
-import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/routes.const';
+import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/password-entry-routes.const';
 
 import type { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/auth.interface';
 
@@ -125,7 +125,7 @@ export class AuthIndex {
   }
 
   getErrorMessage(controlName: string, label: string): string {
-    //INFO: Form group ambiguity using as to solve
+    //INFO: Form group ambiguity using 'as' to solve
     const control = (this.#getFormControl() as FormGroup).get(controlName);
 
     if (control?.errors?.['serverError']) {

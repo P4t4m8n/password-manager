@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 
 import { debounceTime, distinctUntilChanged, Observable, Subscription, switchMap, tap } from 'rxjs';
 
-import { PASSWORD_ENTRIES_PATHS } from '../../consts/routes.const';
+import { PASSWORD_ENTRIES_PATHS } from '../../consts/password-entry-routes.const';
 
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
 import { ErrorService } from '../../../../core/services/error-service';
@@ -42,8 +42,8 @@ export class PasswordEntries implements OnInit, OnDestroy {
   //Exposing in run time the subscription for testing purposes
   private subscription: Subscription = new Subscription();
 
-  public passwordEntries$: Observable<IPasswordEntryDto[]> =
-    this.#passwordEntryHttpService.passwordEntries$;
+  public passwordEntries$: Observable<IPasswordEntryDto[] | null> =
+    this.#passwordEntryHttpService.data$;
 
   public passwordEntriesPaths = PASSWORD_ENTRIES_PATHS;
 
