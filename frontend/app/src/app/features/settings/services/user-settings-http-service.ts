@@ -25,7 +25,7 @@ export class UserSettingsHttpService extends AbstractHttpService<IUserSettingsDT
   }
 
   public save(dto: IUserSettingsEditDTO): Observable<IHttpResponseDto<IUserSettingsDTO>> {
-    return (dto.id ? this.#update(dto) : this.#create(dto)).pipe(
+    return this.#update(dto).pipe(
       tap(({ data }) => this.updateState(data)),
       retry(1),
       catchError((err) => this.handleError(err, { showToast: false }))
@@ -41,8 +41,8 @@ export class UserSettingsHttpService extends AbstractHttpService<IUserSettingsDT
   }
 
   #update(dto: IUserSettingsEditDTO): Observable<IHttpResponseDto<IUserSettingsDTO>> {
-    return this.httpClient.patch<IHttpResponseDto<IUserSettingsDTO>>(
-      `${this.ENDPOINT}/${dto.id}`,
+    return this.httpClient.put<IHttpResponseDto<IUserSettingsDTO>>(
+      `${this.ENDPOINT}`,
       dto,
       this.httpConfig
     );

@@ -13,8 +13,7 @@ import { IconCloseOpen } from '../../../../icons/icon-close-open/icon-close-open
 import { IconLogo } from '../../../../icons/icon-logo/icon-logo';
 import { IconProfile } from '../../../../icons/icon-profile/icon-profile';
 import { IconSignout } from '../../../../icons/icon-signout/icon-signout';
-
-import type { IAuthDto } from '../../../../../features/auth/interfaces/auth.interface';
+import { IUserDTO } from '../../../../../features/user/interfaces/user-dto';
 
 @Component({
   selector: 'app-side-menu',
@@ -41,7 +40,7 @@ export class SideMenu implements OnInit {
 
   readonly navRoutes = NAV_ROUTES;
 
-  session_user: IAuthDto | null = null;
+  session_user: IUserDTO | null = null;
 
   ngOnInit(): void {
     this.#authHttpService.data$.pipe(takeUntil(this.#destroy$)).subscribe({

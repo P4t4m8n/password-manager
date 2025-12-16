@@ -55,11 +55,11 @@ namespace API.Services
             parameters.Add("@UserId", userSettingsDTO.UserId);
             parameters.Add("@MasterPasswordTTLInMinutes", userSettingsDTO.MasterPasswordTTLInMinutes);
             parameters.Add("@AutoLockTimeInMinutes", userSettingsDTO.AutoLockTimeInMinutes);
-            parameters.Add("@Theme", userSettingsDTO.Theme);
-            parameters.Add("@MinimumPasswordStrength", userSettingsDTO.MinimumPasswordStrength);
-            parameters.Add("@MasterPasswordStorageMode", userSettingsDTO.MasterPasswordStorageMode);
+            parameters.Add("@Theme", userSettingsDTO.Theme.ToString());
+            parameters.Add("@MinimumPasswordStrength", userSettingsDTO.MinimumPasswordStrength.ToString());
+            parameters.Add("@MasterPasswordStorageMode", userSettingsDTO.MasterPasswordStorageMode.ToString());
 
-            UserSettingsDTO userSettings = await _contextDapper.QuerySingleOrDefaultAsync<UserSettingsDTO>(updateSql, parameters)
+            UserSettingsDTO? userSettings = await _contextDapper.QuerySingleOrDefaultAsync<UserSettingsDTO>(updateSql, parameters)
              ?? throw new UnexpectedCaughtException("Failed to update user settings", new Dictionary<string, string>
                 {
                         { "Update", "No user settings were updated in the database." }

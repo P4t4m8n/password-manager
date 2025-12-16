@@ -5,9 +5,9 @@ namespace API.Enums
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum PasswordStrengthEnum
     {
-        Weak,
-        Medium,
-        Strong,
-        VeryStrong
+        weak,
+        medium,
+        strong,
+        veryStrong
     }
 }

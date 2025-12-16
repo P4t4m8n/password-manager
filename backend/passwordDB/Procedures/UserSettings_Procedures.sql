@@ -37,5 +37,8 @@ BEGIN
         MasterPasswordStorageMode = CASE WHEN @MasterPasswordStorageMode IS NOT NULL THEN @MasterPasswordStorageMode ELSE MasterPasswordStorageMode END,
         UpdatedAt = GETUTCDATE()
     WHERE UserId = @UserId;
+    SELECT *
+    FROM PasswordSchema.UserSettings
+    WHERE UserId = @UserId;
 END
 GO

@@ -152,8 +152,8 @@ export class SettingsIndex {
       masterPasswordTTLInMinutes: data.masterPasswordTTLInMinutes?.toString(),
       masterPasswordStorageMode: data.masterPasswordStorageMode,
       autoLockTimeInMinutes: data.autoLockTimeInMinutes?.toString(),
-      theme: data.theme,
-      minimumPasswordStrength: data.minimumPasswordStrength,
+      theme: data.theme?.toLocaleLowerCase(),
+      minimumPasswordStrength: data?.minimumPasswordStrength!.charAt(0).toLowerCase() + data?.minimumPasswordStrength?.slice(1),
     });
   }
 }

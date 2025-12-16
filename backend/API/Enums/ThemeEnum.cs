@@ -6,8 +6,8 @@ namespace API.Enums
 
     public enum ThemeEnum
     {
-        Light,
-        Dark,
-        System
+        light,
+        dark,
+        system
     }
 }

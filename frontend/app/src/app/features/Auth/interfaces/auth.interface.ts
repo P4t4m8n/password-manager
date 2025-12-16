@@ -1,10 +1,6 @@
 import type { IEntity } from '../../../core/interfaces/entity.interface';
 import type { TCredentials } from '../../crypto/types/credentials.type';
-
-export interface IAuthDto extends IEntity {
-  username: string;
-  email: string;
-}
+import { IUserDTO } from '../../user/interfaces/user-dto';
 
 export interface IAuthSignInDto {
   email?: string;
@@ -17,6 +13,6 @@ export interface IAuthSignUpDto extends IAuthSignInDto, Partial<TCredentials> {
 }
 
 export interface IAuthResponseDto {
-  user: IAuthDto | null;
+  user: IUserDTO | null;
   masterPasswordSalt: string;
 }

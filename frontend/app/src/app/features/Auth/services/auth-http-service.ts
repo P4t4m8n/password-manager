@@ -6,20 +6,22 @@ import { CryptoService } from '../../crypto/services/crypto.service';
 import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
 
 import type {
-  IAuthDto,
   IAuthResponseDto,
   IAuthSignInDto,
   IAuthSignUpDto,
 } from '../interfaces/auth.interface';
 import type { TPrettify } from '../../../core/types/prettify.type';
 import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
+import { UserSettingsHttpService } from '../../settings/services/user-settings-http-service';
+import { IUserDTO } from '../../user/interfaces/user-dto';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AuthHttpService extends AbstractHttpService<IAuthDto> {
+export class AuthHttpService extends AbstractHttpService<IUserDTO> {
   #cryptoService = inject(CryptoService);
   #masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
+  #userSettingsHttpService = inject(UserSettingsHttpService);
 
   constructor() {
     super('auth');
@@ -112,7 +114,7 @@ export class AuthHttpService extends AbstractHttpService<IAuthDto> {
       );
   }
 
-  get_session_user(): IAuthDto | null {
+  get_session_user(): IUserDTO | null {
     return this.getState();
   }
 }
