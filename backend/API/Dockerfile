@@ -7,4 +7,4 @@ RUN dotnet restore
 
 COPY . .
 
-ENTRYPOINT ["dotnet", "watch", "run", "--project", "API/API.csproj", "--urls", "http://0.0.0.0:5222"]
+ENTRYPOINT ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:5222"]

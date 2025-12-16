@@ -4,7 +4,7 @@ using API.Interfaces;
 
 namespace API.Models
 {
-    public sealed class User : IGuid, ICrudDate
+    public class User : IGuid, ICrudDate
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -18,7 +18,7 @@ namespace API.Models
         public string? Email { get; set; }
         public string? PasswordHash { get; set; }
         public byte[]? PasswordSalt { get; set; }
-        public string? googleId { get; set; }
+        public string? GoogleId { get; set; }
         [Required]
         public required byte[] MasterPasswordSalt { get; set; }
         public required byte[] EncryptedMasterKeyWithRecovery { get; set; }
