@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -86,12 +87,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+
+
 builder.Services.AddScoped<IDataContext, DataContextDapper>();
 builder.Services.AddScoped<IGoogleService, GoogleService>();
 builder.Services.AddScoped<ICryptoService, CryptoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordEntryService, PasswordEntryService>();
 builder.Services.AddScoped<IMasterPasswordRecoveryService, MasterPasswordRecoveryService>();
+builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 
 
 

@@ -14,15 +14,26 @@ END
 GO
 
 CREATE OR ALTER PROCEDURE PasswordSchema.spUser_GetOne
-
-    @Email NVARCHAR(100)=NULL,
+    @Email NVARCHAR(100) = NULL,
     @Id UNIQUEIDENTIFIER = NULL
 AS
 BEGIN
-    SELECT Id, UserName, Email, MasterPasswordSalt
-    FROM PasswordSchema.[User]
-    WHERE Email = @Email OR Id = @Id;
-
+    SELECT
+        u.Id,
+        u.UserName,
+        u.Email,
+        u.MasterPasswordSalt,
+        s.MasterPasswordTTLInMinutes,
+        s.AutoLockTimeInMinutes,
+        s.Theme,
+        s.MinimumPasswordStrength,
+        s.MasterPasswordStorageMode,
+        s.UserId,
+        s.CreatedAt ,
+        s.UpdatedAt
+    FROM PasswordSchema.[User] u
+        INNER JOIN PasswordSchema.UserSettings s ON u.Id = s.UserId
+    WHERE u.Email = @Email OR u.Id = @Id;
 END
 GO
 
@@ -67,8 +78,21 @@ BEGIN
     SELECT Id
     FROM @NewUserId;
         
-        SELECT u.Id, u.Email, u.Username, u.MasterPasswordSalt
+        SELECT
+        u.Id,
+        u.Email,
+        u.Username,
+        u.MasterPasswordSalt,
+        s.MasterPasswordTTLInMinutes,
+        s.AutoLockTimeInMinutes,
+        s.Theme,
+        s.UserId,
+        s.MinimumPasswordStrength,
+        s.MasterPasswordStorageMode,
+        s.CreatedAt,
+        s.UpdatedAt
     FROM PasswordSchema.[User] u
+        INNER JOIN PasswordSchema.UserSettings s ON u.Id = s.UserId
         INNER JOIN @NewUserId n ON u.Id = n.Id;
         
         COMMIT TRANSACTION;

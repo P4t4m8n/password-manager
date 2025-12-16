@@ -6,7 +6,6 @@ using API.Interfaces;
 using API.Models;
 using Dapper;
 
-
 namespace API.Services
 {
     public sealed class AuthService : IAuthService
@@ -24,7 +23,7 @@ namespace API.Services
 
             await VerifyUserAndPasswordAsync(signInDto);
 
-            User? user = await GetUserByEmailOrIdAsync(signInDto.Email, null) ??
+            UserWithSettings? user = await GetUserByEmailOrIdAsync(signInDto.Email, null) ??
              throw new NotFoundException("User not found after successful authentication", new Dictionary<string, string>
                  {
                     { "User", "No user found for the given email after successful authentication" }
@@ -37,14 +36,14 @@ namespace API.Services
         public async Task<AuthResponseDTO> SignUpAsync(AuthSignUpDTO signUpDto, HttpResponse response)
         {
             await CheckUserExist(signUpDto.Email);
-            User? user = await CreateUserAsync(signUpDto);
+            UserWithSettings? user = await CreateUserAsync(signUpDto);
             AppendAuthCookie(user.Id.ToString(), response);
             return CreateAuthResponse(user);
         }
         public async Task<AuthResponseDTO> CheckSessionAsync(Guid userGuid)
         {
 
-            User user = await GetUserByEmailOrIdAsync(null, userGuid) ??
+            UserWithSettings user = await GetUserByEmailOrIdAsync(null, userGuid) ??
              throw new NotFoundException("User not found", new Dictionary<string, string>
                  {
                     { "User", "No user found for the given authentication token" }
@@ -55,7 +54,7 @@ namespace API.Services
         public async Task<AuthResponseDTO> RefreshTokenAsync(Guid userGuid, HttpResponse response)
         {
 
-            User? user = await GetUserByEmailOrIdAsync(null, userGuid)
+            UserWithSettings? user = await GetUserByEmailOrIdAsync(null, userGuid)
              ?? throw new NotFoundException("User not found", new Dictionary<string, string>
                  {
                     { "User", "No user found for the given authentication token" }
@@ -102,7 +101,7 @@ namespace API.Services
             }
 
         }
-        private async Task<User?> GetUserByEmailOrIdAsync(string? email, Guid? id)
+        private async Task<UserWithSettings?> GetUserByEmailOrIdAsync(string? email, Guid? id)
         {
 
             DynamicParameters parameters = new();
@@ -110,7 +109,29 @@ namespace API.Services
             parameters.Add("@Id", id);
             string userSelectSql = "EXEC PasswordSchema.spUser_GetOne @Email=@Email ,@Id=@Id";
 
-            User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(userSelectSql, parameters);
+            UserWithSettings? user = await _contextDapper.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(userSelectSql,
+            (user, settings) =>
+              {
+                  UserWithSettings userWithSettings = new()
+                  {
+                      Id = user.Id,
+                      Username = user.Username,
+                      Email = user.Email,
+                      PasswordHash = user.PasswordHash,
+                      PasswordSalt = user.PasswordSalt,
+                      GoogleId = user.GoogleId,
+                      MasterPasswordSalt = user.MasterPasswordSalt,
+                      EncryptedMasterKeyWithRecovery = user.EncryptedMasterKeyWithRecovery,
+                      RecoveryIV = user.RecoveryIV,
+                      CreatedAt = user.CreatedAt,
+                      UpdatedAt = user.UpdatedAt,
+                      Settings = settings
+                  };
+                  return userWithSettings;
+              },
+                parameters,
+                       splitOn: "MasterPasswordTTLInMinutes"
+                  );
 
             return user;
         }
@@ -149,7 +170,7 @@ namespace API.Services
                 throw new UserAlreadyExistsException();
             }
         }
-        private async Task<User> CreateUserAsync(AuthSignUpDTO signUpDto)
+        private async Task<UserWithSettings> CreateUserAsync(AuthSignUpDTO signUpDto)
         {
             {
 
@@ -180,8 +201,29 @@ namespace API.Services
                 parameters.Add(@"RecoveryIV", signUpDto.RecoveryIV);
                 parameters.Add(@"Email", signUpDto.Email);
 
-                User? user = await _contextDapper.QuerySingleOrDefaultAsync<User>(sqlInsertAuth, parameters);
-
+                UserWithSettings? user = await _contextDapper.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(sqlInsertAuth,
+                          (user, settings) =>
+                            {
+                                UserWithSettings userWithSettings = new()
+                                {
+                                    Id = user.Id,
+                                    Username = user.Username,
+                                    Email = user.Email,
+                                    PasswordHash = user.PasswordHash,
+                                    PasswordSalt = user.PasswordSalt,
+                                    GoogleId = user.GoogleId,
+                                    MasterPasswordSalt = user.MasterPasswordSalt,
+                                    EncryptedMasterKeyWithRecovery = user.EncryptedMasterKeyWithRecovery,
+                                    RecoveryIV = user.RecoveryIV,
+                                    CreatedAt = user.CreatedAt,
+                                    UpdatedAt = user.UpdatedAt,
+                                    Settings = settings
+                                };
+                                return userWithSettings;
+                            },
+                             parameters,
+                                     splitOn: "MasterPasswordTTLInMinutes"
+                                );
                 if (user == null || user.Id == Guid.Empty)
                 {
 
@@ -192,7 +234,7 @@ namespace API.Services
             }
         }
 
-        private static AuthResponseDTO CreateAuthResponse(User user)
+        private static AuthResponseDTO CreateAuthResponse(UserWithSettings user)
         {
             return new AuthResponseDTO()
             {
@@ -201,6 +243,17 @@ namespace API.Services
                     Id = user.Id,
                     Email = user.Email,
                     Username = user.Username,
+                    Settings = new UserSettingsDTO
+                    {
+                        UserId = user.Settings.UserId,
+                        MasterPasswordTTLInMinutes = user.Settings.MasterPasswordTTLInMinutes,
+                        AutoLockTimeInMinutes = user.Settings.AutoLockTimeInMinutes,
+                        Theme = user.Settings.Theme,
+                        MinimumPasswordStrength = user.Settings.MinimumPasswordStrength,
+                        MasterPasswordStorageMode = user.Settings.MasterPasswordStorageMode,
+                        CreatedAt = user.Settings.CreatedAt,
+                        UpdatedAt = user.Settings.UpdatedAt
+                    }
                 },
                 MasterPasswordSalt = user.MasterPasswordSalt
             };

@@ -1,4 +1,4 @@
-USE PASSWORDDB;
+USE PasswordDB;
 
 GO
 
@@ -24,11 +24,11 @@ CREATE OR ALTER PROCEDURE PasswordSchema.spUserSettings_Update
     @MasterPasswordTTLInMinutes INT = 30,
     @AutoLockTimeInMinutes INT = 5,
     @Theme NVARCHAR(20) = 'light',
-    @MinimumPasswordStrength  NVARCHAR(20) = 'medium',
-    @MasterPasswordStorageMode NNVARCHAR(20) = 'none'
+    @MinimumPasswordStrength  NVARCHAR(20) = 'veryStrong',
+    @MasterPasswordStorageMode NVARCHAR(20) = 'none'
 AS
 BEGIN
-    UPdate PasswordSchema.UserSettings
+    UPDATE PasswordSchema.UserSettings
     SET
         MasterPasswordTTLInMinutes = CASE WHEN @MasterPasswordTTLInMinutes IS NOT NULL THEN @MasterPasswordTTLInMinutes ELSE MasterPasswordTTLInMinutes END,
         AutoLockTimeInMinutes = CASE WHEN @AutoLockTimeInMinutes IS NOT NULL THEN @AutoLockTimeInMinutes ELSE AutoLockTimeInMinutes END,

@@ -63,8 +63,8 @@ BEGIN
         Theme NVARCHAR(20) DEFAULT 'system',
         CONSTRAINT chk_theme CHECK (Theme IN ('light', 'dark', 'system')),
 
-        MinimumPasswordStrength NVARCHAR(20) DEFAULT 'very-strong',
-        CONSTRAINT chk_min_password_strength CHECK (MinimumPasswordStrength IN ('weak', 'medium', 'strong', 'very-strong')),
+        MinimumPasswordStrength NVARCHAR(20) DEFAULT 'veryStrong',
+        CONSTRAINT chk_min_password_strength CHECK (MinimumPasswordStrength IN ('weak', 'medium', 'strong', 'veryStrong')),
 
         MasterPasswordStorageMode NVARCHAR(20) DEFAULT 'none',
         CONSTRAINT chk_master_password_storage_mode CHECK (MasterPasswordStorageMode IN ('none', 'session', 'local')),

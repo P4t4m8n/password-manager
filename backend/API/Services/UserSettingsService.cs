@@ -1,6 +1,7 @@
 using API.Dtos.User;
 using API.Exceptions;
 using API.Interfaces;
+using API.Models;
 using Dapper;
 
 namespace API.Services
@@ -16,23 +17,33 @@ namespace API.Services
 
         public async Task<UserSettingsDTO> GetUserSettingsAsync(Guid userGuid)
         {
-            string selectSql = @"EXEC UserSchema.spUserSettings_Select_ByUserId
+            string selectSql = @"EXEC PasswordSchema.spUserSettings_Select_ByUserId
                                  @UserId=@UserId;";
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
 
-            UserSettingsDTO userSettings = await _contextDapper.QuerySingleOrDefaultAsync<UserSettingsDTO>(selectSql, parameters)
+            UserSettings userSettings = await _contextDapper.QuerySingleOrDefaultAsync<UserSettings>(selectSql, parameters)
              ?? throw new Exception("User Settings not found");
 
+            UserSettingsDTO dto = new()
+            {
+                UserId = userSettings.UserId,
+                MasterPasswordTTLInMinutes = userSettings.MasterPasswordTTLInMinutes,
+                AutoLockTimeInMinutes = userSettings.AutoLockTimeInMinutes,
+                Theme = userSettings.Theme,
+                MinimumPasswordStrength = userSettings.MinimumPasswordStrength,
+                MasterPasswordStorageMode = userSettings.MasterPasswordStorageMode
+            };
 
 
-            return userSettings;
+
+            return dto;
         }
 
         public async Task<UserSettingsDTO> UpdateUserSettingsAsync(UserSettingsDTO userSettingsDTO)
         {
-            string updateSql = @"EXEC UserSchema.spUserSettings_Update
+            string updateSql = @"EXEC PasswordSchema.spUserSettings_Update
                                  @UserId=@UserId,
                                  @MasterPasswordTTLInMinutes=@MasterPasswordTTLInMinutes,
                                  @AutoLockTimeInMinutes=@AutoLockTimeInMinutes,
