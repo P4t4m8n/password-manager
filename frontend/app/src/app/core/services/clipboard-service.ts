@@ -20,7 +20,7 @@ export class ClipboardService {
       await navigator.clipboard.writeText(text);
       this.#toastService.initiate({
         title: 'Success',
-        content: 'Password copied to clipboard!',
+        content: 'Copied to clipboard!',
         type: toastTypes.success,
       });
     } catch (err) {

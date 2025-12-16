@@ -74,7 +74,7 @@ export class PasswordGeneratorService {
     if (length < 8 || varietyCount < 2) return 'weak';
     if (length < 12 || varietyCount < 3 || entropy < 50) return 'medium';
     if (length < 16 || varietyCount < 4 || entropy < 80) return 'strong';
-    return 'very-strong';
+    return 'veryStrong';
   }
 
   #getTimeToCrack(strength: TPasswordStrength, entropy: number): string {
@@ -85,7 +85,7 @@ export class PasswordGeneratorService {
         return entropy < 50 ? 'few hours' : entropy < 60 ? 'few days' : 'few weeks';
       case 'strong':
         return entropy < 70 ? 'few months' : entropy < 80 ? 'few years' : 'decades';
-      case 'very-strong':
+      case 'veryStrong':
         return entropy < 100
           ? 'centuries'
           : entropy < 128

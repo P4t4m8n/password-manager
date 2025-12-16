@@ -3,9 +3,9 @@ import { TPasswordStrengthLevel } from '../../crypto/types/password.types';
 import { TStorageMode, TTheme } from '../types/settings.type';
 
 export interface IUserSettingsEditDTO extends IEntity {
-  masterPasswordTTL?: string | null;
-  masterPasswordStorgeMode?: TStorageMode | null;
-  autoLockTimeout?: string | null;
+  masterPasswordTTLInMinutes?: string | null;
+  masterPasswordStorageMode?: TStorageMode | null;
+  autoLockTimeInMinutes?: string | null;
   theme?: TTheme | null;
   minimumPasswordStrength?: TPasswordStrengthLevel | null;
 }

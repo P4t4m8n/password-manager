@@ -12,4 +12,4 @@ export const PASSWORD_GENERATOR_ROUTES: Routes = [
   },
 ];
 
-export const PASSWORD_STRENGTH = ['weak', 'medium', 'strong', 'very-strong'] as const;
+export const PASSWORD_STRENGTH = ['weak', 'medium', 'strong', 'veryStrong'] as const;

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, tap } from 'rxjs';
 
-import { HttpService } from '../../../core/abstracts/http-service';
+import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
 import { MasterPasswordSaltSessionService } from './master-password-salt-session-service';
 
 import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
@@ -12,7 +12,7 @@ import type { IMasterPasswordRecoveryResponseDTO } from '../interfaces/master-pa
 @Injectable({
   providedIn: 'root',
 })
-export class MasterPasswordHttpService extends HttpService<IMasterPasswordRecoveryResponseDTO> {
+export class MasterPasswordHttpService extends AbstractHttpService<IMasterPasswordRecoveryResponseDTO> {
   #masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
 
   constructor() {

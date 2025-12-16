@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { catchError, Observable, of, tap } from 'rxjs';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 
-import { HttpService } from '../../../core/abstracts/http-service';
+import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
 import { CryptoService } from '../../crypto/services/crypto.service';
 import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
 
@@ -17,7 +17,7 @@ import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dt
 @Injectable({
   providedIn: 'root',
 })
-export class AuthHttpService extends HttpService<IAuthDto> {
+export class AuthHttpService extends AbstractHttpService<IAuthDto> {
   #cryptoService = inject(CryptoService);
   #masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
 
@@ -39,7 +39,7 @@ export class AuthHttpService extends HttpService<IAuthDto> {
 
   async signUp(
     dto: TPrettify<IAuthSignUpDto & { masterPassword: string }>
-  ): Promise<Observable<IHttpResponseDto<IAuthResponseDto>>> {
+  ): Promise<Observable<IHttpResponseDto<IAuthResponseDto> & { recoveryKey: Uint8Array }>> {
     const { masterPassword, email, ...rest } = dto;
 
     const { recoveryKey, recoveryIV, encryptedMasterKeyWithRecovery, masterPasswordSalt } =
@@ -63,8 +63,8 @@ export class AuthHttpService extends HttpService<IAuthDto> {
         tap((res) => {
           this.updateState(res.data.user);
           this.#masterPasswordSaltSessionService.masterPasswordSalt = res.data.masterPasswordSalt;
-          this.#cryptoService.downloadRecoveryKey(recoveryKey, email!);
         }),
+        map((res) => ({ ...res, recoveryKey })),
         catchError((err) => this.handleError(err, { showToast: false }))
       );
   }

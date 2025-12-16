@@ -30,7 +30,7 @@ export class SettingsIndex {
     weak: 'Not recommended',
     medium: 'Acceptable for low risk accounts',
     strong: 'Recommended for most accounts',
-    'very-strong': 'Best for high risk accounts',
+    veryStrong: 'Best for high risk accounts',
     light: ' Bright and clear appearance',
     dark: 'Easy on the eyes in low light',
     system: 'Matches your device settings',
@@ -48,7 +48,7 @@ export class SettingsIndex {
   readonly radioInputs = [
     {
       labelText: 'Master Password Storage Mode',
-      formControlName: 'masterPasswordStorgeMode',
+      formControlName: 'masterPasswordStorageMode',
       options: STORGE_MODES,
     },
     {
@@ -66,18 +66,18 @@ export class SettingsIndex {
   readonly numberInputs = [
     {
       labelText: 'Master Password TTL',
-      formControlName: 'masterPasswordTTL',
+      formControlName: 'masterPasswordTTLInMinutes',
     },
     {
       labelText: 'Auto Lock Timeout',
-      formControlName: 'autoLockTimeout',
+      formControlName: 'autoLockTimeInMinutes',
     },
   ];
 
   userSettingsFormGroup = this.#formBuilder.group({
-    masterPasswordTTL: ['', [Validators.required, Validators.min(1)]],
-    masterPasswordStorgeMode: ['', [Validators.required]],
-    autoLockTimeout: ['', [Validators.required, Validators.min(0)]],
+    masterPasswordTTLInMinutes: ['', [Validators.required, Validators.min(1)]],
+    masterPasswordStorageMode: ['', [Validators.required]],
+    autoLockTimeInMinutes: ['', [Validators.required, Validators.min(0)]],
     theme: ['', [Validators.required]],
     minimumPasswordStrength: ['', [Validators.required]],
   });
@@ -85,6 +85,7 @@ export class SettingsIndex {
   ngOnInit() {
     this.#userSettingsHttpService.get().subscribe({
       next: ({ data }) => {
+        console.log("🚀 ~ SettingsIndex ~ ngOnInit ~ data:", data)
         data ? this.#patchFormValues(data) : this.resetToDefualtSettings();
       },
       error: (err) => {
@@ -133,11 +134,11 @@ export class SettingsIndex {
 
   resetToDefualtSettings() {
     const defualtSettings: IUserSettingsEditDTO = {
-      masterPasswordTTL: '30',
-      masterPasswordStorgeMode: 'none',
-      autoLockTimeout: '5',
+      masterPasswordTTLInMinutes: '30',
+      masterPasswordStorageMode: 'none',
+      autoLockTimeInMinutes: '5',
       theme: 'system',
-      minimumPasswordStrength: 'very-strong',
+      minimumPasswordStrength: 'veryStrong',
     };
     this.userSettingsFormGroup.patchValue(defualtSettings);
   }
@@ -148,9 +149,9 @@ export class SettingsIndex {
 
   #patchFormValues(data: IUserSettingsEditDTO) {
     this.userSettingsFormGroup.patchValue({
-      masterPasswordTTL: data.masterPasswordTTL?.toString(),
-      masterPasswordStorgeMode: data.masterPasswordStorgeMode,
-      autoLockTimeout: data.autoLockTimeout?.toString(),
+      masterPasswordTTLInMinutes: data.masterPasswordTTLInMinutes?.toString(),
+      masterPasswordStorageMode: data.masterPasswordStorageMode,
+      autoLockTimeInMinutes: data.autoLockTimeInMinutes?.toString(),
       theme: data.theme,
       minimumPasswordStrength: data.minimumPasswordStrength,
     });

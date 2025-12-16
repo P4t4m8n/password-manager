@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable, retry, tap } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 
-import { HttpService } from '../../../core/abstracts/http-service';
+import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
 
 import type { IPasswordEntryDto, IPasswordEntryFilter } from '../interfaces/passwordEntry';
 import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
@@ -10,7 +10,7 @@ import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dt
 @Injectable({
   providedIn: 'root',
 })
-export class PasswordEntryHttpService extends HttpService<IPasswordEntryDto[]> {
+export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntryDto[]> {
   constructor() {
     super('password-entry');
   }

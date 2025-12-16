@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { catchError, Observable, retry, tap } from 'rxjs';
 
-import { HttpService } from '../../../core/abstracts/http-service';
+import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
 
 import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
 import type { IUserSettingsDTO, IUserSettingsEditDTO } from '../interfaces/IUserSettingsDTO';
@@ -10,7 +10,7 @@ import type { IUserSettingsDTO, IUserSettingsEditDTO } from '../interfaces/IUser
 @Injectable({
   providedIn: 'root',
 })
-export class UserSettingsHttpService extends HttpService<IUserSettingsDTO> {
+export class UserSettingsHttpService extends AbstractHttpService<IUserSettingsDTO> {
   constructor() {
     super('user-settings');
   }

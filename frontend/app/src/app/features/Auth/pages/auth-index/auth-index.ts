@@ -8,9 +8,14 @@ import { BehaviorSubject, map, Subscription, tap } from 'rxjs';
 import { AuthHttpService } from '../../services/auth-http-service';
 import { ErrorService } from '../../../../core/services/error-service';
 
+import { RecoveryPasswordDialogService } from '../../../master-password/services/recovery-password-dialog';
+import { ConfirmationDialogService } from '../../../../core/dialogs/confirmation-dialog/services/confirmation-dialog-service';
+
 import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/password-entry-routes.const';
+import { AUTH_PATHS } from '../../consts/auth-routes.const';
 
 import type { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/auth.interface';
+import { SETTINGS_PATHS } from '../../../settings/const/settings-routes.const';
 
 @Component({
   selector: 'app-auth-index',
@@ -23,6 +28,8 @@ export class AuthIndex {
   #formBuilder = inject(FormBuilder);
   #router = inject(Router);
   #errorService = inject(ErrorService);
+  #recoveryPasswordDialogService = inject(RecoveryPasswordDialogService);
+  #confirmationDialogService = inject(ConfirmationDialogService);
 
   #subscription: Subscription = new Subscription();
 
@@ -199,9 +206,23 @@ export class AuthIndex {
       masterPassword,
     };
 
-    (await this.#authHttpService.signUp(signUpDto)).subscribe({
-      next: () => {
-        this.#router.navigate(['/' + PASSWORD_ENTRIES_PATHS.passwordEntries]);
+    const subscription = await this.#authHttpService.signUp(signUpDto);
+
+    subscription.subscribe({
+      next: async (res) => {
+        console.log('🚀 ~ AuthIndex ~ res:', res);
+        await this.#recoveryPasswordDialogService.openDialog({ recoveryKey: res.recoveryKey });
+
+        const isNavToSettings = await this.#confirmationDialogService.openDialog({
+          title: 'Navigate to Settings',
+          message: 'Do you want to navigate to settings to review your account settings?',
+        });
+
+        const dest = isNavToSettings
+          ? ['/', SETTINGS_PATHS.settingsIndex]
+          : ['/', PASSWORD_ENTRIES_PATHS.passwordEntries];
+
+        this.#router.navigate(dest);
       },
       error: (err) => {
         this.#errorService.handleError(err, {

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IconComponent } from '../../abstracts/icon-component';
+import { AbstractIconComponent } from '../../abstracts/icon-component.abstract';
 import { NgStyle } from '@angular/common';
 
 @Component({
@@ -7,4 +7,4 @@ import { NgStyle } from '@angular/common';
   imports: [NgStyle],
   templateUrl: './icon-password-generator.html',
 })
-export class IconPasswordGenerator extends IconComponent {}
+export class IconPasswordGenerator extends AbstractIconComponent {}

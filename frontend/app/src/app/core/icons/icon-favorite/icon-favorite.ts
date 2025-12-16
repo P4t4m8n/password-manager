@@ -1,12 +1,12 @@
 import { NgStyle } from '@angular/common';
 import { Component } from '@angular/core';
-import { IconComponent } from '../../abstracts/icon-component';
+import { AbstractIconComponent } from '../../abstracts/icon-component.abstract';
 
 @Component({
   selector: 'app-icon-favorite',
   imports: [NgStyle],
   templateUrl: './icon-favorite.html',
 })
-export class IconFavorite extends IconComponent {
+export class IconFavorite extends AbstractIconComponent {
 
 }

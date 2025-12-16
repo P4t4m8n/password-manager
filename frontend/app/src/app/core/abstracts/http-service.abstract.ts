@@ -8,7 +8,7 @@ import { ErrorService } from '../services/error-service';
 
 import { environment } from '../consts/environment.const';
 
-export abstract class HttpService<T> {
+export abstract class AbstractHttpService<T> {
   protected readonly httpClient = inject(HttpClient);
   protected readonly errorService = inject(ErrorService);
 
