@@ -1,12 +1,15 @@
 :host {
   height: 100%;
   display: grid;
-  grid-template-columns:  1fr;
+  grid-template-columns: 1fr;
+  background-color: var(--primary);
+  color: var(--main-text-color);
 }
 
 @media (min-width: 768px) {
   :host {
     height: 100%;
+    max-width: 100%;
     display: grid;
     grid-template-columns: auto 1fr;
   }

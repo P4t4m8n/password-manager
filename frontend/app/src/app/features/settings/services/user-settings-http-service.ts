@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { catchError, Observable, retry, tap } from 'rxjs';
 
 import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
+import { UserSettingsStateService } from './user-settings-state-service';
 
 import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
 import type { IUserSettingsDTO, IUserSettingsEditDTO } from '../interfaces/IUserSettingsDTO';
@@ -11,6 +12,7 @@ import type { IUserSettingsDTO, IUserSettingsEditDTO } from '../interfaces/IUser
   providedIn: 'root',
 })
 export class UserSettingsHttpService extends AbstractHttpService<IUserSettingsDTO> {
+  #userSettingsState = inject(UserSettingsStateService);
   constructor() {
     super('user-settings');
   }
@@ -19,14 +21,14 @@ export class UserSettingsHttpService extends AbstractHttpService<IUserSettingsDT
     return this.httpClient
       .get<IHttpResponseDto<IUserSettingsDTO>>(this.ENDPOINT, this.httpConfig)
       .pipe(
-        tap(({ data }) => this.updateState(data)),
+        tap(({ data }) => this.#userSettingsState.updateState(data)),
         catchError((err) => this.handleError(err, { showToast: true }))
       );
   }
 
   public save(dto: IUserSettingsEditDTO): Observable<IHttpResponseDto<IUserSettingsDTO>> {
     return this.#update(dto).pipe(
-      tap(({ data }) => this.updateState(data)),
+      tap(({ data }) => this.#userSettingsState.updateState(data)),
       retry(1),
       catchError((err) => this.handleError(err, { showToast: false }))
     );

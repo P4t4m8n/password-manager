@@ -6,5 +6,6 @@ import { AbstractIconComponent } from '../../abstracts/icon-component.abstract';
   selector: 'app-icon-signout',
   imports: [NgStyle],
   templateUrl: './icon-signout.html',
+  styleUrl: '../icons.css',
 })
 export class IconSignout extends AbstractIconComponent {}

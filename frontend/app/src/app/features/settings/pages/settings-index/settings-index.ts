@@ -12,6 +12,7 @@ import { PASSWORD_STRENGTH_LEVELS } from '../../../crypto/const/password.const';
 import type { TPasswordStrength } from '../../../password-generator/types/password-generator.type';
 import type { TStorageMode, TTheme } from '../../types/settings.type';
 import type { IUserSettingsEditDTO } from '../../interfaces/IUserSettingsDTO';
+import { UserSettingsStateService } from '../../services/user-settings-state-service';
 
 type TRadioMapKey = TPasswordStrength | TTheme | TStorageMode;
 
@@ -25,6 +26,7 @@ export class SettingsIndex {
   #formBuilder = inject(FormBuilder);
   #userSettingsHttpService = inject(UserSettingsHttpService);
   #errorService = inject(ErrorService);
+  #userSettingsStateService = inject(UserSettingsStateService);
 
   readonly #RADIO_TEST_MAP: Record<TRadioMapKey, string> = {
     weak: 'Not recommended',
@@ -85,7 +87,6 @@ export class SettingsIndex {
   ngOnInit() {
     this.#userSettingsHttpService.get().subscribe({
       next: ({ data }) => {
-        console.log("🚀 ~ SettingsIndex ~ ngOnInit ~ data:", data)
         data ? this.#patchFormValues(data) : this.resetToDefualtSettings();
       },
       error: (err) => {
@@ -103,6 +104,7 @@ export class SettingsIndex {
 
     this.#userSettingsHttpService.save(dto).subscribe({
       next: ({ data }) => {
+        this.#userSettingsStateService.updateState(data);
         this.#patchFormValues(data);
       },
       error: (err) => {
@@ -153,7 +155,9 @@ export class SettingsIndex {
       masterPasswordStorageMode: data.masterPasswordStorageMode,
       autoLockTimeInMinutes: data.autoLockTimeInMinutes?.toString(),
       theme: data.theme?.toLocaleLowerCase(),
-      minimumPasswordStrength: data?.minimumPasswordStrength!.charAt(0).toLowerCase() + data?.minimumPasswordStrength?.slice(1),
+      minimumPasswordStrength:
+        data?.minimumPasswordStrength!.charAt(0).toLowerCase() +
+        data?.minimumPasswordStrength?.slice(1),
     });
   }
 }

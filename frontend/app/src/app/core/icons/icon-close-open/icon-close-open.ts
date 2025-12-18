@@ -6,5 +6,6 @@ import { NgStyle } from '@angular/common';
   selector: 'app-icon-close-open',
   imports: [NgStyle],
   templateUrl: './icon-close-open.html',
+  styleUrl: '../icons.css',
 })
 export class IconCloseOpen extends AbstractIconComponent {}

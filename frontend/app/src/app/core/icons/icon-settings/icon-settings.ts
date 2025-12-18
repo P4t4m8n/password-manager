@@ -6,5 +6,6 @@ import { AbstractIconComponent } from '../../abstracts/icon-component.abstract';
   selector: 'app-icon-settings',
   imports: [NgStyle],
   templateUrl: './icon-settings.html',
+  styleUrl: '../icons.css',
 })
 export class IconSettings extends AbstractIconComponent {}

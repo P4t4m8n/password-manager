@@ -39,7 +39,7 @@ export class PasswordEntryPreview {
       const decryptedPassword = await this.#cryptoService.decryptPassword(encryptedPassword, iv);
       this.#password.next(decryptedPassword);
     } catch (error) {
-      this.#errorService.handleError(error as Error, { showToast: true });
+      this.#errorService.handleError(error, { showToast: true });
     }
   }
 }

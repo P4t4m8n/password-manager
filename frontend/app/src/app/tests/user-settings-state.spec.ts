@@ -1,14 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 
-import { LocalStorgeService } from './local-storge-service';
+import { UserSettingsStateService } from '../features/settings/services/user-settings-state-service';
 import { describe, beforeEach, it, expect } from 'vitest';
 
-describe('LocalStorgeService', () => {
-  let service: LocalStorgeService;
+describe('UserSettingsState', () => {
+  let service: UserSettingsStateService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(LocalStorgeService);
+    service = TestBed.inject(UserSettingsStateService);
   });
 
   it('should be created', () => {

@@ -10,7 +10,7 @@ export type TStorageMode = (typeof STORGE_MODES)[number];
 @Injectable({
   providedIn: 'root',
 })
-export class LocalStorgeService {
+export class LocalStorageService {
   static storeLocalData<T>({
     data,
     key,

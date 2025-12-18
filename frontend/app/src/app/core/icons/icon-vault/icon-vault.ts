@@ -6,5 +6,6 @@ import { AbstractIconComponent } from '../../abstracts/icon-component.abstract';
   selector: 'app-icon-vault',
   imports: [NgStyle],
   templateUrl: './icon-vault.html',
+  styleUrl: '../icons.css',
 })
 export class IconVault extends AbstractIconComponent {}

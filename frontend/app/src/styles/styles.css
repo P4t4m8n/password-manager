@@ -1,3 +1,7 @@
 @import './setup/reset.css';
 @import './setup/variables.css';
-@import './setup/helpers.css';
+@import './setup/themes.css';
+
+@import './helpers/form.css';
+@import './helpers/text.css';
+@import './helpers/button.css';

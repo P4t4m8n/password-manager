@@ -1,6 +1,3 @@
-
-
-
 <header>
   <app-icon-logo
     [style]="{
@@ -11,8 +8,8 @@
     }"
   />
   <span>
-    <h2>Secura</h2>
-    <p>Password manager</p>
+    <h2 class="truncate">Secura</h2>
+    <p class="truncate">Password manager</p>
   </span>
 
   <button (click)="onToggle()">
@@ -20,8 +17,6 @@
       [style]="{
         width: '100%',
         height: '100%',
-        fill: 'black',
-        stroke: 'none',
       }"
     />
   </button>
@@ -33,20 +28,8 @@
     @for(nav_route of navRoutes;track nav_route.label ) {
     <li>
       <a [routerLink]="nav_route.route" routerLinkActive="active">
-        <ng-container
-          [ngComponentOutlet]="nav_route.icon"
-          [ngComponentOutletInputs]="{
-            style: {
-              width: '2rem',
-              height: '2rem',
-              minHeight: '2rem',
-              minWidth: '2rem',
-              stroke: 'rgba(0, 0, 0, 1)',
-            }
-          }"
-        >
-        </ng-container>
-        <p>
+        <ng-container [ngComponentOutlet]="nav_route.icon"> </ng-container>
+        <p class="truncate">
           {{ nav_route.label | titlecase }}
         </p>
       </a>
@@ -57,21 +40,12 @@
 }
 
 <footer>
-  <button>
-    <app-icon-profile
-      [style]="{
-        height: '100%',
-        width: '100%',
-        fill: 'none',
-        stroke:'black',
-      }"
-    />
-  </button>
+
   <h5>{{ session_user?.username | titlecase }}</h5>
   <button (click)="onSignout()">
     <app-icon-signout
       [style]="{
-        height: '90%',
+        height: '100%',
         width: '100%'
       }"
     />

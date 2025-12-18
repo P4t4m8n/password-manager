@@ -11,9 +11,9 @@ import { NAV_ROUTES } from '../../const/side-menu.const';
 
 import { IconCloseOpen } from '../../../../icons/icon-close-open/icon-close-open';
 import { IconLogo } from '../../../../icons/icon-logo/icon-logo';
-import { IconProfile } from '../../../../icons/icon-profile/icon-profile';
 import { IconSignout } from '../../../../icons/icon-signout/icon-signout';
-import { IUserDTO } from '../../../../../features/user/interfaces/user-dto';
+
+import type { IUserDTO } from '../../../../../features/user/interfaces/user-dto';
 
 @Component({
   selector: 'app-side-menu',
@@ -25,7 +25,6 @@ import { IUserDTO } from '../../../../../features/user/interfaces/user-dto';
     NgComponentOutlet,
     IconCloseOpen,
     RouterLinkActive,
-    IconProfile,
     IconSignout,
   ],
   templateUrl: './side-menu.html',

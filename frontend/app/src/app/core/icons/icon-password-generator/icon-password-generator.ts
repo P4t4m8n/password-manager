@@ -6,5 +6,6 @@ import { NgStyle } from '@angular/common';
   selector: 'app-icon-password-generator',
   imports: [NgStyle],
   templateUrl: './icon-password-generator.html',
+  styleUrl: '../icons.css',
 })
 export class IconPasswordGenerator extends AbstractIconComponent {}

@@ -1,16 +1,17 @@
 :root {
-  --primary: oklch(0% 0 0);
-  --secondary: rgb(240, 240, 240);
+  --primary: oklch(95.815% 0.00011 271.152);
+  --secondary: rgb(30, 30, 30);
+  --tertiary: rgb(231, 231, 231);
   --accent: rgb(255, 94, 91);
-  --main-gray: rgb(209, 209, 209);
+  --main-gray: rgb(60, 60, 60);
   --raw-accent: 255, 94, 91;
 
   --main-text-color: rgb(50, 50, 50);
   --secondary-text-color: rgb(100, 100, 100);
+
   --font-family: 'Courier New', monospace;
-  --font-size-base: 1rem;
-  --shadow: 8px 8px 0px var(--primary);
-  --shadow-small: 4px 4px 0px var(--primary);
+  --shadow: 8px 8px 0px var(--secondary);
+  --shadow-small: 4px 4px 0px var(--secondary);
 
   --border-radius: 4px;
   --font-size-12: 0.75rem;
@@ -19,4 +20,18 @@
   --font-size-18: 1.125rem;
   --font-size-20: 1.25rem;
   --font-size-24: 1.5rem;
+  --font-size-28: 1.75rem;
+  --font-size-32: 2rem;
+}
+
+.dark-theme {
+  --primary: #000000;
+  --secondary: rgb(240, 240, 240);
+  --tertiary: rgba(36, 36, 36, 0.5);
+  --accent: rgb(255, 94, 91);
+  --main-gray: rgb(209, 209, 209);
+  --raw-accent: 255, 94, 91;
+
+  --main-text-color: rgb(240, 240, 240);
+  --secondary-text-color: rgb(180, 180, 180);
 }

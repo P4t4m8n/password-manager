@@ -178,10 +178,11 @@ export class AuthIndex {
         })
       )
       .subscribe({
+        //In theory only HttpErrorResponse can come here
         error: (err) => {
           this.#errorService.handleError(err, {
             formGroup: this.authSignInFormGroup,
-            showToast: false,
+            showToast: true,
           });
         },
       });
@@ -210,7 +211,6 @@ export class AuthIndex {
 
     subscription.subscribe({
       next: async (res) => {
-        console.log('🚀 ~ AuthIndex ~ res:', res);
         await this.#recoveryPasswordDialogService.openDialog({ recoveryKey: res.recoveryKey });
 
         const isNavToSettings = await this.#confirmationDialogService.openDialog({

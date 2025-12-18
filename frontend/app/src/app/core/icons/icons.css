@@ -1,0 +1,8 @@
+svg {
+  width: var(--icon-width, 1.5rem);
+  height: var(--icon-height, 1.5rem);
+  stroke: var(--icon-stroke, currentColor);
+  fill: var(--icon-fill, currentColor);
+  display: block;
+  transition: all 0.3s ease-in-out;
+}
