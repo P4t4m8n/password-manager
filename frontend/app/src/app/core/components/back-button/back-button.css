@@ -1,9 +1,9 @@
-:host{
-    display: flex;
-    height: 2rem;
-    width: 2rem;
-    button{
-        border:1px solid black;
-        border-radius: 100vh;
-    }
+:host {
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  button {
+    border: 1px solid var(--main-text-color);
+    border-radius: 100vh;
+  }
 }

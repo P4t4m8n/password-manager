@@ -6,6 +6,7 @@
   [class.sign-up]="!authSettings.isSignIn"
 >
   <h2>{{ authSettings.headerText.toUpperCase() }}</h2>
+  
 
   <ul>
     @for (input of authSettings?.inputs; track input.formControlName) {
@@ -28,7 +29,7 @@
   </ul>
 
   <button
-    class="submit-btn"
+    class="button-base button-submit hover-active-small"
     type="submit"
     [disabled]="authSettings.formGroup.invalid && authSettings.formGroup.touched"
   >

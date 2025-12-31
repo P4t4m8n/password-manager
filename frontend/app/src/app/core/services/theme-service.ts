@@ -1,10 +1,10 @@
 import { inject, Injectable } from '@angular/core';
+import { filter } from 'rxjs';
 
 import { AbstractGlobalStateService } from '../abstracts/abstract-global-state-service.abstract';
+import { UserSettingsStateService } from '../../features/settings/services/user-settings-state-service';
 
 import type { TTheme } from '../../features/settings/types/settings.type';
-import { UserSettingsStateService } from '../../features/settings/services/user-settings-state-service';
-import { filter } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -21,9 +21,8 @@ export class ThemeService extends AbstractGlobalStateService<TTheme | null> {
   }
 
   private initTheme(): void {
-    const themeMode: TTheme = this.#userSettingsStateService.getCurrentState()?.theme ?? 'system';
+    const themeMode: TTheme = this.#userSettingsStateService.getCurrentState()?.theme ?? 'dark';
     console.log("🚀 ~ ThemeService ~ initTheme ~ themeMode:", themeMode)
-
     this.setTheme(themeMode);
   }
 
@@ -37,7 +36,11 @@ export class ThemeService extends AbstractGlobalStateService<TTheme | null> {
 
   private watchUserSettingsChanges(): void {
     this.#userSettingsStateService.state$
-      .pipe(filter((settings) =>{ return settings !== null}))
+      .pipe(
+        filter((settings) => {
+          return settings !== null;
+        })
+      )
       .subscribe((settings) => {
         if (settings?.theme && settings.theme !== this.getState()) {
           this.setTheme(settings.theme);
@@ -51,6 +54,7 @@ export class ThemeService extends AbstractGlobalStateService<TTheme | null> {
    */
   setTheme(mode: TTheme): void {
     this.updateState(mode);
+    console.log("🚀 ~ ThemeService ~ setTheme ~ mode:", mode)
 
     if (mode === 'system') {
       const isDark = this.#systemPreference.matches;
@@ -65,10 +69,10 @@ export class ThemeService extends AbstractGlobalStateService<TTheme | null> {
    */
   private applyTheme(theme: Omit<TTheme, 'system'>): void {
     const root = document.documentElement;
-    if (theme === 'dark') {
+    // if (theme === 'dark') {
       root.classList.add('dark-theme');
-    } else {
-      root.classList.remove('dark-theme');
-    }
+    // } else {
+    //   root.classList.remove('dark-theme');
+    // }
   }
 }

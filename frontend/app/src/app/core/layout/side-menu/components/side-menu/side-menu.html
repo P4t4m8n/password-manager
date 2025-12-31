@@ -3,7 +3,7 @@
     [style]="{
         width: '3.5rem',
         height: '3.5rem',
-        fill: '#ff5e5b',
+        fill: 'var(--accent)',
         display: 'block',
     }"
   />
@@ -40,7 +40,6 @@
 }
 
 <footer>
-
   <h5>{{ session_user?.username | titlecase }}</h5>
   <button (click)="onSignout()">
     <app-icon-signout
@@ -51,3 +50,6 @@
     />
   </button>
 </footer>
+
+
+<button (click)="onToggle()" class="mobile-open-button"></button>

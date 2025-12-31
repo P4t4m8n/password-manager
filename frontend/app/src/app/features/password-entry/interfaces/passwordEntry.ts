@@ -12,4 +12,5 @@ export interface IPasswordEntryDto extends IEntity {
 
 export interface IPasswordEntryFilter {
   entryName?: string;
+  isFavorite?: boolean;
 }

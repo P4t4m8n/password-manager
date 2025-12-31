@@ -14,9 +14,9 @@ import { IconSearch } from '../../../../core/icons/icon-search/icon-search';
 import { IconPlus } from '../../../../core/icons/icon-plus/icon-plus';
 import { IconSafety } from '../../../../core/icons/icon-safety/icon-safety';
 import { PasswordEntryTable } from '../../components/password-entry-table/password-entry-table';
-import { BackButton } from '../../../../core/components/back-button/back-button';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
+import { Header } from "../../../../core/layout/header/header";
 @Component({
   selector: 'app-password-entities',
   imports: [
@@ -26,9 +26,9 @@ import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
     RouterLink,
     CommonModule,
     PasswordEntryTable,
-    BackButton,
     ReactiveFormsModule,
-  ],
+    Header
+],
   templateUrl: './password-entries.html',
   styleUrl: './password-entries.css',
 })
@@ -55,11 +55,12 @@ export class PasswordEntries implements OnInit, OnDestroy {
         .pipe(
           switchMap((params) => {
             const entryName = params['entryName'] || '';
+            const isFavorite = params['isFavorite'] || false;
             if (this.searchControl.value !== entryName) {
               this.searchControl.setValue(entryName, { emitEvent: false });
             }
 
-            return this.#passwordEntryHttpService.get({ entryName });
+            return this.#passwordEntryHttpService.get({ entryName, isFavorite });
           })
         )
         .subscribe({

@@ -15,11 +15,11 @@ export const NAV_ROUTES: INavRoute[] = [
     label: 'entries',
     icon: IconVault,
   },
-  {
-    route: `/${PASSWORD_ENTRIES_PATHS.passwordEntriesFavorites}`,
-    label: 'favorites',
-    icon: IconFavorite,
-  },
+  // {
+  //   route: `/${PASSWORD_ENTRIES_PATHS.passwordEntriesFavorites}/`,
+  //   label: 'favorites',
+  //   icon: IconFavorite,
+  // },
   {
     route: `/${PASSWORD_GENERATOR_PATHS.passwordGenerator}`,
     label: 'password generator',

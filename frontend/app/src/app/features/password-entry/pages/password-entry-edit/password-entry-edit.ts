@@ -10,23 +10,21 @@ import { PasswordGeneratorDialogService } from '../../../password-generator/serv
 
 import { RevelInputPasswordDirective } from '../../../../core/directives/revel-input-password-directive';
 
-import { IconFavorite } from '../../../../core/icons/icon-favorite/icon-favorite';
 import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
 import { IconPasswordGenerator } from '../../../../core/icons/icon-password-generator/icon-password-generator';
-import { BackButton } from '../../../../core/components/back-button/back-button';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
+import { Header } from "../../../../core/layout/header/header";
 
 @Component({
   selector: 'app-password-entry-edit',
   imports: [
     RevelInputPasswordDirective,
-    IconFavorite,
     ReactiveFormsModule,
     IconEye,
-    BackButton,
     IconPasswordGenerator,
-  ],
+    Header
+],
   templateUrl: './password-entry-edit.html',
   styleUrl: './password-entry-edit.css',
 })

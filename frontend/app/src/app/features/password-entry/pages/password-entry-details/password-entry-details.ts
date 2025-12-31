@@ -8,7 +8,6 @@ import { CryptoService } from '../../../crypto/services/crypto.service';
 import { ClipboardService } from '../../../../core/services/clipboard-service';
 import { ErrorService } from '../../../../core/services/error-service';
 
-import { BackButton } from '../../../../core/components/back-button/back-button';
 import { PasswordStrength } from '../../../crypto/components/password-strength/password-strength';
 
 import { IconPencil } from '../../../../core/icons/icon-pencil/icon-pencil';
@@ -20,12 +19,12 @@ import { IconFavorite } from '../../../../core/icons/icon-favorite/icon-favorite
 import { IconTag } from '../../../../core/icons/icon-tag/icon-tag';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
+import { Header } from "../../../../core/layout/header/header";
 
 @Component({
   selector: 'app-password-entry-details',
   imports: [
     AsyncPipe,
-    BackButton,
     RouterLink,
     IconPencil,
     IconOpenExternal,
@@ -36,7 +35,8 @@ import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
     IconFavorite,
     IconTag,
     DatePipe,
-  ],
+    Header
+],
   templateUrl: './password-entry-details.html',
   styleUrl: './password-entry-details.css',
 })

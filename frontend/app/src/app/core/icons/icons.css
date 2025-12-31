@@ -4,5 +4,5 @@ svg {
   stroke: var(--icon-stroke, currentColor);
   fill: var(--icon-fill, currentColor);
   display: block;
-  transition: all 0.3s ease-in-out;
+  /* transition: all 0.3s ease-in-out; */
 }

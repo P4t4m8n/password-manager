@@ -19,6 +19,7 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
     searchParams?: IPasswordEntryFilter
   ): Observable<IHttpResponseDto<IPasswordEntryDto[]>> {
     let params = new HttpParams();
+
     if (searchParams?.entryName) {
       params = params.set('EntryName', searchParams.entryName);
     }
@@ -27,10 +28,21 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
       ...this.httpConfig,
       params,
     };
+
     return this.httpClient
       .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.ENDPOINT}`, settings)
       .pipe(
         tap((res) => {
+          // console.log('🚀 ~ PasswordEntryHttpService ~ get ~ res.data[0]:', res.data[0]);
+          // const demoData: IPasswordEntryDto[] = Array(30)
+          //   .fill(null)
+          //   .map((_, idx) => {
+          //     return {
+          //       ...res.data[0],
+          //       id: `#${idx}`,
+          //     };
+          //   });
+          // console.log('🚀 ~ PasswordEntryHttpService ~ get ~ demoData:', demoData);
           this.updateState(res.data);
         }),
         catchError((err) => {

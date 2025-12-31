@@ -12,6 +12,7 @@ import { IconShield } from '../../../../core/icons/icon-shield/icon-shield';
 import { IconError } from '../../../../core/icons/icon-error/icon-error';
 
 import type { TPasswordStrength } from '../../types/password-generator.type';
+import { PasswordStrength } from "../../../crypto/components/password-strength/password-strength";
 
 @Component({
   selector: 'app-password-generator',
@@ -19,12 +20,9 @@ import type { TPasswordStrength } from '../../types/password-generator.type';
     ɵInternalFormsSharedModule,
     IconCopyPassword,
     ReactiveFormsModule,
-    NgClass,
-    IconWarn,
-    IconCheck,
-    IconShield,
-    IconError,
-  ],
+
+    PasswordStrength
+],
   templateUrl: './password-generator.html',
   styleUrl: './password-generator.css',
 })

@@ -1,8 +1,9 @@
 import { Component, inject, Input } from '@angular/core';
 import { Location } from '@angular/common';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 
 import { IconArrow } from '../../icons/icon-arrow/icon-arrow';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-back-button',

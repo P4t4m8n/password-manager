@@ -53,10 +53,18 @@
   </ul>
 
   <div class="actions">
-    <button type="button" class="submit-btn" (click)="resetToDefualtSettings()">
+    <button
+      type="button"
+      class="button-base button-submit hover-active-small"
+      (click)="resetToDefualtSettings()"
+    >
       Reset to Default
     </button>
-    <button type="submit" [disabled]="userSettingsFormGroup.invalid" class="submit-btn">
+    <button
+      type="submit"
+      [disabled]="userSettingsFormGroup.invalid"
+      class="button-base button-submit hover-active-small"
+    >
       Save Settings
     </button>
   </div>

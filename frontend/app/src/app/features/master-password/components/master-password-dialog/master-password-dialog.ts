@@ -5,10 +5,12 @@ import { Router } from '@angular/router';
 import { AbstractDialog } from '../../../../core/abstracts/dialog.abstract';
 
 import type { TMasterPasswordDialogMode } from '../../types/master-password-types';
+import { IconEye } from "../../../../core/icons/icon-eye/icon-eye";
+import { RevelInputPasswordDirective } from '../../../../core/directives/revel-input-password-directive';
 
 @Component({
   selector: 'app-master-password-dialog',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, IconEye,RevelInputPasswordDirective],
   templateUrl: './master-password-dialog.html',
   styleUrl: './master-password-dialog.css',
 })

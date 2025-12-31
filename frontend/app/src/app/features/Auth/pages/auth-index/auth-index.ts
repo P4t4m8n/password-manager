@@ -146,6 +146,7 @@ export class AuthIndex {
     if (control.errors['required']) {
       return `${label} is required`;
     }
+
     if (control.errors['email']) {
       return 'Please enter a valid email address';
     }

@@ -1,10 +1,17 @@
 :root {
-  --primary: oklch(95.815% 0.00011 271.152);
+  --primary: rgb(241, 241, 241);
   --secondary: rgb(30, 30, 30);
   --tertiary: rgb(231, 231, 231);
+
+  --menu: rgb(255, 255, 255);
   --accent: rgb(255, 94, 91);
   --main-gray: rgb(60, 60, 60);
   --raw-accent: 255, 94, 91;
+
+  --error-red: red;
+  --warn-orange: orange;
+  --info-blue: blue;
+  --success-green: green;
 
   --main-text-color: rgb(50, 50, 50);
   --secondary-text-color: rgb(100, 100, 100);
@@ -14,6 +21,7 @@
   --shadow-small: 4px 4px 0px var(--secondary);
 
   --border-radius: 4px;
+
   --font-size-12: 0.75rem;
   --font-size-14: 0.875rem;
   --font-size-16: 1rem;
@@ -25,9 +33,16 @@
 }
 
 .dark-theme {
-  --primary: #000000;
-  --secondary: rgb(240, 240, 240);
-  --tertiary: rgba(36, 36, 36, 0.5);
+  --primary: rgb(30, 30, 30);
+  --secondary: rgb(220, 220, 220);
+  --tertiary: rgb(40, 40, 40);
+
+  --error-red: rgb(255, 107, 107);
+  --warn-orange: rgb(255, 202, 87);
+  --info-blue: rgb(84, 160, 255);
+  --success-green: rgb(29, 209, 161);
+
+  --menu: rgb(45, 45, 45);
   --accent: rgb(255, 94, 91);
   --main-gray: rgb(209, 209, 209);
   --raw-accent: 255, 94, 91;
