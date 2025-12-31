@@ -7,6 +7,7 @@ import { MasterPasswordSaltSessionService } from '../../master-password/services
 import { UserSettingsStateService } from '../../settings/services/user-settings-state-service';
 
 import type {
+  IAuthProps,
   IAuthResponseDto,
   IAuthSignInDto,
   IAuthSignUpDto,
@@ -27,19 +28,21 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
     super('auth');
   }
 
-  signIn(dto: IAuthSignInDto): Observable<IHttpResponseDto<IAuthResponseDto>> {
+  signIn(
+    dto: TPrettify<IAuthProps<IAuthSignInDto>>
+  ): Observable<IHttpResponseDto<IAuthResponseDto>> {
     return this.httpClient
       .post<IHttpResponseDto<IAuthResponseDto>>(`${this.ENDPOINT}/Sign-in`, dto, this.httpConfig)
       .pipe(
         tap((res) => {
-          this.#updateStatesData(res);
+          this.#updateStatesData(res, dto.masterPassword);
         })
         //Error handling is done in the component to allow formGroup error setting
       );
   }
 
   async signUp(
-    dto: TPrettify<IAuthSignUpDto & { masterPassword: string }>
+    dto: TPrettify<IAuthProps<IAuthSignUpDto>>
   ): Promise<Observable<IHttpResponseDto<IAuthResponseDto> & { recoveryKey: Uint8Array }>> {
     const { masterPassword, email, ...rest } = dto;
 
@@ -62,7 +65,7 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
       )
       .pipe(
         tap((res) => {
-          this.#updateStatesData(res);
+          this.#updateStatesData(res, masterPassword);
         }),
         map((res) => ({ ...res, recoveryKey }))
         //Error handling is done in the component to allow formGroup error setting
@@ -115,10 +118,24 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
     return this.getState();
   }
 
-  #updateStatesData(res: IHttpResponseDto<IAuthResponseDto>): void {
+  #updateStatesData(res: IHttpResponseDto<IAuthResponseDto>, masterPassword?: string): void {
     const { masterPasswordSalt, user } = res.data;
     this.updateState(user);
     this.#userSettingsStateService.updateState(user?.settings ?? null);
     this.#masterPasswordSaltSessionService.masterPasswordSalt = masterPasswordSalt;
+
+    const masterPasswordSaveMode =
+      this.#userSettingsStateService.getCurrentState()?.masterPasswordStorageMode;
+    if (!masterPassword) return;
+    switch (masterPasswordSaveMode) {
+      case 'local':
+        this.#cryptoService.saveMasterPasswordToLocalStorage(masterPassword);
+        break;
+      case 'session':
+        this.#cryptoService.saveMasterPasswordToSession(masterPassword);
+        break;
+      default:
+        break;
+    }
   }
 }

@@ -22,7 +22,6 @@ export class ThemeService extends AbstractGlobalStateService<TTheme | null> {
 
   private initTheme(): void {
     const themeMode: TTheme = this.#userSettingsStateService.getCurrentState()?.theme ?? 'dark';
-    console.log("🚀 ~ ThemeService ~ initTheme ~ themeMode:", themeMode)
     this.setTheme(themeMode);
   }
 
@@ -54,7 +53,6 @@ export class ThemeService extends AbstractGlobalStateService<TTheme | null> {
    */
   setTheme(mode: TTheme): void {
     this.updateState(mode);
-    console.log("🚀 ~ ThemeService ~ setTheme ~ mode:", mode)
 
     if (mode === 'system') {
       const isDark = this.#systemPreference.matches;

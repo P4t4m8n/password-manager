@@ -4,7 +4,11 @@ import { MasterPasswordDialogService } from '../../master-password/services/mast
 import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
 
 import type { TCredentials } from '../types/credentials.type';
+import { UserSettingsStateService } from '../../settings/services/user-settings-state-service';
+import { LocalStorageService } from '../../../core/services/local-storage-service';
 
+const HOUR = 60 * 60 * 1000;
+const DAY = 24 * HOUR;
 @Injectable({
   providedIn: 'root',
 })
@@ -14,8 +18,28 @@ export class CryptoService {
 
   #masterPasswordDialogService = inject(MasterPasswordDialogService);
   #masterPasswordSaltSessionService = inject(MasterPasswordSaltSessionService);
+  #userSettingsStateService = inject(UserSettingsStateService);
 
-  checkEncryptionKeyInitialized(): this is { _encryptionKey: CryptoKey } {
+  async checkEncryptionKeyInitialized(): Promise<boolean> {
+    const masterPasswordSaveMode =
+      this.#userSettingsStateService.getCurrentState()?.masterPasswordStorageMode;
+ 
+
+    if (masterPasswordSaveMode === 'local' || masterPasswordSaveMode === 'session') {
+      const masterPassword = LocalStorageService.getLocalData<string>({
+        key: 'master-password',
+        mode: masterPasswordSaveMode,
+      });
+  
+
+      await this.deriveMasterEncryptionKey({
+        masterPassword: masterPassword!,
+        saltBuffer: this.base64ToArrayBuffer(this.#masterPasswordSaltSessionService.currentSalt!),
+      });
+
+      this.#masterKey = masterPassword ?? null;
+    }
+
     return this.#encryptionKey !== null;
   }
 
@@ -195,6 +219,15 @@ export class CryptoService {
   clearSensitiveData(): void {
     this.#encryptionKey = null;
     this.#masterKey = null;
+
+    LocalStorageService.removeLocalData({
+      key: 'master-password',
+      mode: 'local',
+    });
+    LocalStorageService.removeLocalData({
+      key: 'master-password',
+      mode: 'session',
+    });
   }
 
   downloadRecoveryKey(recoveryKey: Uint8Array, username: string): void {
@@ -238,7 +271,7 @@ export class CryptoService {
   }
 
   async initializeMasterPassword(): Promise<void> {
-    if (this.checkEncryptionKeyInitialized()) return;
+    if (await this.checkEncryptionKeyInitialized()) return;
 
     const masterPassword = await this.#masterPasswordDialogService.openDialog({
       mode: 'unlock',
@@ -277,5 +310,23 @@ export class CryptoService {
       recoveryKeyBuffer,
       recoveryIVBuffer
     );
+  }
+
+  saveMasterPasswordToLocalStorage(masterPassword: string): void {
+    LocalStorageService.storeLocalData({
+      data: masterPassword,
+      key: 'master-password',
+      mode: 'local',
+      expiredIn: 1 * DAY,
+    });
+  }
+
+  saveMasterPasswordToSession(masterPassword: string): void {
+    LocalStorageService.storeLocalData({
+      data: masterPassword,
+      key: 'master-password',
+      mode: 'session',
+      expiredIn: 1 * HOUR,
+    });
   }
 }

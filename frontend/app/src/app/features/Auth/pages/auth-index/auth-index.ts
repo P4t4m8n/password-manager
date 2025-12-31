@@ -14,7 +14,7 @@ import { ConfirmationDialogService } from '../../../../core/dialogs/confirmation
 import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/password-entry-routes.const';
 import { AUTH_PATHS } from '../../consts/auth-routes.const';
 
-import type { IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/auth.interface';
+import type { IAuthProps, IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/auth.interface';
 import { SETTINGS_PATHS } from '../../../settings/const/settings-routes.const';
 
 @Component({
@@ -170,7 +170,13 @@ export class AuthIndex {
       );
       return;
     }
-    const signInDto: IAuthSignInDto = { email: email, password: password };
+
+    const signInDto: IAuthProps<IAuthSignInDto> = {
+      email: email,
+      password: password,
+      masterPassword: masterPassword,
+    };
+
     this.#authHttpService
       .signIn(signInDto)
       .pipe(
@@ -193,6 +199,7 @@ export class AuthIndex {
   async #signUp() {
     const { email, password, confirmPassword, username, masterPassword } =
       this.authSignUpFormGroup.value;
+
     if (!email || !password || !confirmPassword || !username || !masterPassword) {
       console.warn(
         'Email, Password or Confirm Password are missing and skipped validation, this should not happen.'
@@ -200,7 +207,7 @@ export class AuthIndex {
       return;
     }
 
-    const signUpDto: IAuthSignUpDto & { masterPassword: string } = {
+    const signUpDto: IAuthProps<IAuthSignUpDto> = {
       email,
       password,
       confirmPassword,

@@ -16,3 +16,7 @@ export interface IAuthResponseDto {
   user: IUserDTO | null;
   masterPasswordSalt: string;
 }
+
+export type IAuthProps<DTO> = DTO & {
+  masterPassword: string;
+};

@@ -11,8 +11,6 @@ export class UserSettingsStateService extends AbstractGlobalStateService<IUserSe
   }
 
   public getCurrentState(): IUserSettingsDTO | null {
-    const x = this.getState();
-    console.log("🚀 ~ UserSettingsStateService ~ getCurrentState ~ x:", x)
-    return x;
+    return this.getState();
   }
 }
