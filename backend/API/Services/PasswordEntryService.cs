@@ -101,7 +101,10 @@ namespace API.Services
                                  @EntryUserName=@EntryUserName,
                                  @EncryptedPassword=@EncryptedPassword,
                                  @IV=@IV,
-                                 @Notes=@Notes;";
+                                 @Notes=@Notes,
+                                    @IsLiked=@IsLiked;
+                                 ";
+
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
@@ -112,6 +115,7 @@ namespace API.Services
             parameters.Add("@EncryptedPassword", entryDto.EncryptedPassword, System.Data.DbType.Binary);
             parameters.Add("@IV", entryDto.IV);
             parameters.Add("@Notes", entryDto.Notes);
+            parameters.Add("@IsLiked", entryDto.IsLiked);
 
             PasswordEntryDTO? entry = await _contextDapper.QuerySingleOrDefaultAsync<PasswordEntryDTO>(updateSql, parameters)
             ?? throw new UnexpectedCaughtException("Failed to update password entry", new Dictionary<string, string>
@@ -167,7 +171,19 @@ namespace API.Services
             );
 
             return await _contextDapper.ExecuteSql(updateSql, parameters);
+        }
 
+        public async Task<int> LikePasswordEntryAsync(Guid userGuid, Guid entryId)
+        {
+            string likeSql = @"EXEC PasswordSchema.spPasswordEntry_Like
+                                 @UserId=@UserId,
+                                 @EntryId=@EntryId;";
+
+            DynamicParameters parameters = new();
+            parameters.Add("@UserId", userGuid);
+            parameters.Add("@EntryId", entryId);
+
+            return await _contextDapper.ExecuteSql(likeSql, parameters);
         }
     }
 }

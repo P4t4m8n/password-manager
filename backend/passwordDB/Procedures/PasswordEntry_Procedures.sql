@@ -14,7 +14,7 @@ CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Select_Many
     @Limit INT = NULL
 AS
 BEGIN
-    SELECT Id, EntryName, WebsiteUrl, EntryUserName, EncryptedPassword, IV, Notes
+    SELECT Id, EntryName, WebsiteUrl, EntryUserName, EncryptedPassword, IV, Notes, IsLiked, CreatedAt, UpdatedAt
     FROM PasswordSchema.PasswordEntry
     WHERE UserId = @UserId
         AND (@EntryName IS NULL OR EntryName LIKE '%' + @EntryName + '%')
@@ -31,7 +31,7 @@ CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Select_ById
     @EntryId UNIQUEIDENTIFIER
 AS
 BEGIN
-    SELECT Id, EntryName, WebsiteUrl, EntryUserName, EncryptedPassword, IV, Notes, UserId, CreatedAt, UpdatedAt
+    SELECT Id, EntryName, WebsiteUrl, EntryUserName, EncryptedPassword, IV, Notes, IsLiked, UserId, CreatedAt, UpdatedAt
     FROM PasswordSchema.PasswordEntry
     WHERE UserId = @UserId AND Id = @EntryId;
 END
@@ -57,7 +57,8 @@ BEGIN
     INSERTED.EntryUserName,
     INSERTED.EncryptedPassword,
     INSERTED.IV,
-    INSERTED.Notes
+    INSERTED.Notes,
+    INSERTED.IsLiked
     VALUES
         (@UserId, @EntryName, @WebsiteUrl, @EntryUserName, @EncryptedPassword, @IV, @Notes);
 
@@ -72,7 +73,8 @@ CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Update
     @EntryUserName NVARCHAR(100) ,
     @EncryptedPassword VARBINARY(MAX) = NULL,
     @IV NVARCHAR(255) = NULL,
-    @Notes NVARCHAR(1000)
+    @Notes NVARCHAR(1000),
+    @IsLiked BIT = NULL
 AS
 BEGIN
     UPDATE PasswordSchema.PasswordEntry 
@@ -83,6 +85,7 @@ BEGIN
           EncryptedPassword = CASE WHEN @EncryptedPassword IS NOT NULL THEN @EncryptedPassword ELSE EncryptedPassword END,
           IV = CASE WHEN @IV IS NOT NULL THEN @IV ELSE IV END,
           Notes = CASE WHEN @Notes IS NOT NULL THEN @Notes ELSE Notes END,
+            IsLiked = CASE WHEN @IsLiked IS NOT NULL THEN @IsLiked ELSE IsLiked END,
           UpdatedAt = GETDATE()
     OUTPUT INSERTED.Id, INSERTED.EntryName, INSERTED.WebsiteUrl, INSERTED.EntryUserName, INSERTED.EncryptedPassword, INSERTED.IV, INSERTED.Notes
     WHERE UserId = @UserId AND Id = @EntryId;
@@ -119,3 +122,15 @@ BEGIN
         INNER JOIN @Entries e ON pe.Id = e.Id
     WHERE pe.UserId = @UserId;
 END
+
+GO
+CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Like
+    @UserId UNIQUEIDENTIFIER,
+    @EntryId UNIQUEIDENTIFIER
+AS
+BEGIN
+    UPDATE PasswordSchema.PasswordEntry
+    SET IsLiked = CASE WHEN IsLiked = 1 THEN 0 ELSE 1 END
+    WHERE UserId = @UserId AND Id = @EntryId;
+END   
+    

@@ -109,11 +109,21 @@ namespace API.Controllers
             };
 
             return StatusCode(httpResponse.StatusCode, httpResponse);
+        }
 
+        [HttpPatch("{entryId}/like")]
+        public async Task<ActionResult<HttpResponseDTO<int>>> LikeEntry(Guid entryId)
+        {
+            Guid userGuid = User.GetUserId();
+            int rowsAffected = await _passwordEntryService.LikePasswordEntryAsync(userGuid, entryId);
+            HttpResponseDTO<int> httpResponse = new()
+            {
+                Data = rowsAffected,
+                Message = "Entry liked successfully.",
+                StatusCode = 200
+            };
 
-
-
-
+            return StatusCode(httpResponse.StatusCode, httpResponse);
         }
     }
 }

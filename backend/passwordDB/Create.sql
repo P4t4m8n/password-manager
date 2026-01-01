@@ -106,6 +106,7 @@ BEGIN
         WebsiteUrl NVARCHAR(255),
         EntryUserName NVARCHAR(100),
         Notes NVARCHAR(1000),
+        IsLiked BIT DEFAULT 0,
 
         EncryptedPassword VARBINARY(MAX) NOT NULL,
         IV NVARCHAR(255) NOT NULL,

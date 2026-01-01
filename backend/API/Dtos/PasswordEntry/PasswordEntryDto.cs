@@ -9,4 +9,5 @@ public class PasswordEntryDTO : ModelDTO
     public byte[]? EncryptedPassword { get; set; }
     public string? IV { get; set; }
     public string? Notes { get; set; }
+    public bool IsLiked { get; set; }
 }

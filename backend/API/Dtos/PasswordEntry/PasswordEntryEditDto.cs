@@ -1,7 +1,7 @@
 
 namespace API.Dtos.PasswordEntry;
 
-public partial class PasswordEntryUpdateDTO: ModelDTO
+public partial class PasswordEntryUpdateDTO : ModelDTO
 {
     public string? EntryName { get; set; }
     public string? WebsiteUrl { get; set; }
@@ -9,4 +9,5 @@ public partial class PasswordEntryUpdateDTO: ModelDTO
     public byte[]? EncryptedPassword { get; set; }
     public string? IV { get; set; }
     public string? Notes { get; set; }
+    public bool IsLiked { get; set; }
 }

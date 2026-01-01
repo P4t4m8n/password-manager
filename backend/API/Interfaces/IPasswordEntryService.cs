@@ -11,5 +11,6 @@ namespace API.Interfaces
         Task<PasswordEntryDTO> UpdatePasswordEntryAsync(Guid userGuid, Guid entryId, PasswordEntryUpdateDTO entryDto);
         Task DeletePasswordEntryAsync(Guid userGuid, Guid entryId);
         Task<int> UpdateEntriesAfterRecoveryAsync(Guid userGuid, List<PasswordEntryUpdateDTO> updateDtos);
+        Task<int> LikePasswordEntryAsync(Guid userGuid, Guid entryId);
     }
 }
