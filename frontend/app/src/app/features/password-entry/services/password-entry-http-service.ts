@@ -33,15 +33,15 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
       .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.ENDPOINT}`, settings)
       .pipe(
         tap((res) => {
-          const demoData: IPasswordEntryDto[] = Array(30)
-            .fill(null)
-            .map((_, idx) => {
-              return {
-                ...res.data[0],
-                id: `#${idx}`,
-              };
-            });
-          this.updateState(demoData);
+          // const demoData: IPasswordEntryDto[] = Array(30)
+          //   .fill(null)
+          //   .map((_, idx) => {
+          //     return {
+          //       ...res.data[0],
+          //       id: `#${idx}`,
+          //     };
+          //   });
+          this.updateState(res.data);
         }),
         catchError((err) => {
           this.updateState([]);
@@ -90,16 +90,16 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
       );
   }
 
-  public likePasswordEntry(id: string): Observable<IHttpResponseDto<IPasswordEntryDto>> {
+  public likePasswordEntry(id: string): Observable<IHttpResponseDto<boolean>> {
+    console.log('🚀 ~ PasswordEntryHttpService ~ likePasswordEntry ~ id:', id);
     return this.httpClient
-      .patch<IHttpResponseDto<IPasswordEntryDto>>(
-        `${this.ENDPOINT}/${id}/like`,
-        {},
-        this.httpConfig
-      )
+      .patch<IHttpResponseDto<boolean>>(`${this.ENDPOINT}/${id}/like`, {}, this.httpConfig)
       .pipe(
         tap((res) => {
-          this.#updatePasswordEntriesState(res.data);
+          const passwordEntries = this.getState() ?? [];
+          const idx = passwordEntries.findIndex((pe) => pe.id === id);
+          passwordEntries[idx] = { ...passwordEntries[idx], isLiked: res.data };
+          this.updateState([...passwordEntries]);
         }),
         catchError((err) => this.handleError(err, { showToast: true }))
       );

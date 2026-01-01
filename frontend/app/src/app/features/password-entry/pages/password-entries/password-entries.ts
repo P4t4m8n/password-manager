@@ -55,12 +55,12 @@ export class PasswordEntries implements OnInit, OnDestroy {
         .pipe(
           switchMap((params) => {
             const entryName = params['entryName'] || '';
-            const isFavorite = params['isFavorite'] || false;
+            const isLiked = params['isLiked'] || false;
             if (this.searchControl.value !== entryName) {
               this.searchControl.setValue(entryName, { emitEvent: false });
             }
 
-            return this.#passwordEntryHttpService.get({ entryName, isFavorite });
+            return this.#passwordEntryHttpService.get({ entryName, isLiked });
           })
         )
         .subscribe({

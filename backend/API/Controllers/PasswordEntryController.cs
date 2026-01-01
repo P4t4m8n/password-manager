@@ -115,10 +115,10 @@ namespace API.Controllers
         public async Task<ActionResult<HttpResponseDTO<int>>> LikeEntry(Guid entryId)
         {
             Guid userGuid = User.GetUserId();
-            int rowsAffected = await _passwordEntryService.LikePasswordEntryAsync(userGuid, entryId);
-            HttpResponseDTO<int> httpResponse = new()
+            bool isLiked = await _passwordEntryService.LikePasswordEntryAsync(userGuid, entryId);
+            HttpResponseDTO<bool> httpResponse = new()
             {
-                Data = rowsAffected,
+                Data = isLiked,
                 Message = "Entry liked successfully.",
                 StatusCode = 200
             };

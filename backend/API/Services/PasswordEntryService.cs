@@ -173,7 +173,7 @@ namespace API.Services
             return await _contextDapper.ExecuteSql(updateSql, parameters);
         }
 
-        public async Task<int> LikePasswordEntryAsync(Guid userGuid, Guid entryId)
+        public async Task<bool> LikePasswordEntryAsync(Guid userGuid, Guid entryId)
         {
             string likeSql = @"EXEC PasswordSchema.spPasswordEntry_Like
                                  @UserId=@UserId,
@@ -183,7 +183,7 @@ namespace API.Services
             parameters.Add("@UserId", userGuid);
             parameters.Add("@EntryId", entryId);
 
-            return await _contextDapper.ExecuteSql(likeSql, parameters);
+            return await _contextDapper.QuerySingleOrDefaultAsync<bool>(likeSql, parameters);
         }
     }
 }

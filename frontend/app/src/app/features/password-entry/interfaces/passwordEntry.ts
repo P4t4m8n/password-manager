@@ -7,10 +7,10 @@ export interface IPasswordEntryDto extends IEntity {
   encryptedPassword?: string;
   iv?: string;
   notes?: string;
-  isFavorite?: boolean;
+  isLiked?: boolean;
 }
 
 export interface IPasswordEntryFilter {
   entryName?: string;
-  isFavorite?: boolean;
+  isLiked?: boolean;
 }

@@ -131,6 +131,7 @@ AS
 BEGIN
     UPDATE PasswordSchema.PasswordEntry
     SET IsLiked = CASE WHEN IsLiked = 1 THEN 0 ELSE 1 END
+    OUTPUT INSERTED.IsLiked
     WHERE UserId = @UserId AND Id = @EntryId;
 END   
     
