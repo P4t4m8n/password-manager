@@ -18,6 +18,7 @@ import { SETTINGS_PATHS } from '../../../../../features/settings/const/settings-
 import { IconPasswordGenerator } from '../../../../icons/icon-password-generator/icon-password-generator';
 import { IconSettings } from '../../../../icons/icon-settings/icon-settings';
 import { IconVault } from '../../../../icons/icon-vault/icon-vault';
+import { IconPlus } from "../../../../icons/icon-plus/icon-plus";
 
 @Component({
   selector: 'app-side-menu',
@@ -30,7 +31,8 @@ import { IconVault } from '../../../../icons/icon-vault/icon-vault';
     IconCloseOpen,
     RouterLinkActive,
     IconSignout,
-  ],
+    IconPlus
+],
   templateUrl: './side-menu.html',
   styleUrl: './side-menu.css',
 })

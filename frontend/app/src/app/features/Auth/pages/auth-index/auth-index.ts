@@ -12,7 +12,6 @@ import { RecoveryPasswordDialogService } from '../../../master-password/services
 import { ConfirmationDialogService } from '../../../../core/dialogs/confirmation-dialog/services/confirmation-dialog-service';
 
 import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/password-entry-routes.const';
-import { AUTH_PATHS } from '../../consts/auth-routes.const';
 
 import type { IAuthProps, IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/auth.interface';
 import { SETTINGS_PATHS } from '../../../settings/const/settings-routes.const';

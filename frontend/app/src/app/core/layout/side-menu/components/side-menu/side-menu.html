@@ -1,15 +1,11 @@
 <header>
   <app-icon-logo
     [style]="{
-        width: '3.5rem',
-        height: '3.5rem',
         fill: 'var(--accent)',
-        display: 'block',
     }"
   />
   <span>
     <h2 class="truncate">Secura</h2>
-    <p class="truncate">Password manager</p>
   </span>
 
   <button (click)="onToggle()">
@@ -40,7 +36,7 @@
 }
 
 <footer>
-  <h5>{{ sessionUser?.username | titlecase }}</h5>
+  <h5 class="truncate">{{ sessionUser?.username | titlecase }}</h5>
   <button (click)="onSignout()">
     <app-icon-signout
       [style]="{
@@ -50,6 +46,5 @@
     />
   </button>
 </footer>
-
 
 <button (click)="onToggle()" class="mobile-open-button"></button>
