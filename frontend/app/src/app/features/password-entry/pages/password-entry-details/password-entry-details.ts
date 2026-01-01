@@ -19,7 +19,9 @@ import { IconFavorite } from '../../../../core/icons/icon-favorite/icon-favorite
 import { IconTag } from '../../../../core/icons/icon-tag/icon-tag';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
-import { Header } from "../../../../core/layout/header/header";
+import { Header } from '../../../../core/layout/header/header';
+import { ToastService } from '../../../../core/toast/services/toast-service';
+import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
 
 @Component({
   selector: 'app-password-entry-details',
@@ -35,8 +37,8 @@ import { Header } from "../../../../core/layout/header/header";
     IconFavorite,
     IconTag,
     DatePipe,
-    Header
-],
+    Header,
+  ],
   templateUrl: './password-entry-details.html',
   styleUrl: './password-entry-details.css',
 })
@@ -45,7 +47,7 @@ export class PasswordEntryDetails {
   #cryptoService = inject(CryptoService);
   #passwordEntryHttpService = inject(PasswordEntryHttpService);
   #errorService = inject(ErrorService);
-
+  #toastService = inject(ToastService);
   #route = inject(ActivatedRoute);
   #router = inject(Router);
 
@@ -58,28 +60,27 @@ export class PasswordEntryDetails {
   #revealedPassword = new BehaviorSubject<string | null>(null);
   public revealedPassword$ = this.#revealedPassword.asObservable();
 
-  #showToast = new BehaviorSubject<boolean>(false);
-  public showToast$ = this.#showToast.asObservable();
-
   ngOnInit() {
-    this.passwordEntry$ = this.#route.params.pipe(
-      map((params) => params['entryId']),
-      switchMap((entryId) => this.#passwordEntryHttpService.getById(entryId)),
-      switchMap(async (entry) => {
-        this.#passwordEntry.next(entry);
-        const decrypted = await this.#cryptoService.decryptPassword(
-          entry.encryptedPassword,
-          entry.iv
-        );
-        this.#revealedPassword.next(decrypted);
-        return entry;
-      }),
-      catchError((error) => {
-        this.#errorService.handleError(error, { showErrorDialog: true });
-
-        return of(null);
-      })
-    );
+    this.#route.params
+      .pipe(
+        map((params) => params['entryId']),
+        switchMap((entryId) => this.#passwordEntryHttpService.getById(entryId)),
+        // Use tap or switchMap to push the data into your existing BehaviorSubject
+        switchMap(async (entry) => {
+          this.#passwordEntry.next(entry);
+          const decrypted = await this.#cryptoService.decryptPassword(
+            entry.encryptedPassword,
+            entry.iv
+          );
+          this.#revealedPassword.next(decrypted);
+          return entry;
+        }),
+        catchError((error) => {
+          this.#errorService.handleError(error, { showErrorDialog: true });
+          return of(null);
+        })
+      )
+      .subscribe(); // Subscribe here to trigger the fetch
   }
 
   async onShowPassword() {
@@ -103,7 +104,11 @@ export class PasswordEntryDetails {
 
     await this.onCopyToClipboard(decryptedPassword);
 
-    setTimeout(() => this.#showToast.next(false), 2000);
+    this.#toastService.initiate({
+      title: 'Password Copied',
+      content: 'The password has been copied to your clipboard.',
+      type: toastTypes.success,
+    });
   }
 
   async onCopyToClipboard(text?: string | null): Promise<void> {
@@ -124,10 +129,32 @@ export class PasswordEntryDetails {
     }
   }
 
+  onLike() {
+    const entryId = this.#passwordEntry.value?.id;
+
+    if (!entryId) {
+      this.#errorService.handleError(new Error('Invalid entry ID'), {
+        showToast: true,
+        customMessage: 'Cannot like entry: Invalid ID.',
+      });
+      return;
+    }
+
+    this.#passwordEntryHttpService.likePasswordEntry(entryId).subscribe({
+      next: ({ data }) => {
+        console.log('🚀 ~ PasswordEntryDetails ~ onLike ~ data:', data);
+
+        this.#passwordEntry.next({ ...this.#passwordEntry.value, isLiked: data });
+      },
+      error: (err) => {
+        this.#errorService.handleError(err, { showToast: true });
+      },
+    });
+  }
+
   onDestroy() {
     this.#passwordEntry.complete();
     this.#showPassword.complete();
     this.#revealedPassword.complete();
-    this.#showToast.complete();
   }
 }
