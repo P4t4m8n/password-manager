@@ -47,10 +47,12 @@ describe('AuthService', () => {
       statusCode: 200,
     };
 
-    service.signIn({ email: 'test@test.com', password: 'pass123' }).subscribe((response) => {
-      expect(response.data.user?.email).toBe('test@test.com');
-      expect(response.data.masterPasswordSalt).toBe('salt123');
-    });
+    service
+      .signIn({ email: 'test@test.com', password: 'pass123', masterPassword: 'salt123' })
+      .subscribe((response) => {
+        expect(response.data.user?.email).toBe('test@test.com');
+        expect(response.data.masterPasswordSalt).toBe('salt123');
+      });
 
     const req = httpMock.expectOne('http://localhost:5222/api/auth/Sign-in');
     expect(req.request.method).toBe('POST');

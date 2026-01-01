@@ -13,6 +13,7 @@ import { IconFavorite } from '../../../../core/icons/icon-favorite/icon-favorite
 import { IconCopyPassword } from '../../../../core/icons/icon-copy-password/icon-copy-password';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
+import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
 
 @Component({
   selector: 'app-password-entry-preview',
@@ -25,6 +26,7 @@ export class PasswordEntryPreview {
 
   #cryptoService = inject(CryptoService);
   #errorService = inject(ErrorService);
+  #passwordEntryHttpService = inject(PasswordEntryHttpService);
 
   #password = new BehaviorSubject<string>('******');
   public password$ = this.#password.asObservable();
@@ -41,5 +43,26 @@ export class PasswordEntryPreview {
     } catch (error) {
       this.#errorService.handleError(error, { showToast: true });
     }
+  }
+
+  onLike() {
+    const entryId = this.entry.id;
+
+    if (!entryId) {
+      this.#errorService.handleError(new Error('Invalid entry ID'), {
+        showToast: true,
+        customMessage: 'Cannot like entry: Invalid ID.',
+      });
+      return;
+    }
+    
+    this.#passwordEntryHttpService.likePasswordEntry(entryId).subscribe({
+      next: () => {
+        // Like updated in service state
+      },
+      error: (err) => {
+        this.#errorService.handleError(err, { showToast: true });
+      },
+    });
   }
 }

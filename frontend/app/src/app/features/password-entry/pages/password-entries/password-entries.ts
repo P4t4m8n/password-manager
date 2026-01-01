@@ -14,9 +14,9 @@ import { IconSearch } from '../../../../core/icons/icon-search/icon-search';
 import { IconPlus } from '../../../../core/icons/icon-plus/icon-plus';
 import { IconSafety } from '../../../../core/icons/icon-safety/icon-safety';
 import { PasswordEntryTable } from '../../components/password-entry-table/password-entry-table';
+import { Header } from '../../../../core/layout/header/header';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
-import { Header } from "../../../../core/layout/header/header";
 @Component({
   selector: 'app-password-entities',
   imports: [
@@ -27,8 +27,8 @@ import { Header } from "../../../../core/layout/header/header";
     CommonModule,
     PasswordEntryTable,
     ReactiveFormsModule,
-    Header
-],
+    Header,
+  ],
   templateUrl: './password-entries.html',
   styleUrl: './password-entries.css',
 })
@@ -40,7 +40,7 @@ export class PasswordEntries implements OnInit, OnDestroy {
   #errorService = inject(ErrorService);
 
   //Exposing in run time the subscription for testing purposes
-  private subscription: Subscription = new Subscription();
+  public subscription: Subscription = new Subscription();
 
   public passwordEntries$: Observable<IPasswordEntryDto[] | null> =
     this.#passwordEntryHttpService.data$;

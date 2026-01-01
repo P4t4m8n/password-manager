@@ -1,16 +1,4 @@
-.hover-active-small {
-  @media (hover: hover) {
-    &:hover {
-      box-shadow: var(--shadow-small);
-      transform: translate(-2px, -2px);
-    }
-  }
 
-  &:active {
-    box-shadow: var(--shadow-small);
-    transform: translate(-2px, -2px);
-  }
-}
 
 .button-base {
   border: 2px solid var(--secondary);

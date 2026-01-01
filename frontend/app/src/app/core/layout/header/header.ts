@@ -5,17 +5,17 @@ import { ExtendedTitleCasePipePipe } from '../../pipes/extended-title-case-pipe-
 
 @Component({
   selector: 'app-header',
-  imports: [BackButton,ExtendedTitleCasePipePipe],
+  imports: [BackButton, ExtendedTitleCasePipePipe],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })
 export class Header {
   #router = inject(Router);
 
-  @Input() title?: string = 'Default Title';
+  @Input() title?: string;
   @Input() locationPath?: string;
 
   get currentRoute(): string {
-    return this.title ? this.title : this.#router.url.split('/')[1];
+    return this.title ? this.title : this.#router.url.split('/')[1] ?? 'Default Title';
   }
 }

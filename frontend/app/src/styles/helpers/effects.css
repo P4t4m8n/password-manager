@@ -1,0 +1,29 @@
+.hover-active-small {
+  transition: box-shadow 0.3s, transform 0.3s;
+  @media (hover: hover) {
+    &:hover {
+      box-shadow: var(--shadow-small);
+      transform: translate(-2px, -2px);
+    }
+  }
+
+  &:active {
+    box-shadow: var(--shadow-small);
+    transform: translate(-2px, -2px);
+  }
+}
+
+.hover-active-large {
+  transition: box-shadow 0.3s, transform 0.3s;
+  @media (hover: hover) {
+    &:hover {
+      box-shadow: var(--shadow);
+      transform: translate(-4px, -4px);
+    }
+  }
+
+  &:active {
+    box-shadow: var(--shadow);
+    transform: translate(-4px, -4px);
+  }
+}

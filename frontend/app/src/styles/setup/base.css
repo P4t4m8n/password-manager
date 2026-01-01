@@ -1,12 +1,5 @@
 body {
-  height: 100svh;
-  width: 100svw;
   font-family: 'Courier New', monospace;
   color: var(--main-text-color);
   background-color: var(--primary);
-
-  @media (min-width: 48rem) {
-    height: 100vh;
-    width: 100vw;
-  }
 }
