@@ -22,7 +22,7 @@
   </button>
 </header>
 
-@if (session_user ) {
+@if (sessionUser ) {
 <nav>
   <ul class="nav-list">
     @for(nav_route of navRoutes;track nav_route.label ) {
@@ -40,7 +40,7 @@
 }
 
 <footer>
-  <h5>{{ session_user?.username | titlecase }}</h5>
+  <h5>{{ sessionUser?.username | titlecase }}</h5>
   <button (click)="onSignout()">
     <app-icon-signout
       [style]="{
