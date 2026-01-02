@@ -9,10 +9,7 @@ using API.Dtos.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers().AddJsonOptions(options =>
