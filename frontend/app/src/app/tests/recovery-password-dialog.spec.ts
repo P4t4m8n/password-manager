@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RecoveryPasswordDialog } from './recovery-password-dialog';
+import { RecoveryPasswordDialog } from '../features/master-password/components/recovery-password-dialog/recovery-password-dialog';
+import { describe, beforeEach, it, expect } from 'vitest';
 
 describe('RecoveryPasswordDialog', () => {
   let component: RecoveryPasswordDialog;

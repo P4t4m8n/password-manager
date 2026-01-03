@@ -4,14 +4,15 @@
   grid-template-columns: 1fr;
   background-color: var(--primary);
   color: var(--main-text-color);
+  main{
+    overflow-y: auto;
+  }
 }
 
 @media (min-width: 768px) {
   :host {
     display: grid;
     grid-template-columns: auto 1fr;
-    main {
-      height: 100vh;
-    }
+
   }
 }

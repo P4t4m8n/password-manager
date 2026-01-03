@@ -5,7 +5,6 @@ import { AbstractDialog } from '../../../abstracts/dialog.abstract';
   selector: 'app-confirmation-dialog',
   imports: [],
   templateUrl: './confirmation-dialog.html',
-  styleUrl: './confirmation-dialog.css',
 })
 export class ConfirmationDialog extends AbstractDialog<boolean> {
   @Input() title: string = 'Confirm Action';

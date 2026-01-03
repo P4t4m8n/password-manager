@@ -10,3 +10,19 @@
   justify-content: center;
   z-index: 1000;
 }
+
+.dialog {
+  background: var(--tertiary);
+  padding: 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: clamp(18rem, 100%, 50rem);
+  box-shadow: var(--shadow);
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+}

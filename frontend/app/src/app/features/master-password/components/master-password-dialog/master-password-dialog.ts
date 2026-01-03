@@ -12,7 +12,6 @@ import { RevelInputPasswordDirective } from '../../../../core/directives/revel-i
   selector: 'app-master-password-dialog',
   imports: [ReactiveFormsModule, IconEye,RevelInputPasswordDirective],
   templateUrl: './master-password-dialog.html',
-  styleUrl: './master-password-dialog.css',
 })
 export class MasterPasswordDialog extends AbstractDialog<string | null> {
   @Input() mode?: TMasterPasswordDialogMode = 'unlock';

@@ -10,11 +10,11 @@ import { PasswordGeneratorDialogService } from '../../../password-generator/serv
 
 import { RevelInputPasswordDirective } from '../../../../core/directives/revel-input-password-directive';
 
+import { Header } from "../../../../core/layout/header/header";
 import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
 import { IconPasswordGenerator } from '../../../../core/icons/icon-password-generator/icon-password-generator';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
-import { Header } from "../../../../core/layout/header/header";
 
 @Component({
   selector: 'app-password-entry-edit',
