@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { filter, map, switchMap } from 'rxjs';
 
@@ -10,7 +10,7 @@ import { PasswordGeneratorDialogService } from '../../../password-generator/serv
 
 import { RevelInputPasswordDirective } from '../../../../core/directives/revel-input-password-directive';
 
-import { Header } from "../../../../core/layout/header/header";
+import { Header } from '../../../../core/layout/header/header';
 import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
 import { IconPasswordGenerator } from '../../../../core/icons/icon-password-generator/icon-password-generator';
 
@@ -23,8 +23,8 @@ import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
     ReactiveFormsModule,
     IconEye,
     IconPasswordGenerator,
-    Header
-],
+    Header,
+  ],
   templateUrl: './password-entry-edit.html',
   styleUrl: './password-entry-edit.css',
 })
@@ -41,10 +41,10 @@ export class PasswordEntryEdit {
   #originalPasswordForUpdateCheck: string | null = null;
 
   passwordEntryFormGroup = this.#formBuilder.group({
-    entryName: [''],
-    websiteUrl: [''],
-    entryUserName: [''],
-    password: [''],
+    entryName: ['', Validators.required],
+    websiteUrl: ['', Validators.required],
+    entryUserName: ['', Validators.required],
+    password: ['', Validators.required],
     notes: [''],
     id: [''],
   });
@@ -89,10 +89,19 @@ export class PasswordEntryEdit {
     });
   }
 
-  async onSubmit() {
+  async onSubmit(e:Event) {
     try {
+      
+      this.passwordEntryFormGroup.markAllAsTouched();
+      if (this.passwordEntryFormGroup.invalid) {
+        return;
+      }
       const { entryName, websiteUrl, entryUserName, password, notes, id } =
         this.passwordEntryFormGroup.value;
+      console.log(
+        '🚀 ~ PasswordEntryEdit ~ onSubmit ~ this.passwordEntryFormGroup.value:',
+        this.passwordEntryFormGroup.value
+      );
 
       if (!password) {
         throw new Error('Password is required');
@@ -126,6 +135,23 @@ export class PasswordEntryEdit {
         formGroup: this.passwordEntryFormGroup,
       });
     }
+  }
+
+  getErrorMessage(controlName: string, label: string): string {
+    console.log('🚀 ~ PasswordEntryEdit ~ getErrorMessage ~ controlName:', controlName);
+    const control = this.passwordEntryFormGroup.get(controlName);
+
+    if (control?.errors?.['serverError']) {
+      return control.errors['serverError'];
+    }
+    if (!control?.errors || !control.touched) {
+      return '';
+    }
+
+    if (control.errors['required']) {
+      return `${label} is required`;
+    }
+    return '';
   }
 
   onCancel() {
