@@ -7,8 +7,10 @@ import { PasswordEntryHttpService } from '../../services/password-entry-http-ser
 import { CryptoService } from '../../../crypto/services/crypto.service';
 import { ClipboardService } from '../../../../core/services/clipboard-service';
 import { ErrorService } from '../../../../core/services/error-service';
+import { ToastService } from '../../../../core/toast/services/toast-service';
 
 import { PasswordStrength } from '../../../crypto/components/password-strength/password-strength';
+import { Header } from '../../../../core/layout/header/header';
 
 import { IconPencil } from '../../../../core/icons/icon-pencil/icon-pencil';
 import { IconOpenExternal } from '../../../../core/icons/icon-open-external/icon-open-external';
@@ -18,10 +20,9 @@ import { IconTrash } from '../../../../core/icons/icon-trash/icon-trash';
 import { IconFavorite } from '../../../../core/icons/icon-favorite/icon-favorite';
 import { IconTag } from '../../../../core/icons/icon-tag/icon-tag';
 
-import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
-import { Header } from '../../../../core/layout/header/header';
-import { ToastService } from '../../../../core/toast/services/toast-service';
 import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
+
+import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 
 @Component({
   selector: 'app-password-entry-details',
@@ -65,7 +66,6 @@ export class PasswordEntryDetails {
       .pipe(
         map((params) => params['entryId']),
         switchMap((entryId) => this.#passwordEntryHttpService.getById(entryId)),
-        // Use tap or switchMap to push the data into your existing BehaviorSubject
         switchMap(async (entry) => {
           this.#passwordEntry.next(entry);
           const decrypted = await this.#cryptoService.decryptPassword(
@@ -80,7 +80,7 @@ export class PasswordEntryDetails {
           return of(null);
         })
       )
-      .subscribe(); // Subscribe here to trigger the fetch
+      .subscribe();
   }
 
   async onShowPassword() {

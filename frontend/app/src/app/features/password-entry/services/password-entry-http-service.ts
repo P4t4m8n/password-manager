@@ -33,15 +33,15 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
       .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.ENDPOINT}`, settings)
       .pipe(
         tap((res) => {
-          const demoData: IPasswordEntryDto[] = Array(30)
-            .fill(null)
-            .map((_, idx) => {
-              return {
-                ...res.data[0],
-                id: `#${idx}`,
-              };
-            });
-          this.updateState(demoData);
+          // const demoData: IPasswordEntryDto[] = Array(30)
+          //   .fill(null)
+          //   .map((_, idx) => {
+          //     return {
+          //       ...res.data[0],
+          //       id: `#${idx}`,
+          //     };
+          //   });
+          this.updateState(res.data);
         }),
         catchError((err) => {
           this.updateState([]);

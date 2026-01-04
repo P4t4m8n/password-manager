@@ -23,17 +23,19 @@ export class CryptoService {
   async checkEncryptionKeyInitialized(): Promise<boolean> {
     const masterPasswordSaveMode =
       this.#userSettingsStateService.getCurrentState()?.masterPasswordStorageMode;
- 
 
     if (masterPasswordSaveMode === 'local' || masterPasswordSaveMode === 'session') {
       const masterPassword = LocalStorageService.getLocalData<string>({
         key: 'master-password',
         mode: masterPasswordSaveMode,
       });
-  
+
+      if (!masterPassword) {
+        return false;
+      }
 
       await this.deriveMasterEncryptionKey({
-        masterPassword: masterPassword!,
+        masterPassword: masterPassword,
         saltBuffer: this.base64ToArrayBuffer(this.#masterPasswordSaltSessionService.currentSalt!),
       });
 
@@ -126,14 +128,19 @@ export class CryptoService {
     const encrypted = this.base64ToArrayBuffer(encryptedPasswordStr);
     const iv = this.base64ToArrayBuffer(ivStr);
 
-    const decryptedBuffer = await crypto.subtle.decrypt(
-      {
-        name: 'AES-GCM',
-        iv: iv,
-      },
-      this.#encryptionKey,
-      encrypted
-    );
+    const decryptedBuffer = await crypto.subtle
+      .decrypt(
+        {
+          name: 'AES-GCM',
+          iv: iv,
+        },
+        this.#encryptionKey,
+        encrypted
+      )
+      .catch((err) => {
+        console.error('Decryption failed:', err);
+        throw new Error('Failed to decrypt password. It may be corrupted or the key is invalid.');
+      });
 
     const decoder = new TextDecoder();
     return decoder.decode(decryptedBuffer);
@@ -284,9 +291,7 @@ export class CryptoService {
     if (!this.#masterPasswordSaltSessionService.checkSaltInitialized()) {
       throw new Error('Master password salt is missing.');
     }
-    const saltBuffer = this.base64ToArrayBuffer(
-      this.#masterPasswordSaltSessionService.currentSalt!
-    );
+    const saltBuffer = this.base64ToArrayBuffer(this.#masterPasswordSaltSessionService.currentSalt);
 
     await this.deriveMasterEncryptionKey({ masterPassword, saltBuffer });
   }
