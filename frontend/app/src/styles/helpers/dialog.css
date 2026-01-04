@@ -5,10 +5,13 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  display: flex;
+  gap: 0;
+  display: grid;
+  grid-column: 1fr;
   align-items: center;
-  justify-content: center;
+  justify-items: center;
   z-index: 1000;
+  padding-inline: calc(1rem - 8px) calc(1rem + var(--scrollbar-width) + 4px);
 }
 
 .dialog {
