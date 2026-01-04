@@ -334,4 +334,21 @@ export class CryptoService {
       expiredIn: 1 * HOUR,
     });
   }
+
+  persistMasterPassword(masterPassword?: string | null): void {
+    if (!masterPassword) this.initializeMasterPassword();
+
+    const masterPasswordSaveMode =
+      this.#userSettingsStateService.getCurrentState()?.masterPasswordStorageMode;
+    switch (masterPasswordSaveMode) {
+      case 'local':
+        this.saveMasterPasswordToLocalStorage(masterPassword!);
+        break;
+      case 'session':
+        this.saveMasterPasswordToSession(masterPassword!);
+        break;
+      default:
+        break;
+    }
+  }
 }

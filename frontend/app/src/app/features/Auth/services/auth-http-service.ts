@@ -99,12 +99,12 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
 
   checkSession(): Observable<IHttpResponseDto<IAuthResponseDto> | null> {
     return this.httpClient
-      .get<IHttpResponseDto<IAuthResponseDto>>(`${this.ENDPOINT}/Check-session`, {
-        withCredentials: true,
-      })
-      .pipe(
-        tap((res) => {
-          this.#updateStatesData(res);
+    .get<IHttpResponseDto<IAuthResponseDto>>(`${this.ENDPOINT}/Check-session`, {
+      withCredentials: true,
+    })
+    .pipe(
+      tap((res) => {
+        this.#updateStatesData(res);
         }),
         catchError(() => {
           this.updateState(null);
@@ -123,19 +123,6 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
     this.updateState(user);
     this.#userSettingsStateService.updateState(user?.settings ?? null);
     this.#masterPasswordSaltSessionService.masterPasswordSalt = masterPasswordSalt;
-
-    const masterPasswordSaveMode =
-      this.#userSettingsStateService.getCurrentState()?.masterPasswordStorageMode;
-    if (!masterPassword) return;
-    switch (masterPasswordSaveMode) {
-      case 'local':
-        this.#cryptoService.saveMasterPasswordToLocalStorage(masterPassword);
-        break;
-      case 'session':
-        this.#cryptoService.saveMasterPasswordToSession(masterPassword);
-        break;
-      default:
-        break;
-    }
+    this.#cryptoService.persistMasterPassword(masterPassword);
   }
 }

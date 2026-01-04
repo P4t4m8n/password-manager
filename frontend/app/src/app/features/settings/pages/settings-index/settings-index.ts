@@ -19,6 +19,8 @@ import { AsyncPipe } from '@angular/common';
 import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
 import { ToastService } from '../../../../core/toast/services/toast-service';
 import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
+import { CryptoService } from '../../../crypto/services/crypto.service';
+import { LocalStorageService } from '../../../../core/services/local-storage-service';
 
 type TRadioMapKey = TPasswordStrength | TTheme | TStorageMode;
 
@@ -34,6 +36,7 @@ export class SettingsIndex {
   #errorService = inject(ErrorService);
   #userSettingsStateService = inject(UserSettingsStateService);
   #toastService = inject(ToastService);
+  #cryptoService = inject(CryptoService);
 
   isLoading$ = new BehaviorSubject<boolean>(false);
 
@@ -94,14 +97,12 @@ export class SettingsIndex {
   });
 
   ngOnInit() {
-    this.#userSettingsHttpService.get().subscribe({
-      next: ({ data }) => {
-        data ? this.#patchFormValues(data) : this.resetToDefualtSettings();
-      },
-      error: (err) => {
-        this.#errorService.handleError(err, { showToast: true });
+    this.#userSettingsStateService.state$.subscribe((settings) => {
+      if (settings) {
+        this.#patchFormValues(settings);
+      } else {
         this.resetToDefualtSettings();
-      },
+      }
     });
   }
 
@@ -109,10 +110,19 @@ export class SettingsIndex {
     if (this.userSettingsFormGroup.invalid) {
       return;
     }
-    const dto = this.userSettingsFormGroup.value as IUserSettingsEditDTO;
+
+    const dto: IUserSettingsEditDTO = this.userSettingsFormGroup.value as IUserSettingsEditDTO;
+
     this.isLoading$.next(true);
+
+    const previousMode =
+      this.#userSettingsStateService.getCurrentState()?.masterPasswordStorageMode;
+
     this.#userSettingsHttpService.save(dto).subscribe({
       next: ({ data }) => {
+        const newMode = data.masterPasswordStorageMode;
+        debugger;
+
         this.#userSettingsStateService.updateState(data);
         this.#patchFormValues(data);
         this.#toastService.initiate({
@@ -120,6 +130,17 @@ export class SettingsIndex {
           content: 'Settings updated successfully',
           type: toastTypes.success,
         });
+
+        const isSaveModeChanged = previousMode !== newMode;
+
+        if (isSaveModeChanged && newMode === 'none') {
+          LocalStorageService.removeLocalData({
+            key: 'master-password',
+            mode: previousMode!,
+          });
+        } else if (isSaveModeChanged) {
+          this.#cryptoService.persistMasterPassword();
+        }
       },
       error: (err) => {
         this.#errorService.handleError(err, { showToast: true });

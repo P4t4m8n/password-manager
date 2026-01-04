@@ -1,5 +1,4 @@
 :host {
-
   form {
     padding-inline: 1rem;
     padding-bottom: 1rem;
@@ -13,8 +12,6 @@
         display: flex;
         align-items: center;
       }
-
-      
     }
     .radio-btns-list {
       display: grid;
@@ -32,6 +29,7 @@
               display: none;
             }
             label {
+              height: 5.5rem;
               display: block;
               padding: 0.5rem;
               text-align: center;
