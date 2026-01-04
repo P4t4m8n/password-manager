@@ -33,15 +33,15 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
       .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.ENDPOINT}`, settings)
       .pipe(
         tap((res) => {
-          // const demoData: IPasswordEntryDto[] = Array(30)
-          //   .fill(null)
-          //   .map((_, idx) => {
-          //     return {
-          //       ...res.data[0],
-          //       id: `#${idx}`,
-          //     };
-          //   });
-          this.updateState(res.data);
+          const demoData: IPasswordEntryDto[] = Array(30)
+            .fill(null)
+            .map((_, idx) => {
+              return {
+                ...res.data[0],
+                id: `#${idx}`,
+              };
+            });
+          this.updateState(demoData);
         }),
         catchError((err) => {
           this.updateState([]);
@@ -91,7 +91,6 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
   }
 
   public likePasswordEntry(id: string): Observable<IHttpResponseDto<boolean>> {
-    console.log('🚀 ~ PasswordEntryHttpService ~ likePasswordEntry ~ id:', id);
     return this.httpClient
       .patch<IHttpResponseDto<boolean>>(`${this.ENDPOINT}/${id}/like`, {}, this.httpConfig)
       .pipe(

@@ -67,10 +67,10 @@ export class ThemeService extends AbstractGlobalStateService<TTheme | null> {
    */
   private applyTheme(theme: Omit<TTheme, 'system'>): void {
     const root = document.documentElement;
-    // if (theme === 'dark') {
+    if (theme === 'dark') {
       root.classList.add('dark-theme');
-    // } else {
-    //   root.classList.remove('dark-theme');
-    // }
+    } else {
+      root.classList.remove('dark-theme');
+    }
   }
 }

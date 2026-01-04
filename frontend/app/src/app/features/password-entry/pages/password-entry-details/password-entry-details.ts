@@ -142,7 +142,6 @@ export class PasswordEntryDetails {
 
     this.#passwordEntryHttpService.likePasswordEntry(entryId).subscribe({
       next: ({ data }) => {
-        console.log('🚀 ~ PasswordEntryDetails ~ onLike ~ data:', data);
 
         this.#passwordEntry.next({ ...this.#passwordEntry.value, isLiked: data });
       },

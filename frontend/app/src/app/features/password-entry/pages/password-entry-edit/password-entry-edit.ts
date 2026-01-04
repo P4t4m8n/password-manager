@@ -98,10 +98,7 @@ export class PasswordEntryEdit {
       }
       const { entryName, websiteUrl, entryUserName, password, notes, id } =
         this.passwordEntryFormGroup.value;
-      console.log(
-        '🚀 ~ PasswordEntryEdit ~ onSubmit ~ this.passwordEntryFormGroup.value:',
-        this.passwordEntryFormGroup.value
-      );
+  
 
       if (!password) {
         throw new Error('Password is required');
@@ -138,7 +135,6 @@ export class PasswordEntryEdit {
   }
 
   getErrorMessage(controlName: string, label: string): string {
-    console.log('🚀 ~ PasswordEntryEdit ~ getErrorMessage ~ controlName:', controlName);
     const control = this.passwordEntryFormGroup.get(controlName);
 
     if (control?.errors?.['serverError']) {
