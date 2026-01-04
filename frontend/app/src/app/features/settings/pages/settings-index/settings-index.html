@@ -1,4 +1,4 @@
-<app-header [title]="'Settings'"></app-header>
+<app-header ></app-header>
 <form [formGroup]="userSettingsFormGroup" (ngSubmit)="onSubmit()">
   <ul class="number-inputs-list">
     @for(numberInput of numberInputs;track numberInput.labelText){
@@ -38,7 +38,7 @@
           />
           <label [for]="option" class="radio-label">
             <h4>
-              {{ option }}
+              {{ option | extendedTitleCasePipe }}
             </h4>
             <p>{{ getRadioText(option) }}</p>
           </label>
@@ -60,12 +60,11 @@
     >
       Reset to Default
     </button>
-    <button
-      type="submit"
-      [disabled]="userSettingsFormGroup.invalid"
-      class="button-base button-submit hover-active-small"
-    >
-      Save Settings
-    </button>
+    <app-submit-button
+      [isLoading]="isLoading$ | async"
+      [isDisabled]="userSettingsFormGroup.invalid"
+      buttonText="Save Changes"
+      buttonLoadingText="Saving..."
+    ></app-submit-button>
   </div>
 </form>

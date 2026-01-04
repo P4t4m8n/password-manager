@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { UserSettingsHttpService } from '../../services/user-settings-http-service';
@@ -13,12 +13,18 @@ import type { TPasswordStrength } from '../../../password-generator/types/passwo
 import type { TStorageMode, TTheme } from '../../types/settings.type';
 import type { IUserSettingsEditDTO } from '../../interfaces/IUserSettingsDTO';
 import { UserSettingsStateService } from '../../services/user-settings-state-service';
+import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
+import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
+import { AsyncPipe } from '@angular/common';
+import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
+import { ToastService } from '../../../../core/toast/services/toast-service';
+import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
 
 type TRadioMapKey = TPasswordStrength | TTheme | TStorageMode;
 
 @Component({
   selector: 'app-settings-index',
-  imports: [Header, ReactiveFormsModule],
+  imports: [Header, ReactiveFormsModule, SubmitButton, AsyncPipe, ExtendedTitleCasePipePipe],
   templateUrl: './settings-index.html',
   styleUrl: './settings-index.css',
 })
@@ -27,6 +33,9 @@ export class SettingsIndex {
   #userSettingsHttpService = inject(UserSettingsHttpService);
   #errorService = inject(ErrorService);
   #userSettingsStateService = inject(UserSettingsStateService);
+  #toastService = inject(ToastService);
+
+  isLoading$ = new BehaviorSubject<boolean>(false);
 
   readonly #RADIO_TEST_MAP: Record<TRadioMapKey, string> = {
     weak: 'Not recommended',
@@ -101,14 +110,22 @@ export class SettingsIndex {
       return;
     }
     const dto = this.userSettingsFormGroup.value as IUserSettingsEditDTO;
-
+    this.isLoading$.next(true);
     this.#userSettingsHttpService.save(dto).subscribe({
       next: ({ data }) => {
         this.#userSettingsStateService.updateState(data);
         this.#patchFormValues(data);
+        this.#toastService.initiate({
+          title: 'Success',
+          content: 'Settings updated successfully',
+          type: toastTypes.success,
+        });
       },
       error: (err) => {
         this.#errorService.handleError(err, { showToast: true });
+      },
+      complete: () => {
+        this.isLoading$.next(false);
       },
     });
   }
