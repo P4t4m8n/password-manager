@@ -17,18 +17,19 @@ import { PasswordEntryTable } from '../../components/password-entry-table/passwo
 import { Header } from '../../../../core/layout/header/header';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
+import { PasswordEntriesSafety } from "../../components/password-entries-safety/password-entries-safety";
 @Component({
   selector: 'app-password-entities',
   imports: [
     IconSearch,
     IconPlus,
-    IconSafety,
     RouterLink,
     CommonModule,
     PasswordEntryTable,
     ReactiveFormsModule,
     Header,
-  ],
+    PasswordEntriesSafety
+],
   templateUrl: './password-entries.html',
   styleUrl: './password-entries.css',
 })

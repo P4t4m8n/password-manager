@@ -5,7 +5,7 @@ import { PasswordEntryDetails } from '../features/password-entry/pages/password-
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { PasswordEntryHttpService } from '../features/password-entry/services/password-entry-http-service';
-import { CryptoService } from '../features/crypto/services/crypto.service';
+import { CryptoService } from '../features/crypto/services/crypto-service';
 
 describe('PasswordEntryDetails', () => {
   let component: PasswordEntryDetails;

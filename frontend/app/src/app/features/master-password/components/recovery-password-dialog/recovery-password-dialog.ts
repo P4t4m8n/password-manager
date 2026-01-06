@@ -1,7 +1,7 @@
 import { Component, inject, Input } from '@angular/core';
 import { AbstractDialog } from '../../../../core/abstracts/dialog.abstract';
 import { ClipboardService } from '../../../../core/services/clipboard-service';
-import { CryptoService } from '../../../crypto/services/crypto.service';
+import { CryptoService } from '../../../crypto/services/crypto-service';
 import { AuthHttpService } from '../../../auth/services/auth-http-service';
 
 @Component({

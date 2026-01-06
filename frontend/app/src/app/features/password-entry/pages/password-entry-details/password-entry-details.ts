@@ -4,7 +4,7 @@ import { BehaviorSubject, catchError, map, Observable, of, switchMap } from 'rxj
 import { AsyncPipe, DatePipe } from '@angular/common';
 
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
-import { CryptoService } from '../../../crypto/services/crypto.service';
+import { CryptoService } from '../../../crypto/services/crypto-service';
 import { ClipboardService } from '../../../../core/services/clipboard-service';
 import { ErrorService } from '../../../../core/services/error-service';
 import { ToastService } from '../../../../core/toast/services/toast-service';

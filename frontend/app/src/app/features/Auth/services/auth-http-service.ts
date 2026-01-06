@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 
 import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
-import { CryptoService } from '../../crypto/services/crypto.service';
+import { CryptoService } from '../../crypto/services/crypto-service';
 import { MasterPasswordSaltSessionService } from '../../master-password/services/master-password-salt-session-service';
 import { UserSettingsStateService } from '../../settings/services/user-settings-state-service';
 

@@ -18,9 +18,9 @@ import { AsyncPipe } from '@angular/common';
 import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
 import { ToastService } from '../../../../core/toast/services/toast-service';
 import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
-import { CryptoService } from '../../../crypto/services/crypto.service';
+import { CryptoService } from '../../../crypto/services/crypto-service';
 import { LocalStorageService } from '../../../../core/services/local-storage-service';
-import { TPasswordStrength } from '../../../crypto/services/password-evaluator.service';
+import { TPasswordStrength } from '../../../crypto/services/password-evaluator-service';
 
 type TRadioMapKey = TPasswordStrength | TTheme | TStorageMode;
 

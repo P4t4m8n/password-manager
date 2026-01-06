@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { PasswordEvaluator } from '../../crypto/services/password-evaluator.service';
+import { PasswordEvaluatorService } from '../../crypto/services/password-evaluator-service';
 
 export interface IPasswordOptions {
   passwordLength: number | null;
@@ -15,7 +15,7 @@ export interface IPasswordOptions {
   providedIn: 'root',
 })
 export class PasswordGeneratorService {
-  #passwordEvaluator = inject(PasswordEvaluator);
+  #passwordEvaluator = inject(PasswordEvaluatorService);
   buildCharacterPool(options: Partial<IPasswordOptions>): string {
     let pool = '';
     if (options.includesLowercase) pool += this.#passwordEvaluator.LETTERS_LOWERCASE;

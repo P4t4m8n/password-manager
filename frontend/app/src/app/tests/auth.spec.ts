@@ -4,7 +4,7 @@ import { describe, beforeEach, it, expect } from 'vitest';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { AuthHttpService } from '../features/auth/services/auth-http-service';
-import { CryptoService } from '../features/crypto/services/crypto.service';
+import { CryptoService } from '../features/crypto/services/crypto-service';
 import { MasterPasswordSaltSessionService } from '../features/master-password/services/master-password-salt-session-service';
 
 describe('AuthService', () => {

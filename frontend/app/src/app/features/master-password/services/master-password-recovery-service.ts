@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthHttpService } from '../../auth/services/auth-http-service';
-import { CryptoService } from '../../crypto/services/crypto.service';
+import { CryptoService } from '../../crypto/services/crypto-service';
 import { PasswordEntryHttpService } from '../../password-entry/services/password-entry-http-service';
 import { MasterPasswordHttpService } from './master-password-http-service';
 import { MasterPasswordSaltSessionService } from './master-password-salt-session-service';

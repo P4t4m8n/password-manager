@@ -1,4 +1,11 @@
-import { ApplicationRef, createComponent, EnvironmentInjector, inject, Type } from '@angular/core';
+import {
+  ApplicationRef,
+  createComponent,
+  ElementRef,
+  EnvironmentInjector,
+  inject,
+  Type,
+} from '@angular/core';
 
 import { AbstractDialog } from './dialog.abstract';
 
@@ -8,10 +15,13 @@ export abstract class AbstractDialogService<
 > {
   #appRef = inject(ApplicationRef);
   #injector = inject(EnvironmentInjector);
-  
+
   protected abstract componentType: Type<Component>;
 
-  async openDialog(props?: Partial<Component>): Promise<ReturnType> {
+  async openDialog(
+    props?: Partial<Component>,
+    containerRef?: ElementRef | null
+  ): Promise<ReturnType> {
     const componentRef = createComponent(this.componentType, {
       environmentInjector: this.#injector,
     });
@@ -22,11 +32,13 @@ export abstract class AbstractDialogService<
 
     this.#appRef.attachView(componentRef.hostView);
     const domElem = (componentRef.hostView as any).rootNodes[0] as HTMLElement;
-    document.body.appendChild(domElem);
+    const container =
+      containerRef?.nativeElement ?? this.#appRef.components[0].location.nativeElement;
+    container.appendChild(domElem);
 
     const result = await componentRef.instance.open();
 
-    document.body.removeChild(domElem);
+    container.removeChild(domElem);
     this.#appRef.detachView(componentRef.hostView);
     componentRef.destroy();
 

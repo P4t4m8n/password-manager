@@ -6,7 +6,7 @@ export type TPasswordStrength = (typeof PASSWORD_STRENGTH)[number];
 @Injectable({
   providedIn: 'root',
 })
-export class PasswordEvaluator {
+export class PasswordEvaluatorService {
   public readonly PASSWORD_STRENGTH_EVALUATE = PASSWORD_STRENGTH;
   public readonly LETTERS_LOWERCASE = 'abcdefghijklmnopqrstuvwxyz';
   public readonly LETTERS_UPPERCASE = this.LETTERS_LOWERCASE.toUpperCase();

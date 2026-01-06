@@ -5,7 +5,7 @@ import { PasswordEntryEdit } from '../features/password-entry/pages/password-ent
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 import { PasswordEntryHttpService } from '../features/password-entry/services/password-entry-http-service';
-import { CryptoService } from '../features/crypto/services/crypto.service';
+import { CryptoService } from '../features/crypto/services/crypto-service';
 
 describe('PasswordEntryEdit', () => {
   let component: PasswordEntryEdit;

@@ -9,7 +9,7 @@ import { IconCheck } from '../../../../core/icons/icon-check/icon-check';
 import { IconShield } from '../../../../core/icons/icon-shield/icon-shield';
 
 import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
-import { TPasswordStrength } from '../../services/password-evaluator.service';
+import { TPasswordStrength } from '../../services/password-evaluator-service';
 
 @Component({
   selector: 'app-password-strength',

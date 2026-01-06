@@ -7,7 +7,7 @@ import { PasswordGeneratorService } from '../../services/password-generator-serv
 import { IconCopyPassword } from '../../../../core/icons/icon-copy-password/icon-copy-password';
 
 import { PasswordStrength } from '../../../crypto/components/password-strength/password-strength';
-import { TPasswordStrength } from '../../../crypto/services/password-evaluator.service';
+import { TPasswordStrength } from '../../../crypto/services/password-evaluator-service';
 
 @Component({
   selector: 'app-password-generator',

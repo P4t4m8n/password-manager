@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, filter, map, switchMap } from 'rxjs';
 
-import { CryptoService } from '../../../crypto/services/crypto.service';
+import { CryptoService } from '../../../crypto/services/crypto-service';
 import { ErrorService } from '../../../../core/services/error-service';
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
 import { PasswordGeneratorDialogService } from '../../../password-generator/services/password-generator-dialog-service';
