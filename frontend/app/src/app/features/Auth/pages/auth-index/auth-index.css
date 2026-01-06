@@ -39,7 +39,7 @@
       }
     }
 
-    .button-submit {
+    app-submit-button {
       margin-top: auto;
     }
 

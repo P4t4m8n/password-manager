@@ -27,13 +27,13 @@
     }
   </ul>
 
-  <button
-    class="button-base button-submit hover-active-small"
-    type="submit"
-    [disabled]="authSettings.formGroup.invalid && authSettings.formGroup.touched"
-  >
-    {{ authSettings.headerText | titlecase }}
-  </button>
+
+  <app-submit-button
+    [isDisabled]="authSettings.formGroup.invalid && authSettings.formGroup.touched"
+    [isLoading]="isLoading$ | async"
+    [buttonText]="authSettings.headerText"
+    [buttonLoadingText]="authSettings.loadingText"
+  />
 
   <span class="divider">OR</span>
 

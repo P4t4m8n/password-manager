@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { filter, map, switchMap } from 'rxjs';
+import { BehaviorSubject, filter, map, switchMap } from 'rxjs';
 
 import { CryptoService } from '../../../crypto/services/crypto.service';
 import { ErrorService } from '../../../../core/services/error-service';
@@ -15,6 +15,8 @@ import { IconEye } from '../../../../core/icons/icon-eye/icon-eye';
 import { IconPasswordGenerator } from '../../../../core/icons/icon-password-generator/icon-password-generator';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
+import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-password-entry-edit',
@@ -24,6 +26,8 @@ import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
     IconEye,
     IconPasswordGenerator,
     Header,
+    SubmitButton,
+    AsyncPipe,
   ],
   templateUrl: './password-entry-edit.html',
   styleUrl: './password-entry-edit.css',
@@ -39,6 +43,9 @@ export class PasswordEntryEdit {
   #errorService = inject(ErrorService);
 
   #originalPasswordForUpdateCheck: string | null = null;
+
+  #isLoading = new BehaviorSubject<boolean>(false);
+  public isLoading$ = this.#isLoading.asObservable();
 
   passwordEntryFormGroup = this.#formBuilder.group({
     entryName: ['', Validators.required],
@@ -89,16 +96,14 @@ export class PasswordEntryEdit {
     });
   }
 
-  async onSubmit(e:Event) {
+  async onSubmit(e: Event) {
     try {
-      
       this.passwordEntryFormGroup.markAllAsTouched();
       if (this.passwordEntryFormGroup.invalid) {
         return;
       }
       const { entryName, websiteUrl, entryUserName, password, notes, id } =
         this.passwordEntryFormGroup.value;
-  
 
       if (!password) {
         throw new Error('Password is required');
@@ -114,6 +119,8 @@ export class PasswordEntryEdit {
         id: id || '',
       };
 
+      this.#isLoading.next(true);
+
       if (isPasswordChanged) {
         const { encrypted, iv } = await this.#cryptoService.encryptPassword(password);
 
@@ -125,12 +132,17 @@ export class PasswordEntryEdit {
         next: (res) => {
           this.#router.navigate(['/entries/details', res.data.id]);
         },
+        complete: () => {
+          this.#isLoading.next(false);
+        },
       });
     } catch (error) {
       this.#errorService.handleError(error, {
         showToast: true,
         formGroup: this.passwordEntryFormGroup,
       });
+    } finally {
+      this.#isLoading.next(false);
     }
   }
 

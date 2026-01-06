@@ -15,10 +15,11 @@ import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/password-
 
 import type { IAuthProps, IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/auth.interface';
 import { SETTINGS_PATHS } from '../../../settings/const/settings-routes.const';
+import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
 
 @Component({
   selector: 'app-auth-index',
-  imports: [ReactiveFormsModule, TitleCasePipe, AsyncPipe],
+  imports: [ReactiveFormsModule, AsyncPipe, SubmitButton],
   templateUrl: './auth-index.html',
   styleUrl: './auth-index.css',
 })
@@ -30,10 +31,11 @@ export class AuthIndex {
   #recoveryPasswordDialogService = inject(RecoveryPasswordDialogService);
   #confirmationDialogService = inject(ConfirmationDialogService);
 
-  #subscription: Subscription = new Subscription();
-
   #isSignIn = new BehaviorSubject<boolean>(true);
   public isSignIn$ = this.#isSignIn.asObservable();
+
+  #isLoading = new BehaviorSubject<boolean>(false);
+  public isLoading$ = this.#isLoading.asObservable();
 
   readonly signInInputs = [
     {
@@ -96,6 +98,7 @@ export class AuthIndex {
         }
         return {
           headerText: 'Sign-In',
+          loadingText: 'Signing In...',
           footerText: "Don't have an account? Sign Up",
           formGroup: this.authSignInFormGroup,
           inputs: this.signInInputs,
@@ -107,6 +110,7 @@ export class AuthIndex {
       }
       return {
         headerText: 'Sign Up',
+        loadingText: 'Signing Up...',
         footerText: 'Already have an account? Sign In',
         formGroup: this.authSignUpFormGroup,
         inputs: this.signUpInputs,
@@ -121,7 +125,9 @@ export class AuthIndex {
 
   async onSubmit(e: Event) {
     e.preventDefault();
+
     const control = this.#getFormControl();
+
     control.markAllAsTouched();
     if (control.invalid) {
       return;
@@ -153,9 +159,7 @@ export class AuthIndex {
     return '';
   }
 
-  ngOnDestroy() {
-    this.#subscription.unsubscribe();
-  }
+  ngOnDestroy() {}
 
   #getFormControl(): FormGroup {
     return this.#isSignIn.getValue() ? this.authSignInFormGroup : this.authSignUpFormGroup;
@@ -176,6 +180,8 @@ export class AuthIndex {
       masterPassword: masterPassword,
     };
 
+    this.#isLoading.next(true);
+
     this.#authHttpService
       .signIn(signInDto)
       .pipe(
@@ -190,6 +196,9 @@ export class AuthIndex {
             formGroup: this.authSignInFormGroup,
             showToast: true,
           });
+        },
+        complete: () => {
+          this.#isLoading.next(false);
         },
       });
     return;
@@ -213,6 +222,7 @@ export class AuthIndex {
       username,
       masterPassword,
     };
+    this.#isLoading.next(true);
 
     const subscription = await this.#authHttpService.signUp(signUpDto);
 
@@ -236,6 +246,9 @@ export class AuthIndex {
           formGroup: this.authSignUpFormGroup,
           showToast: true,
         });
+      },
+      complete: () => {
+        this.#isLoading.next(false);
       },
     });
 
