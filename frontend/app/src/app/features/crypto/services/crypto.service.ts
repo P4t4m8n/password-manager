@@ -7,8 +7,10 @@ import type { TCredentials } from '../types/credentials.type';
 import { UserSettingsStateService } from '../../settings/services/user-settings-state-service';
 import { LocalStorageService } from '../../../core/services/local-storage-service';
 
+const MINUTE = 60 * 1000;
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
+const DEFAULT_SESSION_EXPIRY_IN_MINUTES = 30;
 @Injectable({
   providedIn: 'root',
 })
@@ -76,6 +78,7 @@ export class CryptoService {
 
     this.#encryptionKey = derivedKey;
     this.#masterKey = masterPassword;
+  
 
     return derivedKey;
   }
@@ -317,35 +320,33 @@ export class CryptoService {
     );
   }
 
-  saveMasterPasswordToLocalStorage(masterPassword: string): void {
-    LocalStorageService.storeLocalData({
-      data: masterPassword,
-      key: 'master-password',
-      mode: 'local',
-      expiredIn: 1 * DAY,
-    });
-  }
+  async persistMasterPassword(masterPassword?: string | null): Promise<void> {
+    if (!masterPassword) {
+      await this.initializeMasterPassword();
+      masterPassword = this.#masterKey;
+    }
 
-  saveMasterPasswordToSession(masterPassword: string): void {
-    LocalStorageService.storeLocalData({
-      data: masterPassword,
-      key: 'master-password',
-      mode: 'session',
-      expiredIn: 1 * HOUR,
-    });
-  }
+    const { masterPasswordStorageMode, autoLockTimeInMinutes, masterPasswordTTLInMinutes } =
+      this.#userSettingsStateService.getCurrentState() ?? {};
+    const ttlMinutes = Number(masterPasswordTTLInMinutes) || DEFAULT_SESSION_EXPIRY_IN_MINUTES;
+    const expiredIn = ttlMinutes * MINUTE;
 
-  persistMasterPassword(masterPassword?: string | null): void {
-    if (!masterPassword) this.initializeMasterPassword();
-
-    const masterPasswordSaveMode =
-      this.#userSettingsStateService.getCurrentState()?.masterPasswordStorageMode;
-    switch (masterPasswordSaveMode) {
+    switch (masterPasswordStorageMode) {
       case 'local':
-        this.saveMasterPasswordToLocalStorage(masterPassword!);
+        LocalStorageService.storeLocalData({
+          data: masterPassword,
+          key: 'master-password',
+          mode: 'local',
+          expiredIn,
+        });
         break;
       case 'session':
-        this.saveMasterPasswordToSession(masterPassword!);
+        LocalStorageService.storeLocalData({
+          data: masterPassword,
+          key: 'master-password',
+          mode: 'session',
+          expiredIn,
+        });
         break;
       default:
         break;

@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
 
-
-
-export type TLocalDataKeys = 'user-settings'|'master-password';
+export type TLocalDataKeys = 'user-settings' | 'master-password';
 
 export const STORGE_MODES = ['none', 'session', 'local'] as const;
 export type TStorageMode = (typeof STORGE_MODES)[number];
+export interface IStorageObject<T> {
+  data: string;
+  timestamp: number;
+  expiredIn: number | null;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -49,15 +52,18 @@ export class LocalStorageService {
       return null;
     }
 
-    const storageObject = JSON.parse(storedItem);
-    if (
-      storageObject.expiredIn !== null &&
-      new Date().getTime() - storageObject.timestamp > storageObject.expiredIn
-    ) {
+    const { data, expiredIn, timestamp }: IStorageObject<T | null> = JSON.parse(storedItem);
+
+    if (!data) {
+      return null;
+    }
+
+    if (expiredIn !== null && new Date().getTime() - timestamp > expiredIn) {
       this.removeLocalData({ key, mode });
       return null;
     }
-    return JSON.parse(storageObject.data) as T;
+
+    return JSON.parse(data);
   }
 
   static removeLocalData({
