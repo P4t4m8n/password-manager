@@ -1,28 +1,17 @@
 import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, ɵInternalFormsSharedModule, ReactiveFormsModule } from '@angular/forms';
-import { NgClass } from '@angular/common';
 
 import { ClipboardService } from '../../../../core/services/clipboard-service';
 import { PasswordGeneratorService } from '../../services/password-generator-service';
 
 import { IconCopyPassword } from '../../../../core/icons/icon-copy-password/icon-copy-password';
-import { IconWarn } from '../../../../core/icons/icon-warn/icon-warn';
-import { IconCheck } from '../../../../core/icons/icon-check/icon-check';
-import { IconShield } from '../../../../core/icons/icon-shield/icon-shield';
-import { IconError } from '../../../../core/icons/icon-error/icon-error';
 
-import type { TPasswordStrength } from '../../types/password-generator.type';
-import { PasswordStrength } from "../../../crypto/components/password-strength/password-strength";
+import { PasswordStrength } from '../../../crypto/components/password-strength/password-strength';
+import { TPasswordStrength } from '../../../crypto/services/password-evaluator.service';
 
 @Component({
   selector: 'app-password-generator',
-  imports: [
-    ɵInternalFormsSharedModule,
-    IconCopyPassword,
-    ReactiveFormsModule,
-
-    PasswordStrength
-],
+  imports: [ɵInternalFormsSharedModule, IconCopyPassword, ReactiveFormsModule, PasswordStrength],
   templateUrl: './password-generator.html',
   styleUrl: './password-generator.css',
 })
@@ -95,7 +84,7 @@ export class PasswordGenerator implements OnInit {
     this.passwordControl.setValue(password, { emitEvent: false });
 
     const { strength, timeToCrack } = this.#passwordService.evaluatePasswordStrength(password);
-    this.passwordStrength = strength as TPasswordStrength;
+    this.passwordStrength = strength;
     this.timeToCrack = timeToCrack;
   }
 

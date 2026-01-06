@@ -1,5 +1,5 @@
 import { Component, inject, Input, SimpleChanges } from '@angular/core';
-import { NgClass, TitleCasePipe } from '@angular/common';
+import { NgClass } from '@angular/common';
 
 import { PasswordGeneratorService } from '../../../password-generator/services/password-generator-service';
 
@@ -8,8 +8,8 @@ import { IconWarn } from '../../../../core/icons/icon-warn/icon-warn';
 import { IconCheck } from '../../../../core/icons/icon-check/icon-check';
 import { IconShield } from '../../../../core/icons/icon-shield/icon-shield';
 
-import type { TPasswordStrength } from '../../../password-generator/types/password-generator.type';
 import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
+import { TPasswordStrength } from '../../services/password-evaluator.service';
 
 @Component({
   selector: 'app-password-strength',

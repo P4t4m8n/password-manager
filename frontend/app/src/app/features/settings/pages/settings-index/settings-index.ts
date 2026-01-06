@@ -9,7 +9,6 @@ import { Header } from '../../../../core/layout/header/header';
 import { STORGE_MODES, THEMES } from '../../const/user-settings.const';
 import { PASSWORD_STRENGTH_LEVELS } from '../../../crypto/const/password.const';
 
-import type { TPasswordStrength } from '../../../password-generator/types/password-generator.type';
 import type { TStorageMode, TTheme } from '../../types/settings.type';
 import type { IUserSettingsEditDTO } from '../../interfaces/IUserSettingsDTO';
 import { UserSettingsStateService } from '../../services/user-settings-state-service';
@@ -21,6 +20,7 @@ import { ToastService } from '../../../../core/toast/services/toast-service';
 import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
 import { CryptoService } from '../../../crypto/services/crypto.service';
 import { LocalStorageService } from '../../../../core/services/local-storage-service';
+import { TPasswordStrength } from '../../../crypto/services/password-evaluator.service';
 
 type TRadioMapKey = TPasswordStrength | TTheme | TStorageMode;
 
