@@ -20,10 +20,12 @@ export abstract class AbstractDialogService<
 
   async openDialog(
     props?: Partial<Component>,
-    containerRef?: ElementRef | null
+    containerRef?: ElementRef | null,
+    bindings?: Parameters<typeof createComponent>[1]['bindings']
   ): Promise<ReturnType> {
     const componentRef = createComponent(this.componentType, {
       environmentInjector: this.#injector,
+      bindings,
     });
 
     if (props) {
