@@ -1,18 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ShowPassword } from './show-password';
+import { ExternalLink } from '../core/components/external-link/external-link';
+import { describe, beforeEach, it, expect } from 'vitest';
 
-describe('ShowPassword', () => {
-  let component: ShowPassword;
-  let fixture: ComponentFixture<ShowPassword>;
+describe('ExternalLink', () => {
+  let component: ExternalLink;
+  let fixture: ComponentFixture<ExternalLink>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ShowPassword]
+      imports: [ExternalLink]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ShowPassword);
+    fixture = TestBed.createComponent(ExternalLink);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

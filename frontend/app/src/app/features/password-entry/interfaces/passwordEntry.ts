@@ -21,5 +21,6 @@ export interface IEvaluatedPasswordSafety {
   strength: TPasswordStrength;
   timeToCrack: string;
   lastChange: Date | string;
+  lastChangeStrength: TPasswordStrength;
   duplicated: number;
 }

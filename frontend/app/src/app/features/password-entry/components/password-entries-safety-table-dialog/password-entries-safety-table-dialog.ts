@@ -1,19 +1,47 @@
-import { Component, Input, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  inject,
+  Input,
+  Output,
+} from '@angular/core';
 import { AbstractDialog } from '../../../../core/abstracts/dialog.abstract';
-import { IEvaluatedPasswordSafety } from '../../interfaces/passwordEntry';
-import { IconPlus } from '../../../../core/icons/icon-plus/icon-plus';
+import { IEvaluatedPasswordSafety, IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { BehaviorSubject } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
-import { ShowPassword } from "../../../crypto/components/show-password/show-password";
+import { AsyncPipe, NgClass } from '@angular/common';
+import { ShowPassword } from '../../../crypto/components/show-password/show-password';
 import { TimeAgoPipePipe } from '../../../../core/pipes/time-ago-pipe-pipe';
+import { IconCloseOpen } from '../../../../core/icons/icon-close-open/icon-close-open';
+import { ExternalLink } from '../../../../core/components/external-link/external-link';
+import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
+import {
+  PasswordEvaluatorService,
+  TPasswordStrength,
+} from '../../../crypto/services/password-evaluator-service';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-password-entries-safety-table-dialog',
-  imports: [AsyncPipe, ShowPassword,TimeAgoPipePipe],
+  imports: [
+    AsyncPipe,
+    ShowPassword,
+    TimeAgoPipePipe,
+    IconCloseOpen,
+    ExternalLink,
+    ExtendedTitleCasePipePipe,
+    NgClass,
+  ],
   templateUrl: './password-entries-safety-table-dialog.html',
   styleUrl: './password-entries-safety-table-dialog.css',
 })
 export class PasswordEntriesSafetyTableDialog extends AbstractDialog<void> {
+  #passwordEvaluatorService = inject(PasswordEvaluatorService);
+  #router = inject(Router);
+  @Input() passwordEntries: Array<IPasswordEntryDto> = [];
+  @Output() numberOfAttentionPasswordsEvent = new EventEmitter<number>();
+
   #passwordSaftyDashboard = new BehaviorSubject([
     {
       label: 'Total',
@@ -33,40 +61,61 @@ export class PasswordEntriesSafetyTableDialog extends AbstractDialog<void> {
     },
   ]);
   public passwordSaftyDashboard$ = this.#passwordSaftyDashboard.asObservable();
-  @Input() evalutedPasswordsSafety: IEvaluatedPasswordSafety[] = [];
 
-  NgOnInit() {
-    this.#passwordSaftyDashboard.next([
-      {
-        label: 'Total',
-        value: this.evalutedPasswordsSafety.length,
-      },
-      {
-        label: 'Weak',
-        value: this.evalutedPasswordsSafety.filter((p) => p.strength === 'weak').length,
-      },
-      {
-        label: 'Duplicate',
-        value: this.evalutedPasswordsSafety.filter((p) => p.duplicated > 0).length,
-      },
-      {
-        label: 'Old',
-        value: (() => {
-          const now = new Date();
-          return this.evalutedPasswordsSafety.filter((p) => {
-            const lastChangeDate =
-              typeof p.lastChange === 'string' ? new Date(p.lastChange) : p.lastChange;
-            const diffInMs = now.getTime() - lastChangeDate.getTime();
-            const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-            return diffInDays > 180; // older than 180 days
-          }).length;
-        })(),
-      },
-    ]);
+  #evaluatedPasswords = new BehaviorSubject<Array<IEvaluatedPasswordSafety>>([]);
+  public evaluatedPasswords$ = this.#evaluatedPasswords.asObservable();
 
-    this.passwordSaftyDashboard$.subscribe((dashboard) => {
-      console.log('Dashboard updated:', dashboard);
-    });
+  #score = new BehaviorSubject<number>(0);
+  public score$ = this.#score.asObservable();
+
+  #hostElementRef = inject(ElementRef);
+
+  async ngOnInit() {
+    const evalutedPasswordsSafety = await this.#passwordEvaluatorService.evaluatePasswordsSafety(
+      this.passwordEntries
+    );
+    this.#evaluatedPasswords.next(evalutedPasswordsSafety);
+
+    const numberOfAttentionPasswords =
+      this.#passwordEvaluatorService.getNumberOfAttentionPasswords(evalutedPasswordsSafety);
+    this.numberOfAttentionPasswordsEvent.emit(numberOfAttentionPasswords);
+
+    this.#passwordSaftyDashboard.next(
+      this.#passwordEvaluatorService.getPasswordSaftyDashboardValues(evalutedPasswordsSafety)
+    );
+
+    this.#score.next(
+      this.#passwordEvaluatorService.calculateTotalPassowrdSafetyScrore(evalutedPasswordsSafety)
+    );
+  }
+
+  getStrengthClass(passwordStrength: TPasswordStrength): string {
+    return `strength-${passwordStrength}`;
+  }
+
+  getScoreValueText(): string {
+    const score = this.#score.getValue();
+    if (score >= 80) return 'Very Strong';
+    if (score >= 60) return 'Strong';
+    if (score >= 40) return 'Medium';
+    if (score >= 20) return 'Weak';
+    return 'Very Weak';
+  }
+
+  onNavigate(path: 'edit' | 'details', passwordEntryId?: string) {
+    this.cancel();
+    this.#router.navigate(['/entries', path, passwordEntryId]);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onHostClick(event: MouseEvent): void {
+    if (!this.#hostElementRef.nativeElement.contains(event.target)) {
+      this.cancel();
+    }
   }
   override submit(): void {}
+
+  ngOnDestroy(): void {
+    this.#passwordSaftyDashboard.complete();
+  }
 }
