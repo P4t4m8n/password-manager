@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, retry, tap } from 'rxjs';
+import { catchError, map, Observable, of, retry, tap } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 
 import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
@@ -28,6 +28,11 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
       ...this.httpConfig,
       params,
     };
+
+    const cached = this.getState();
+    if (cached && !searchParams?.entryName) {
+      return of({ data: cached } as IHttpResponseDto<IPasswordEntryDto[]>);
+    }
 
     return this.httpClient
       .get<IHttpResponseDto<IPasswordEntryDto[]>>(`${this.ENDPOINT}`, settings)
