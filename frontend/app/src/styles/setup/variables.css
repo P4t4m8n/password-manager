@@ -2,6 +2,7 @@
   --primary: rgb(241, 241, 241);
   --secondary: rgb(30, 30, 30);
   --tertiary: rgb(231, 231, 231);
+  --tag: rgb(201, 201, 201);
 
   --menu: rgb(255, 255, 255);
   --accent: rgb(255, 94, 91);
@@ -30,12 +31,15 @@
   --font-size-24: 1.5rem;
   --font-size-28: 1.75rem;
   --font-size-32: 2rem;
+
+  --z-index-password-entries-safety-dialog: 2;
 }
 
 .dark-theme {
   --primary: rgb(30, 30, 30);
   --secondary: rgb(220, 220, 220);
   --tertiary: rgb(40, 40, 40);
+  --tag: rgb(60, 60, 60);
 
   --error-red: rgb(255, 107, 107);
   --warn-orange: rgb(255, 202, 87);
