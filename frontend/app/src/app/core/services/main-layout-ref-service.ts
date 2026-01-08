@@ -1,18 +1,16 @@
 import { ElementRef, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
+import { AbstractGlobalStateService } from '../abstracts/abstract-global-state-service.abstract';
 
 @Injectable({
   providedIn: 'root',
 })
-export class MainLayoutRefService {
-  #mainContent = new BehaviorSubject<ElementRef | null>(null);
-  mainContent$ = this.#mainContent.asObservable();
-
+export class MainLayoutRefService extends AbstractGlobalStateService<ElementRef | null> {
   setMainContent(ref: ElementRef): void {
-    this.#mainContent.next(ref);
+    this.updateState(ref);
   }
 
   getMainContent(): ElementRef | null {
-    return this.#mainContent.getValue();
+    return this.getState();
   }
 }

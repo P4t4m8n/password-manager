@@ -1,37 +1,33 @@
-import { Component, inject, Input, outputBinding } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+
 import { IconSafety } from '../../../../core/icons/icon-safety/icon-safety';
 import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
-import { BehaviorSubject } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
 import { PasswordEntriesSafetyDialogService } from '../../services/password-entries-safety-dialog-service';
 import { MainLayoutRefService } from '../../../../core/services/main-layout-ref-service';
+import { PasswordEvaluatorService } from '../../../crypto/services/password-evaluator-service';
 
 @Component({
   selector: 'app-password-entries-safety',
-  imports: [IconSafety, AsyncPipe],
+  imports: [AsyncPipe, IconSafety],
   templateUrl: './password-entries-safety.html',
   styleUrl: './password-entries-safety.css',
 })
 export class PasswordEntriesSafety {
   @Input() passwordEntries: Array<IPasswordEntryDto> = [];
 
-  #passwordEntriesSafetyTableDialogService = inject(PasswordEntriesSafetyDialogService);
+  #passwordEntriesSafetyDialogService = inject(PasswordEntriesSafetyDialogService);
   #layoutService = inject(MainLayoutRefService);
+  #passwordEvaluatorService = inject(PasswordEvaluatorService);
 
-  #numberOfAttentionPasswords = new BehaviorSubject<number>(-1);
-  public numberOfAttentionPasswords$ = this.#numberOfAttentionPasswords.asObservable();
+  public evaluation$ = this.#passwordEvaluatorService.state$;
 
-  onEvaluatePasswordsSafety(event: Event) {
+  onOpenDialog(event: Event) {
     event.stopPropagation();
 
-    this.#passwordEntriesSafetyTableDialogService.openDialog(
+    this.#passwordEntriesSafetyDialogService.openDialog(
       { passwordEntries: this.passwordEntries },
-      this.#layoutService.getMainContent(),
-      [
-        outputBinding('numberOfAttentionPasswordsEvent', (amount: number) => {
-          this.#numberOfAttentionPasswords.next(amount);
-        }),
-      ]
+      this.#layoutService.getMainContent()
     );
   }
 }

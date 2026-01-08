@@ -1,5 +1,5 @@
 import { IEntity } from '../../../core/interfaces/entity.interface';
-import { TPasswordStrength } from '../../crypto/services/password-evaluator-service';
+import { TPasswordStrengthLevel } from '../../crypto/types/password.types';
 
 export interface IPasswordEntryDto extends IEntity {
   entryName?: string;
@@ -18,10 +18,10 @@ export interface IPasswordEntryFilter {
 
 export interface IPasswordEntryEvaluated {
   passwordEntry: IPasswordEntryDto;
-  strength: TPasswordStrength;
+  strength: TPasswordStrengthLevel;
   timeToCrack: string;
   lastChange: Date | string;
-  lastChangeStrength: TPasswordStrength;
+  lastChangeStrength: TPasswordStrengthLevel;
   duplicated: number;
 }
 

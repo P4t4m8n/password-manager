@@ -4,10 +4,10 @@ import { FormBuilder, ɵInternalFormsSharedModule, ReactiveFormsModule } from '@
 import { ClipboardService } from '../../../../core/services/clipboard-service';
 import { PasswordGeneratorService } from '../../services/password-generator-service';
 
+import { PasswordStrength } from '../../../crypto/components/password-strength/password-strength';
 import { IconCopyPassword } from '../../../../core/icons/icon-copy-password/icon-copy-password';
 
-import { PasswordStrength } from '../../../crypto/components/password-strength/password-strength';
-import { TPasswordStrength } from '../../../crypto/services/password-evaluator-service';
+import type { TPasswordStrengthLevel } from '../../../crypto/types/password.types';
 
 @Component({
   selector: 'app-password-generator',
@@ -25,7 +25,7 @@ export class PasswordGenerator implements OnInit {
   #formBuilder = inject(FormBuilder);
   #clipboardService = inject(ClipboardService);
 
-  public passwordStrength: TPasswordStrength = 'medium';
+  public passwordStrength: TPasswordStrengthLevel = 'medium';
   public timeToCrack: string = '1 day';
 
   readonly checkboxInputs = [
@@ -67,6 +67,10 @@ export class PasswordGenerator implements OnInit {
 
   get strengthClass(): string {
     return `strength-${this.passwordStrength}`;
+  }
+
+  get passwordLength() {
+    return this.passwordGeneratorFormGroup.get('passwordLength')?.value;
   }
 
   onGeneratePassword() {

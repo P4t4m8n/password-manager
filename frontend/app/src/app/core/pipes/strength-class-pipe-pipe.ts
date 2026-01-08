@@ -1,11 +1,11 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import type { TPasswordStrength } from '../../features/crypto/services/password-evaluator-service';
+import { TPasswordStrengthLevel } from '../../features/crypto/types/password.types';
 
 @Pipe({
   name: 'strengthClassPipe',
 })
 export class StrengthClassPipePipe implements PipeTransform {
-  transform(strength: TPasswordStrength): string {
+  transform(strength: TPasswordStrengthLevel): string {
     return `strength-${strength}`;
   }
 }

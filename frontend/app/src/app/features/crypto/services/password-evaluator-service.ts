@@ -1,22 +1,26 @@
 import { inject, Injectable } from '@angular/core';
-import {
+
+import { CryptoService } from './crypto-service';
+import { AbstractGlobalStateService } from '../../../core/abstracts/abstract-global-state-service.abstract';
+
+import { PASSWORD_STRENGTH_LEVELS } from '../const/password.const';
+
+import type { IPasswordEvaluation } from '../interfaces/passwords-evaluation.interface';
+import type { TPasswordStrengthLevel } from '../types/password.types';
+import type {
   IPasswordEntryEvaluated,
   IPasswordEntryDto,
 } from '../../password-entry/interfaces/passwordEntry';
-import { CryptoService } from './crypto-service';
 
-const PASSWORD_STRENGTH = ['weak', 'medium', 'strong', 'veryStrong'] as const;
-export type TPasswordStrength = (typeof PASSWORD_STRENGTH)[number];
-
-interface IEvaluatePasswordStrengthReturn {
-  strength: TPasswordStrength;
+interface IPasswordEvaluateStrengthReturn {
+  strength: TPasswordStrengthLevel;
   timeToCrack: string;
 }
 @Injectable({
   providedIn: 'root',
 })
-export class PasswordEvaluatorService {
-  public readonly PASSWORD_STRENGTH_EVALUATE = PASSWORD_STRENGTH;
+export class PasswordEvaluatorService extends AbstractGlobalStateService<IPasswordEvaluation> {
+  public readonly PASSWORD_STRENGTH_EVALUATE = PASSWORD_STRENGTH_LEVELS;
   public readonly LETTERS_LOWERCASE = 'abcdefghijklmnopqrstuvwxyz';
   public readonly LETTERS_UPPERCASE = this.LETTERS_LOWERCASE.toUpperCase();
   public readonly NUMBERS = '0123456789';
@@ -34,6 +38,30 @@ export class PasswordEvaluatorService {
   ];
 
   #cryptoService = inject(CryptoService);
+
+  public getPasswordEvaluator(): IPasswordEvaluation | null {
+    return this.getState();
+  }
+
+  public async handlePasswordsEvaluation(
+    passwordEntries: Array<IPasswordEntryDto>
+  ): Promise<Array<IPasswordEntryEvaluated>> {
+    const passwordEntriesEvaluated = await this.evaluatePasswordsSafety(passwordEntries);
+
+    const numberOfAttentionPasswords = this.getNumberOfAttentionPasswords(passwordEntriesEvaluated);
+
+    const passwordSafetyDashboardValues =
+      this.getPasswordSaftyDashboardValues(passwordEntriesEvaluated);
+    const totalScore = this.calculateTotalPassowrdSafetyScrore(passwordEntriesEvaluated);
+
+    this.updateState({
+      totalScore,
+      numberOfAttentionPasswords,
+      passwordSafetyDashboardValues,
+    });
+
+    return passwordEntriesEvaluated;
+  }
 
   public async evaluatePasswordsSafety(
     passwordEntries: Array<IPasswordEntryDto>
@@ -124,7 +152,7 @@ export class PasswordEvaluatorService {
   public calculateTotalPassowrdSafetyScrore(
     evaluatedPasswords: Array<IPasswordEntryEvaluated>
   ): number {
-    const scoreMap: Record<TPasswordStrength, number> = {
+    const scoreMap: Record<TPasswordStrengthLevel, number> = {
       veryStrong: 20,
       strong: 10,
       medium: 5,
@@ -154,7 +182,7 @@ export class PasswordEvaluatorService {
     return Math.max(minimumValue, Math.min(maximumValue, normalizedScore));
   }
 
-  public evaluatePasswordStrength(password: string): IEvaluatePasswordStrengthReturn {
+  public evaluatePasswordStrength(password: string): IPasswordEvaluateStrengthReturn {
     if (!password || password.length === 0 || this.#isCommonPassword(password)) {
       return { strength: 'weak', timeToCrack: 'instant' };
     }
@@ -182,7 +210,7 @@ export class PasswordEvaluatorService {
     return { strength, timeToCrack };
   }
 
-  public evaluteLastChangeStrength(lastChange?: Date | string): TPasswordStrength {
+  public evaluteLastChangeStrength(lastChange?: Date | string): TPasswordStrengthLevel {
     if (!lastChange) return 'veryStrong';
     const now = new Date();
     const lastChangeDate = typeof lastChange === 'string' ? new Date(lastChange) : lastChange;
@@ -194,14 +222,14 @@ export class PasswordEvaluatorService {
     return 'veryStrong';
   }
 
-  #getStrengthKey(length: number, varietyCount: number, entropy: number): TPasswordStrength {
+  #getStrengthKey(length: number, varietyCount: number, entropy: number): TPasswordStrengthLevel {
     if (length < 8 || varietyCount < 2) return 'weak';
     if (length < 12 || varietyCount < 3 || entropy < 50) return 'medium';
     if (length < 16 || varietyCount < 4 || entropy < 80) return 'strong';
     return 'veryStrong';
   }
 
-  #getTimeToCrack(strength: TPasswordStrength, entropy: number): string {
+  #getTimeToCrack(strength: TPasswordStrengthLevel, entropy: number): string {
     switch (strength) {
       case 'weak':
         return entropy < 28 ? 'instant' : entropy < 36 ? 'few seconds' : 'few minutes';

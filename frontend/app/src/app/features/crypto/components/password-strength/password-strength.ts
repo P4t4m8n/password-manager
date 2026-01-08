@@ -3,13 +3,14 @@ import { NgClass } from '@angular/common';
 
 import { PasswordGeneratorService } from '../../../password-generator/services/password-generator-service';
 
+import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
+
 import { IconError } from '../../../../core/icons/icon-error/icon-error';
 import { IconWarn } from '../../../../core/icons/icon-warn/icon-warn';
 import { IconCheck } from '../../../../core/icons/icon-check/icon-check';
 import { IconShield } from '../../../../core/icons/icon-shield/icon-shield';
 
-import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
-import { TPasswordStrength } from '../../services/password-evaluator-service';
+import type { TPasswordStrengthLevel } from '../../types/password.types';
 
 @Component({
   selector: 'app-password-strength',
@@ -22,7 +23,7 @@ export class PasswordStrength {
 
   @Input() password: string | null = '';
 
-  passwordStrength: TPasswordStrength = 'medium';
+  passwordStrength: TPasswordStrengthLevel = 'medium';
   timeToCrack: string = '1 day';
 
   ngOnChanges(changes: SimpleChanges) {
