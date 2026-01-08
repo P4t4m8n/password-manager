@@ -1,28 +1,31 @@
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
+import { AsyncPipe } from '@angular/common';
+
+import { ToastService } from '../../../../core/toast/services/toast-service';
+import { CryptoService } from '../../../crypto/services/crypto-service';
+
+import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
 
 import { UserSettingsHttpService } from '../../services/user-settings-http-service';
 import { ErrorService } from '../../../../core/services/error-service';
+import { LocalStorageService } from '../../../../core/services/local-storage-service';
+import { UserSettingsStateService } from '../../services/user-settings-state-service';
 
 import { Header } from '../../../../core/layout/header/header';
+import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
 
 import { STORGE_MODES, THEMES } from '../../const/user-settings.const';
 import { PASSWORD_STRENGTH_LEVELS } from '../../../crypto/const/password.const';
 
+import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
+
 import type { TStorageMode, TTheme } from '../../types/settings.type';
 import type { IUserSettingsEditDTO } from '../../interfaces/IUserSettingsDTO';
-import { UserSettingsStateService } from '../../services/user-settings-state-service';
-import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
-import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { AsyncPipe } from '@angular/common';
-import { ExtendedTitleCasePipePipe } from '../../../../core/pipes/extended-title-case-pipe-pipe';
-import { ToastService } from '../../../../core/toast/services/toast-service';
-import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
-import { CryptoService } from '../../../crypto/services/crypto-service';
-import { LocalStorageService } from '../../../../core/services/local-storage-service';
-import { TPasswordStrength } from '../../../crypto/services/password-evaluator-service';
+import type { TPasswordStrengthLevel } from '../../../crypto/types/password.types';
 
-type TRadioMapKey = TPasswordStrength | TTheme | TStorageMode;
+type TRadioMapKey = TPasswordStrengthLevel | TTheme | TStorageMode;
 
 @Component({
   selector: 'app-settings-index',

@@ -12,7 +12,6 @@ import { ErrorService } from '../../../../core/services/error-service';
 
 import { IconSearch } from '../../../../core/icons/icon-search/icon-search';
 import { IconPlus } from '../../../../core/icons/icon-plus/icon-plus';
-import { IconSafety } from '../../../../core/icons/icon-safety/icon-safety';
 import { PasswordEntryTable } from '../../components/password-entry-table/password-entry-table';
 import { Header } from '../../../../core/layout/header/header';
 
