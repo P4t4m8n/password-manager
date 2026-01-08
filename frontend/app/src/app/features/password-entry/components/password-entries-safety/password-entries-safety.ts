@@ -3,7 +3,7 @@ import { IconSafety } from '../../../../core/icons/icon-safety/icon-safety';
 import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { BehaviorSubject } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
-import { PasswordEntriesSafetyTableDialogService } from '../../services/password-entries-safety-table-dialog-service';
+import { PasswordEntriesSafetyDialogService } from '../../services/password-entries-safety-dialog-service';
 import { MainLayoutRefService } from '../../../../core/services/main-layout-ref-service';
 
 @Component({
@@ -15,7 +15,7 @@ import { MainLayoutRefService } from '../../../../core/services/main-layout-ref-
 export class PasswordEntriesSafety {
   @Input() passwordEntries: Array<IPasswordEntryDto> = [];
 
-  #passwordEntriesSafetyTableDialogService = inject(PasswordEntriesSafetyTableDialogService);
+  #passwordEntriesSafetyTableDialogService = inject(PasswordEntriesSafetyDialogService);
   #layoutService = inject(MainLayoutRefService);
 
   #numberOfAttentionPasswords = new BehaviorSubject<number>(-1);

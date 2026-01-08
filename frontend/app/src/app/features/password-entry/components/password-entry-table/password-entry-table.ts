@@ -1,7 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { PasswordEntryPreview } from '../password-entry-preview/password-entry-preview';
-import { IconFavorite } from "../../../../core/icons/icon-favorite/icon-favorite";
 
 @Component({
   selector: 'app-password-entry-table',

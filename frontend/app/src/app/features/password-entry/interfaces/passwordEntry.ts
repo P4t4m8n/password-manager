@@ -16,11 +16,16 @@ export interface IPasswordEntryFilter {
   isLiked?: boolean;
 }
 
-export interface IEvaluatedPasswordSafety {
+export interface IPasswordEntryEvaluated {
   passwordEntry: IPasswordEntryDto;
   strength: TPasswordStrength;
   timeToCrack: string;
   lastChange: Date | string;
   lastChangeStrength: TPasswordStrength;
   duplicated: number;
+}
+
+export interface INavigateToPasswordEntryEvent {
+  path: 'edit' | 'details';
+  passwordEntryId?: string;
 }

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import {
-  IEvaluatedPasswordSafety,
+  IPasswordEntryEvaluated,
   IPasswordEntryDto,
 } from '../../password-entry/interfaces/passwordEntry';
 import { CryptoService } from './crypto-service';
@@ -37,8 +37,8 @@ export class PasswordEvaluatorService {
 
   public async evaluatePasswordsSafety(
     passwordEntries: Array<IPasswordEntryDto>
-  ): Promise<Array<IEvaluatedPasswordSafety>> {
-    const evalautionPromises: Promise<IEvaluatedPasswordSafety>[] = passwordEntries.map(
+  ): Promise<Array<IPasswordEntryEvaluated>> {
+    const evalautionPromises: Promise<IPasswordEntryEvaluated>[] = passwordEntries.map(
       async (entry) => {
         const encryptedPassword = entry.encryptedPassword;
         const iv = entry.iv;
@@ -77,7 +77,7 @@ export class PasswordEvaluatorService {
   }
 
   public getNumberOfAttentionPasswords(
-    evalutedPasswordsSafety: Array<IEvaluatedPasswordSafety>
+    evalutedPasswordsSafety: Array<IPasswordEntryEvaluated>
   ): number {
     return evalutedPasswordsSafety.filter(
       (evaluated) =>
@@ -88,7 +88,7 @@ export class PasswordEvaluatorService {
   }
 
   public getPasswordSaftyDashboardValues(
-    evalutedPasswordsSafety: Array<IEvaluatedPasswordSafety>
+    evalutedPasswordsSafety: Array<IPasswordEntryEvaluated>
   ): Array<{ label: string; value: number }> {
     const MS_IN_A_DAY = 1000 * 60 * 60 * 24;
     const MAX_AGE_DAYS = 180;
@@ -122,7 +122,7 @@ export class PasswordEvaluatorService {
   }
 
   public calculateTotalPassowrdSafetyScrore(
-    evaluatedPasswords: Array<IEvaluatedPasswordSafety>
+    evaluatedPasswords: Array<IPasswordEntryEvaluated>
   ): number {
     const scoreMap: Record<TPasswordStrength, number> = {
       veryStrong: 20,
