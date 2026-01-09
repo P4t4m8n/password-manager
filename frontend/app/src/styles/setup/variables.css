@@ -9,6 +9,9 @@
   --main-gray: rgb(60, 60, 60);
   --raw-accent: 255, 94, 91;
 
+  --shimmer-base: rgb(235, 235, 235);
+  --shimmer-highlight: rgb(220, 220, 220);
+
   --error-red: red;
   --warn-orange: orange;
   --info-blue: blue;
@@ -40,6 +43,9 @@
   --secondary: rgb(220, 220, 220);
   --tertiary: rgb(40, 40, 40);
   --tag: rgb(60, 60, 60);
+
+  --shimmer-base: rgb(50, 50, 50);
+  --shimmer-highlight: rgb(65, 65, 65);
 
   --error-red: rgb(255, 107, 107);
   --warn-orange: rgb(255, 202, 87);
