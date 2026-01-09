@@ -70,7 +70,7 @@ export class SideMenu implements OnInit {
 
   ngOnInit(): void {
     this.#subscription.add(
-      this.#authHttpService.data$.pipe(takeUntil(this.#destroy$)).subscribe({
+      this.#authHttpService.state$.pipe(takeUntil(this.#destroy$)).subscribe({
         next: (user) => {
           this.sessionUser = user;
         },

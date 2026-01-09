@@ -27,6 +27,7 @@ import { IconPlus } from '../../../../core/icons/icon-plus/icon-plus';
 import { IconSearch } from '../../../../core/icons/icon-search/icon-search';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
+import { LoadingService } from '../../../../core/services/loading-service';
 @Component({
   selector: 'app-password-entities',
   imports: [
@@ -49,15 +50,15 @@ export class PasswordEntries implements OnInit, OnDestroy {
 
   #passwordEntryHttpService = inject(PasswordEntryHttpService);
   #errorService = inject(ErrorService);
+  #loadingService = inject(LoadingService);
 
   //Exposing in run time the subscription for testing purposes
   public subscription: Subscription = new Subscription();
 
   public passwordEntries$: Observable<IPasswordEntryDto[] | null> =
-    this.#passwordEntryHttpService.data$;
+    this.#passwordEntryHttpService.state$;
 
-  #isLoading = new BehaviorSubject<boolean>(false);
-  public isLoading$ = this.#isLoading.asObservable();
+  public isFetching$ = this.#loadingService.isFetching$;
 
   public passwordEntriesPaths = PASSWORD_ENTRIES_PATHS;
 
@@ -73,11 +74,11 @@ export class PasswordEntries implements OnInit, OnDestroy {
             if (this.searchControl.value !== entryName) {
               this.searchControl.setValue(entryName, { emitEvent: false });
             }
-            this.#isLoading.next(true);
+            this.#loadingService.setFetching(true);
 
-            return this.#passwordEntryHttpService.get({ entryName, isLiked }).pipe(
-              finalize(() => this.#isLoading.next(false))
-            );
+            return this.#passwordEntryHttpService
+              .get({ entryName, isLiked })
+              .pipe(finalize(() => this.#loadingService.setFetching(false)));
           })
         )
         .subscribe({

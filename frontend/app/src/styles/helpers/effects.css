@@ -27,3 +27,22 @@
     transform: translate(-4px, -4px);
   }
 }
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--shimmer-base) 30%,
+    var(--shimmer-highlight) 50%,
+    var(--shimmer-base) 70%
+  );
+  background-size: 400%;
+  animation: shimmer 1.5s infinite linear;
+}
+@keyframes shimmer {
+  0% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}

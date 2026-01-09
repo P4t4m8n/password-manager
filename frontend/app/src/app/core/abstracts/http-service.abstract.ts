@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
 
 import { Observable } from 'rxjs';
-import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 
 import { ErrorService } from '../services/error-service';
 
@@ -17,13 +16,11 @@ export abstract class AbstractHttpService<T> extends AbstractGlobalStateService<
   protected readonly httpConfig = { withCredentials: true };
 
   constructor(endpoint: string) {
-    super()
+    super();
     this.ENDPOINT = `${environment.apiUrl}/${endpoint}`;
   }
 
   protected handleError(err: unknown, options: { showToast: boolean }): Observable<never> {
     return this.errorService.handleError(err, options);
   }
-
-
 }
