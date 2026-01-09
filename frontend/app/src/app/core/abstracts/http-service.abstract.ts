@@ -7,18 +7,17 @@ import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { ErrorService } from '../services/error-service';
 
 import { environment } from '../consts/environment.const';
+import { AbstractGlobalStateService } from './abstract-global-state-service.abstract';
 
-export abstract class AbstractHttpService<T> {
+export abstract class AbstractHttpService<T> extends AbstractGlobalStateService<T> {
   protected readonly httpClient = inject(HttpClient);
   protected readonly errorService = inject(ErrorService);
 
   protected readonly ENDPOINT: string;
   protected readonly httpConfig = { withCredentials: true };
 
-  protected state$ = new BehaviorSubject<T | null>(null);
-  public readonly data$ = this.state$.asObservable();
-
   constructor(endpoint: string) {
+    super()
     this.ENDPOINT = `${environment.apiUrl}/${endpoint}`;
   }
 
@@ -26,11 +25,5 @@ export abstract class AbstractHttpService<T> {
     return this.errorService.handleError(err, options);
   }
 
-  protected updateState(data: T | null): void {
-    this.state$.next(data);
-  }
 
-  protected getState(): T | null {
-    return this.state$.getValue();
-  }
 }

@@ -71,7 +71,7 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
   public delete(id: string) {
     return this.httpClient.delete<void>(`${this.ENDPOINT}/${id}`, this.httpConfig).pipe(
       tap(() => {
-        const passwordEntities = this.state$?.value?.filter((pe) => pe.id !== id) ?? [];
+        const passwordEntities = this.state?.value?.filter((pe) => pe.id !== id) ?? [];
         this.updateState(passwordEntities);
       }),
       catchError((err) => this.handleError(err, { showToast: true }))
