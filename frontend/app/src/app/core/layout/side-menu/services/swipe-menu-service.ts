@@ -9,12 +9,12 @@ export class SwipeMenuService {
   isOpen$ = this.#isOpen.asObservable();
 
   toggle() {
-    console;
-    this.#isOpen.next(!this.#isOpen.value);
+
+    this.#isOpen.next(false);
   }
 
   open() {
-    this.#isOpen.next(true);
+    this.#isOpen.next(false);
   }
 
   close() {

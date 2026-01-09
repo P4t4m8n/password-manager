@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { BehaviorSubject, catchError, map, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, finalize, map, Observable, of, switchMap } from 'rxjs';
 import { AsyncPipe, DatePipe } from '@angular/common';
 
 import { PasswordEntryHttpService } from '../../services/password-entry-http-service';
@@ -23,6 +23,8 @@ import { IconTag } from '../../../../core/icons/icon-tag/icon-tag';
 import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
+import { LoadingService } from '../../../../core/services/loading-service';
+import { PasswordEntryDetailsSkeleton } from "../../components/password-entry-details-skeleton/password-entry-details-skeleton";
 
 @Component({
   selector: 'app-password-entry-details',
@@ -39,7 +41,8 @@ import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
     IconTag,
     DatePipe,
     Header,
-  ],
+    PasswordEntryDetailsSkeleton
+],
   templateUrl: './password-entry-details.html',
   styleUrl: './password-entry-details.css',
 })
@@ -51,6 +54,7 @@ export class PasswordEntryDetails {
   #toastService = inject(ToastService);
   #route = inject(ActivatedRoute);
   #router = inject(Router);
+  #loadingService = inject(LoadingService);
 
   #passwordEntry = new BehaviorSubject<IPasswordEntryDto | null>(null);
   public passwordEntry$: Observable<IPasswordEntryDto | null> = this.#passwordEntry.asObservable();
@@ -61,11 +65,18 @@ export class PasswordEntryDetails {
   #revealedPassword = new BehaviorSubject<string | null>(null);
   public revealedPassword$ = this.#revealedPassword.asObservable();
 
+  public isFetching$ = this.#loadingService.isFetching$;
+
   ngOnInit() {
     this.#route.params
       .pipe(
         map((params) => params['entryId']),
-        switchMap((entryId) => this.#passwordEntryHttpService.getById(entryId)),
+        switchMap((entryId) => {
+          this.#loadingService.setFetching(true);
+          return this.#passwordEntryHttpService
+            .getById(entryId)
+            .pipe(finalize(() => this.#loadingService.setFetching(false)));
+        }),
         switchMap(async (entry) => {
           this.#passwordEntry.next(entry);
           const decrypted = await this.#cryptoService.decryptPassword(
@@ -142,7 +153,6 @@ export class PasswordEntryDetails {
 
     this.#passwordEntryHttpService.likePasswordEntry(entryId).subscribe({
       next: ({ data }) => {
-
         this.#passwordEntry.next({ ...this.#passwordEntry.value, isLiked: data });
       },
       error: (err) => {
