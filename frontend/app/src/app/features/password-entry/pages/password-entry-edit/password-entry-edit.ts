@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, filter, map, switchMap } from 'rxjs';
+import { BehaviorSubject, filter, finalize, map, switchMap } from 'rxjs';
 
 import { CryptoService } from '../../../crypto/services/crypto-service';
 import { ErrorService } from '../../../../core/services/error-service';
@@ -17,6 +17,8 @@ import { IconPasswordGenerator } from '../../../../core/icons/icon-password-gene
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
 import { AsyncPipe } from '@angular/common';
+import { LoadingService } from '../../../../core/services/loading-service';
+import { PasswordEntryEditSkeleton } from "../../components/skeletons/password-entry-edit-skeleton/password-entry-edit-skeleton";
 
 @Component({
   selector: 'app-password-entry-edit',
@@ -28,9 +30,11 @@ import { AsyncPipe } from '@angular/common';
     Header,
     SubmitButton,
     AsyncPipe,
-  ],
+    PasswordEntryEditSkeleton
+],
   templateUrl: './password-entry-edit.html',
   styleUrl: './password-entry-edit.css',
+  providers: [LoadingService],
 })
 export class PasswordEntryEdit {
   #formBuilder = inject(FormBuilder);
@@ -41,11 +45,12 @@ export class PasswordEntryEdit {
   #passwordEntryHttpService = inject(PasswordEntryHttpService);
   #passwordGeneratorDialogService = inject(PasswordGeneratorDialogService);
   #errorService = inject(ErrorService);
+  #loadingService = inject(LoadingService);
 
   #originalPasswordForUpdateCheck: string | null = null;
 
-  #isLoading = new BehaviorSubject<boolean>(false);
-  public isLoading$ = this.#isLoading.asObservable();
+  public isFetching$ = this.#loadingService.isFetching$;
+  public isSaving$ = this.#loadingService.isSaving$;
 
   passwordEntryFormGroup = this.#formBuilder.group({
     entryName: ['', Validators.required],
@@ -61,7 +66,12 @@ export class PasswordEntryEdit {
       .pipe(
         map((params) => params['entryId']),
         filter((id) => !!id),
-        switchMap((entryId) => this.#passwordEntryHttpService.getById(entryId)),
+        switchMap((entryId) => {
+          this.#loadingService.setFetching(true);
+          return this.#passwordEntryHttpService
+            .getById(entryId)
+            // .pipe(finalize(() => this.#loadingService.setFetching(false)));
+        }),
         switchMap(async (entry) => {
           const decryptedPassword = await this.#cryptoService.decryptPassword(
             entry.encryptedPassword,
@@ -119,7 +129,7 @@ export class PasswordEntryEdit {
         id: id || '',
       };
 
-      this.#isLoading.next(true);
+      this.#loadingService.setSaving(true);
 
       if (isPasswordChanged) {
         const { encrypted, iv } = await this.#cryptoService.encryptPassword(password);
@@ -133,7 +143,7 @@ export class PasswordEntryEdit {
           this.#router.navigate(['/entries/details', res.data.id]);
         },
         complete: () => {
-          this.#isLoading.next(false);
+          this.#loadingService.setSaving(false);
         },
       });
     } catch (error) {
@@ -142,7 +152,7 @@ export class PasswordEntryEdit {
         formGroup: this.passwordEntryFormGroup,
       });
     } finally {
-      this.#isLoading.next(false);
+      this.#loadingService.setSaving(false);
     }
   }
 
