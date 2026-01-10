@@ -24,6 +24,7 @@ import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
 import type { TStorageMode, TTheme } from '../../types/settings.type';
 import type { IUserSettingsEditDTO } from '../../interfaces/IUserSettingsDTO';
 import type { TPasswordStrengthLevel } from '../../../crypto/types/password.types';
+import { LoadingService } from '../../../../core/services/loading-service';
 
 type TRadioMapKey = TPasswordStrengthLevel | TTheme | TStorageMode;
 
@@ -32,6 +33,7 @@ type TRadioMapKey = TPasswordStrengthLevel | TTheme | TStorageMode;
   imports: [Header, ReactiveFormsModule, SubmitButton, AsyncPipe, ExtendedTitleCasePipePipe],
   templateUrl: './settings-index.html',
   styleUrl: './settings-index.css',
+  providers: [LoadingService],
 })
 export class SettingsIndex {
   #formBuilder = inject(FormBuilder);
@@ -40,8 +42,9 @@ export class SettingsIndex {
   #userSettingsStateService = inject(UserSettingsStateService);
   #toastService = inject(ToastService);
   #cryptoService = inject(CryptoService);
+  #loadingService = inject(LoadingService);
 
-  isLoading$ = new BehaviorSubject<boolean>(false);
+  isSaving$ = this.#loadingService.isSaving$;
 
   readonly #RADIO_TEST_MAP: Record<TRadioMapKey, string> = {
     weak: 'Not recommended',
@@ -116,7 +119,7 @@ export class SettingsIndex {
 
     const dto: IUserSettingsEditDTO = this.userSettingsFormGroup.value as IUserSettingsEditDTO;
 
-    this.isLoading$.next(true);
+    this.#loadingService.setSaving(true);
 
     const previousMode =
       this.#userSettingsStateService.getCurrentState()?.masterPasswordStorageMode;
@@ -149,7 +152,7 @@ export class SettingsIndex {
         this.#errorService.handleError(err, { showToast: true });
       },
       complete: () => {
-        this.isLoading$.next(false);
+        this.#loadingService.setSaving(false);
       },
     });
   }

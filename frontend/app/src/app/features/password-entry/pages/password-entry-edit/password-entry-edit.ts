@@ -70,7 +70,7 @@ export class PasswordEntryEdit {
           this.#loadingService.setFetching(true);
           return this.#passwordEntryHttpService
             .getById(entryId)
-            // .pipe(finalize(() => this.#loadingService.setFetching(false)));
+            .pipe(finalize(() => this.#loadingService.setFetching(false)));
         }),
         switchMap(async (entry) => {
           const decryptedPassword = await this.#cryptoService.decryptPassword(

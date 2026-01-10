@@ -61,7 +61,7 @@
       Reset to Default
     </button>
     <app-submit-button
-      [isLoading]="isLoading$ | async"
+      [isLoading]="isSaving$ | async"
       [isDisabled]="userSettingsFormGroup.invalid"
       buttonText="Save Changes"
       buttonLoadingText="Saving..."
