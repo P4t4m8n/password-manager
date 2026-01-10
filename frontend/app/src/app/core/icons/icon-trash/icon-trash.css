@@ -1,0 +1,29 @@
+:host {
+  display: block;
+  overflow: visible;
+
+  svg {
+    overflow: visible;
+
+    .lid {
+      transform-origin: 13px 17.86px;
+      transition: transform 250ms ease;
+    }
+
+    &.open .lid {
+      animation: lid-open-close 1000ms infinite;
+    }
+  }
+}
+
+@keyframes lid-open-close {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-45deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
