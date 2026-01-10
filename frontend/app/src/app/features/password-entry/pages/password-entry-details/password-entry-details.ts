@@ -8,9 +8,11 @@ import { CryptoService } from '../../../crypto/services/crypto-service';
 import { ClipboardService } from '../../../../core/services/clipboard-service';
 import { ErrorService } from '../../../../core/services/error-service';
 import { ToastService } from '../../../../core/toast/services/toast-service';
+import { LoadingService } from '../../../../core/services/loading-service';
 
 import { PasswordStrength } from '../../../crypto/components/password-strength/password-strength';
 import { Header } from '../../../../core/layout/header/header';
+import { PasswordEntryDetailsSkeleton } from '../../components/password-entry-details-skeleton/password-entry-details-skeleton';
 
 import { IconPencil } from '../../../../core/icons/icon-pencil/icon-pencil';
 import { IconOpenExternal } from '../../../../core/icons/icon-open-external/icon-open-external';
@@ -23,8 +25,6 @@ import { IconTag } from '../../../../core/icons/icon-tag/icon-tag';
 import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
 
 import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
-import { LoadingService } from '../../../../core/services/loading-service';
-import { PasswordEntryDetailsSkeleton } from "../../components/password-entry-details-skeleton/password-entry-details-skeleton";
 
 @Component({
   selector: 'app-password-entry-details',
@@ -41,10 +41,11 @@ import { PasswordEntryDetailsSkeleton } from "../../components/password-entry-de
     IconTag,
     DatePipe,
     Header,
-    PasswordEntryDetailsSkeleton
-],
+    PasswordEntryDetailsSkeleton,
+  ],
   templateUrl: './password-entry-details.html',
   styleUrl: './password-entry-details.css',
+  providers: [LoadingService],
 })
 export class PasswordEntryDetails {
   #clipboardService = inject(ClipboardService);
