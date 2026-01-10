@@ -43,6 +43,7 @@ import { LoadingService } from '../../../../core/services/loading-service';
   ],
   templateUrl: './password-entries.html',
   styleUrl: './password-entries.css',
+  providers: [LoadingService],
 })
 export class PasswordEntries implements OnInit, OnDestroy {
   #router = inject(Router);
@@ -74,6 +75,7 @@ export class PasswordEntries implements OnInit, OnDestroy {
             if (this.searchControl.value !== entryName) {
               this.searchControl.setValue(entryName, { emitEvent: false });
             }
+
             this.#loadingService.setFetching(true);
 
             return this.#passwordEntryHttpService
@@ -84,9 +86,6 @@ export class PasswordEntries implements OnInit, OnDestroy {
         .subscribe({
           error: (err) => {
             this.#errorService.handleError(err, { showToast: true });
-          },
-          complete: () => {
-            // this.#isLoading.next(false);
           },
         })
     );
