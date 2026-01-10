@@ -1,0 +1,47 @@
+.loader {
+  width: 4rem;
+  height: 2.75rem;
+  position: relative;
+  border-radius: 8px;
+  --border: 5px solid var(--secondary);
+  border: var(--border);
+  &::before {
+    content: '';
+    position: absolute;
+    border: var(--border);
+    width: 2rem;
+    height: 1.75rem;
+    border-radius: 50% 50% 0 0;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, -100%);
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: var(--secondary);
+    box-shadow: 1rem 0 var(--secondary), -1rem 0 var(--secondary);
+    animation: flash 0.5s ease-out infinite alternate;
+  }
+}
+
+@keyframes flash {
+  0% {
+    background-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 1rem 0 rgba(255, 255, 255, 0.25), -1rem 0 rgba(255, 255, 255, 1);
+  }
+  50% {
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 1rem 0 rgba(255, 255, 255, 0.25), -1rem 0 rgba(255, 255, 255, 0.25);
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 1rem 0 rgba(255, 255, 255, 1), -1rem 0 rgba(255, 255, 255, 0.25);
+  }
+}
