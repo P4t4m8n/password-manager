@@ -22,7 +22,7 @@ import { ErrorService } from '../../../../core/services/error-service';
 import { Header } from '../../../../core/layout/header/header';
 import { PasswordEntriesSafety } from '../../components/password-entries-safety/password-entries-safety';
 import { PasswordEntryTable } from '../../components/password-entry-table/password-entry-table';
-import { PasswordEntriesSkeleton } from '../../components/password-entries-skeleton/password-entries-skeleton';
+import { PasswordEntriesSkeleton } from '../../components/skeletons/password-entries-skeleton/password-entries-skeleton';
 import { IconPlus } from '../../../../core/icons/icon-plus/icon-plus';
 import { IconSearch } from '../../../../core/icons/icon-search/icon-search';
 

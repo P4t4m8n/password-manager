@@ -12,7 +12,7 @@ import { LoadingService } from '../../../../core/services/loading-service';
 
 import { PasswordStrength } from '../../../crypto/components/password-strength/password-strength';
 import { Header } from '../../../../core/layout/header/header';
-import { PasswordEntryDetailsSkeleton } from '../../components/password-entry-details-skeleton/password-entry-details-skeleton';
+import { PasswordEntryDetailsSkeleton } from '../../components/skeletons/password-entry-details-skeleton/password-entry-details-skeleton';
 
 import { IconPencil } from '../../../../core/icons/icon-pencil/icon-pencil';
 import { IconOpenExternal } from '../../../../core/icons/icon-open-external/icon-open-external';
