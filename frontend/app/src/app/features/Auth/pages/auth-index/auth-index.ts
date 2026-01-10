@@ -16,12 +16,14 @@ import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/password-
 import type { IAuthProps, IAuthSignInDto, IAuthSignUpDto } from '../../interfaces/auth.interface';
 import { SETTINGS_PATHS } from '../../../settings/const/settings-routes.const';
 import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
+import { LoadingService } from '../../../../core/services/loading-service';
 
 @Component({
   selector: 'app-auth-index',
   imports: [ReactiveFormsModule, AsyncPipe, SubmitButton],
   templateUrl: './auth-index.html',
   styleUrl: './auth-index.css',
+  providers: [LoadingService],
 })
 export class AuthIndex {
   #authHttpService = inject(AuthHttpService);
@@ -30,12 +32,12 @@ export class AuthIndex {
   #errorService = inject(ErrorService);
   #recoveryPasswordDialogService = inject(RecoveryPasswordDialogService);
   #confirmationDialogService = inject(ConfirmationDialogService);
+  #loadingService = inject(LoadingService);
 
   #isSignIn = new BehaviorSubject<boolean>(true);
   public isSignIn$ = this.#isSignIn.asObservable();
 
-  #isLoading = new BehaviorSubject<boolean>(false);
-  public isLoading$ = this.#isLoading.asObservable();
+  public isSaving$ = this.#loadingService.isSaving$;
 
   readonly signInInputs = [
     {
@@ -180,7 +182,7 @@ export class AuthIndex {
       masterPassword: masterPassword,
     };
 
-    this.#isLoading.next(true);
+    this.#loadingService.setSaving(true);
 
     this.#authHttpService
       .signIn(signInDto)
@@ -198,7 +200,7 @@ export class AuthIndex {
           });
         },
         complete: () => {
-          this.#isLoading.next(false);
+          this.#loadingService.setSaving(false);
         },
       });
     return;
@@ -222,7 +224,7 @@ export class AuthIndex {
       username,
       masterPassword,
     };
-    this.#isLoading.next(true);
+    this.#loadingService.setSaving(true);
 
     const subscription = await this.#authHttpService.signUp(signUpDto);
 
@@ -248,7 +250,7 @@ export class AuthIndex {
         });
       },
       complete: () => {
-        this.#isLoading.next(false);
+        this.#loadingService.setSaving(false);
       },
     });
 
