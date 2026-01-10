@@ -1,9 +1,9 @@
 import { Component, Input } from '@angular/core';
-import { NgClass } from '../../../../../node_modules/@angular/common/types/_common_module-chunk';
+import { Loader } from '../../componenets/loader/loader';
 
 @Component({
   selector: 'app-submit-button',
-  imports: [],
+  imports: [Loader],
   templateUrl: './submit-button.html',
   styleUrl: './submit-button.css',
 })
@@ -13,7 +13,8 @@ export class SubmitButton {
   @Input({ required: true }) buttonText: string = 'Save';
   @Input() buttonLoadingText?: string;
 
-  public getButtonText(): string {
-    return this.isLoading && this.buttonLoadingText ? this.buttonLoadingText : this.buttonText;
-  }
+  // Keeping it here for now, to maybe resue the aniomation logic later
+  // public getButtonText(): string {
+  //   return this.isLoading && this.buttonLoadingText ? this.buttonLoadingText : this.buttonText;
+  // }
 }

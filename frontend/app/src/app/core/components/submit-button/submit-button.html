@@ -5,7 +5,23 @@
   [class.disabled]="isDisabled"
   class="button-base button-submit hover-active-small flex-center"
 >
+  @if(isLoading){
+
+  <app-loader />
+  } @else{
+  <span>{{ buttonText }}</span>
+  }
+</button>
+
+<!-- I like this animation maybe reuse it somewhere else? -->
+<!-- <button
+  type="submit"
+  [disabled]="isDisabled || isLoading"
+  [class.loading]="isLoading"
+  [class.disabled]="isDisabled"
+  class="button-base button-submit hover-active-small flex-center"
+>
   @for(letter of getButtonText(); track $index) {
   <span [style.--i]="$index">{{ letter }}</span>
   }
-</button>
+</button> -->
