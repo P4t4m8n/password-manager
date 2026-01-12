@@ -82,6 +82,7 @@ export class PasswordEvaluatorService extends AbstractGlobalStateService<IPasswo
           lastChange: entry.updatedAt ?? entry.createdAt ?? new Date(),
           lastChangeStrength,
           duplicated: 0,
+          _decryptedPassword: decryptedPassword,
         };
       }
     );
@@ -92,16 +93,15 @@ export class PasswordEvaluatorService extends AbstractGlobalStateService<IPasswo
     const passwordCountMap: Record<string, number> = {};
 
     evalutedPasswordsSafety.forEach((evaluated) => {
-      const encryptedPassword = evaluated.passwordEntry.encryptedPassword!;
-      passwordCountMap[encryptedPassword] = (passwordCountMap[encryptedPassword] || 0) + 1;
+      const pwd = evaluated._decryptedPassword ?? '';
+      passwordCountMap[pwd] = (passwordCountMap[pwd] || 0) + 1;
     });
 
     evalutedPasswordsSafety.forEach((evaluated) => {
-      const encryptedPassword = evaluated.passwordEntry.encryptedPassword!;
-      evaluated.duplicated = passwordCountMap[encryptedPassword] - 1 || 0;
+      evaluated.duplicated = passwordCountMap[evaluated._decryptedPassword ?? ''] - 1 || 0;
     });
 
-    return evalutedPasswordsSafety;
+    return evalutedPasswordsSafety.map(({ _decryptedPassword, ...rest }) => rest);
   }
 
   public getNumberOfAttentionPasswords(
