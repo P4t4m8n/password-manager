@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of, retry, tap } from 'rxjs';
+import { catchError, map, Observable, of, retry, tap, throwError } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 
 import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
@@ -24,13 +24,17 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
       params = params.set('EntryName', searchParams.entryName);
     }
 
+    if (searchParams?.isLiked) {
+      params = params.set('IsLiked', String(searchParams.isLiked));
+    }
+
     const settings = {
       ...this.httpConfig,
       params,
     };
 
     const cached = this.getState();
-    if (cached && !searchParams?.entryName) {
+    if (cached && !searchParams?.entryName && !searchParams?.isLiked) {
       return of({ data: cached } as IHttpResponseDto<IPasswordEntryDto[]>);
     }
 
@@ -102,6 +106,7 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
         tap((res) => {
           const passwordEntries = this.getState() ?? [];
           const idx = passwordEntries.findIndex((pe) => pe.id === id);
+          if (idx < 0) throwError(() => new Error('Password entry not found in state'));
           passwordEntries[idx] = { ...passwordEntries[idx], isLiked: res.data };
           this.updateState([...passwordEntries]);
         }),
@@ -113,11 +118,11 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
     return this.httpClient
       .post<IHttpResponseDto<IPasswordEntryDto>>(`${this.ENDPOINT}`, dto, this.httpConfig)
       .pipe(
+        retry(1),
         tap((pe) => {
           this.#updatePasswordEntriesState(pe.data);
           return pe;
         }),
-        retry(1),
         catchError((err) => this.handleError(err, { showToast: false }))
       );
   }
@@ -130,10 +135,10 @@ export class PasswordEntryHttpService extends AbstractHttpService<IPasswordEntry
         this.httpConfig
       )
       .pipe(
+        retry(1),
         tap((updatedEntity) => {
           this.#updatePasswordEntriesState(updatedEntity.data);
         }),
-        retry(1),
         catchError((err) => this.handleError(err, { showToast: false }))
       );
   }
