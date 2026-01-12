@@ -33,7 +33,9 @@ export class PasswordGeneratorService {
     let _characterPool = characterPool;
 
     return Array.from({ length }, () => {
-      const randomIndex = Math.floor(Math.random() * _characterPool.length);
+      const randomIndex = Math.floor(
+        (crypto.getRandomValues(new Uint32Array(1))[0] / (0xffffffff + 1)) * _characterPool.length
+      );
       const char = _characterPool[randomIndex];
 
       if (!includeSimilarCharacters) {
