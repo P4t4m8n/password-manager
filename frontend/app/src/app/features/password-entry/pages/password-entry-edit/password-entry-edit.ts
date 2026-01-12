@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, filter, finalize, map, switchMap } from 'rxjs';
+import { BehaviorSubject, filter, finalize, map, Subscription, switchMap } from 'rxjs';
 
 import { CryptoService } from '../../../crypto/services/crypto-service';
 import { ErrorService } from '../../../../core/services/error-service';
@@ -18,7 +18,7 @@ import type { IPasswordEntryDto } from '../../interfaces/passwordEntry';
 import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
 import { AsyncPipe } from '@angular/common';
 import { LoadingService } from '../../../../core/services/loading-service';
-import { PasswordEntryEditSkeleton } from "../../components/skeletons/password-entry-edit-skeleton/password-entry-edit-skeleton";
+import { PasswordEntryEditSkeleton } from '../../components/skeletons/password-entry-edit-skeleton/password-entry-edit-skeleton';
 
 @Component({
   selector: 'app-password-entry-edit',
@@ -30,8 +30,8 @@ import { PasswordEntryEditSkeleton } from "../../components/skeletons/password-e
     Header,
     SubmitButton,
     AsyncPipe,
-    PasswordEntryEditSkeleton
-],
+    PasswordEntryEditSkeleton,
+  ],
   templateUrl: './password-entry-edit.html',
   styleUrl: './password-entry-edit.css',
   providers: [LoadingService],
@@ -46,6 +46,8 @@ export class PasswordEntryEdit {
   #passwordGeneratorDialogService = inject(PasswordGeneratorDialogService);
   #errorService = inject(ErrorService);
   #loadingService = inject(LoadingService);
+
+  #subscriptions = new Subscription();
 
   #originalPasswordForUpdateCheck: string | null = null;
 
@@ -62,41 +64,43 @@ export class PasswordEntryEdit {
   });
 
   ngOnInit() {
-    this.#route.params
-      .pipe(
-        map((params) => params['entryId']),
-        filter((id) => !!id),
-        switchMap((entryId) => {
-          this.#loadingService.setFetching(true);
-          return this.#passwordEntryHttpService
-            .getById(entryId)
-            .pipe(finalize(() => this.#loadingService.setFetching(false)));
-        }),
-        switchMap(async (entry) => {
-          const decryptedPassword = await this.#cryptoService.decryptPassword(
-            entry.encryptedPassword,
-            entry.iv
-          );
+    this.#subscriptions.add(
+      this.#route.params
+        .pipe(
+          map((params) => params['entryId']),
+          filter((id) => !!id),
+          switchMap((entryId) => {
+            this.#loadingService.setFetching(true);
+            return this.#passwordEntryHttpService
+              .getById(entryId)
+              .pipe(finalize(() => this.#loadingService.setFetching(false)));
+          }),
+          switchMap(async (entry) => {
+            const decryptedPassword = await this.#cryptoService.decryptPassword(
+              entry.encryptedPassword,
+              entry.iv
+            );
 
-          return { entry, decryptedPassword };
+            return { entry, decryptedPassword };
+          })
+        )
+        .subscribe({
+          next: ({ entry, decryptedPassword }) => {
+            this.passwordEntryFormGroup.patchValue({
+              entryName: entry.entryName,
+              websiteUrl: entry.websiteUrl,
+              entryUserName: entry.entryUserName,
+              password: decryptedPassword,
+              notes: entry.notes,
+              id: entry.id,
+            });
+            this.#originalPasswordForUpdateCheck = decryptedPassword;
+          },
+          error: (err) => {
+            this.#errorService.handleError(err, { showErrorDialog: true });
+          },
         })
-      )
-      .subscribe({
-        next: ({ entry, decryptedPassword }) => {
-          this.passwordEntryFormGroup.patchValue({
-            entryName: entry.entryName,
-            websiteUrl: entry.websiteUrl,
-            entryUserName: entry.entryUserName,
-            password: decryptedPassword,
-            notes: entry.notes,
-            id: entry.id,
-          });
-          this.#originalPasswordForUpdateCheck = decryptedPassword;
-        },
-        error: (err) => {
-          this.#errorService.handleError(err, { showErrorDialog: true });
-        },
-      });
+    );
   }
 
   async onPasswordGenerated() {
@@ -137,15 +141,14 @@ export class PasswordEntryEdit {
         passwordEntryDto.encryptedPassword = this.#cryptoService.arrayBufferToBase64(encrypted);
         passwordEntryDto.iv = this.#cryptoService.arrayBufferToBase64(iv);
       }
-
-      this.#passwordEntryHttpService.save(passwordEntryDto).subscribe({
-        next: (res) => {
-          this.#router.navigate(['/entries/details', res.data.id]);
-        },
-        complete: () => {
-          this.#loadingService.setSaving(false);
-        },
-      });
+      this.#subscriptions.add(
+        this.#passwordEntryHttpService.save(passwordEntryDto).subscribe({
+          next: (res) => {
+            this.#router.navigate(['/entries/details', res.data.id]);
+          },
+    
+        })
+      );
     } catch (error) {
       this.#errorService.handleError(error, {
         showToast: true,
@@ -174,5 +177,9 @@ export class PasswordEntryEdit {
 
   onCancel() {
     this.#router.navigate(['/entries']);
+  }
+
+  ngOnDestroy() {
+    this.#subscriptions.unsubscribe();
   }
 }
