@@ -23,6 +23,7 @@ export interface IPasswordEntryEvaluated {
   lastChange: Date | string;
   lastChangeStrength: TPasswordStrengthLevel;
   duplicated: number;
+  _decryptedPassword?: string;
 }
 
 export interface INavigateToPasswordEntryEvent {
