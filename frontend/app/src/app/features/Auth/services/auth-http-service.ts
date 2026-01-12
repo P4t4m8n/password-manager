@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, Observable, of, tap } from 'rxjs';
+import { catchError, from, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
 import { CryptoService } from '../../crypto/services/crypto-service';
@@ -41,35 +41,37 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
       );
   }
 
-  async signUp(
+  signUp(
     dto: TPrettify<IAuthProps<IAuthSignUpDto>>
-  ): Promise<Observable<IHttpResponseDto<IAuthResponseDto> & { recoveryKey: Uint8Array }>> {
+  ): Observable<IHttpResponseDto<IAuthResponseDto> & { recoveryKey: Uint8Array }> {
     const { masterPassword, email, ...rest } = dto;
 
-    const { recoveryKey, recoveryIV, encryptedMasterKeyWithRecovery, masterPasswordSalt } =
-      await this.#cryptoService.handleMasterPasswordCreation(masterPassword);
+    return from(this.#cryptoService.handleMasterPasswordCreation(masterPassword)).pipe(
+      switchMap(
+        ({ recoveryKey, recoveryIV, encryptedMasterKeyWithRecovery, masterPasswordSalt }) => {
+          const signUpDto: IAuthSignUpDto = {
+            ...rest,
+            email,
+            masterPasswordSalt,
+            encryptedMasterKeyWithRecovery,
+            recoveryIV,
+          };
 
-    const signUpDto: IAuthSignUpDto = {
-      ...rest,
-      email,
-      masterPasswordSalt,
-      encryptedMasterKeyWithRecovery,
-      recoveryIV,
-    };
-
-    return this.httpClient
-      .post<IHttpResponseDto<IAuthResponseDto>>(
-        `${this.ENDPOINT}/Sign-up`,
-        signUpDto,
-        this.httpConfig
+          return this.httpClient
+            .post<IHttpResponseDto<IAuthResponseDto>>(
+              `${this.ENDPOINT}/Sign-up`,
+              signUpDto,
+              this.httpConfig
+            )
+            .pipe(
+              tap((res) => {
+                this.#updateStatesData(res, masterPassword);
+              }),
+              map((res) => ({ ...res, recoveryKey }))
+            );
+        }
       )
-      .pipe(
-        tap((res) => {
-          this.#updateStatesData(res, masterPassword);
-        }),
-        map((res) => ({ ...res, recoveryKey }))
-        //Error handling is done in the component to allow formGroup error setting
-      );
+    );
   }
 
   signOut(): Observable<Object> {
@@ -99,12 +101,12 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
 
   checkSession(): Observable<IHttpResponseDto<IAuthResponseDto> | null> {
     return this.httpClient
-    .get<IHttpResponseDto<IAuthResponseDto>>(`${this.ENDPOINT}/Check-session`, {
-      withCredentials: true,
-    })
-    .pipe(
-      tap((res) => {
-        this.#updateStatesData(res);
+      .get<IHttpResponseDto<IAuthResponseDto>>(`${this.ENDPOINT}/Check-session`, {
+        withCredentials: true,
+      })
+      .pipe(
+        tap((res) => {
+          this.#updateStatesData(res);
         }),
         catchError(() => {
           this.updateState(null);

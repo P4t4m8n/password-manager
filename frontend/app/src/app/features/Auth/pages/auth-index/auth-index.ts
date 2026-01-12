@@ -206,7 +206,7 @@ export class AuthIndex {
     return;
   }
 
-  async #signUp() {
+  #signUp() {
     const { email, password, confirmPassword, username, masterPassword } =
       this.authSignUpFormGroup.value;
 
@@ -226,7 +226,7 @@ export class AuthIndex {
     };
     this.#loadingService.setSaving(true);
 
-    const subscription = await this.#authHttpService.signUp(signUpDto);
+    const subscription = this.#authHttpService.signUp(signUpDto);
 
     subscription.subscribe({
       next: async (res) => {
