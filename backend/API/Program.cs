@@ -115,6 +115,7 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 app.UseMiddleware<API.Middleware.ErrorHandlingMiddleware>();
+app.UseMiddleware<API.Middleware.ContentSecurityPolicyMiddleware>();
 
 app.MapControllers();
 
