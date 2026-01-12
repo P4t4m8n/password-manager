@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class LoadingService {
   protected isFetching = new BehaviorSubject<boolean>(false);
   public readonly isFetching$ = this.isFetching.asObservable();
