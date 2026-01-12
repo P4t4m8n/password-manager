@@ -28,7 +28,7 @@ export const TEST_ENTRIES: Record<string, IPasswordEntryDto> = {
     entryUserName: 'user@gmail.com',
     encryptedPassword: 'GmailPass123!',
     notes: 'Personal email account',
-    isFavorite: false,
+    isLiked: false,
   },
   github: {
     entryName: 'GitHub',
@@ -36,14 +36,14 @@ export const TEST_ENTRIES: Record<string, IPasswordEntryDto> = {
     entryUserName: 'developer',
     encryptedPassword: 'GitHubSecure456!',
     notes: 'Development account',
-    isFavorite: true,
+    isLiked: true,
   },
   netflix: {
     entryName: 'Netflix',
     websiteUrl: 'https://netflix.com',
     entryUserName: 'viewer@example.com',
     encryptedPassword: 'NetflixPass789!',
-    isFavorite: false,
+    isLiked: false,
   },
 } as const;
 
@@ -55,6 +55,6 @@ export function createTestPasswordEntry(name?: string): IPasswordEntryDto {
     entryUserName: `user_${timestamp}@test.com`,
     encryptedPassword: `TestPass${timestamp}!`,
     notes: `Test notes created at ${new Date().toISOString()}`,
-    isFavorite: false,
+    isLiked: false,
   };
 }

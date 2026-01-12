@@ -1,9 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 
-/**
- * Page Object for Authentication (Sign In / Sign Up)
- */
 export class AuthPage extends BasePage {
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
@@ -36,10 +33,9 @@ export class AuthPage extends BasePage {
     await this.masterPasswordInput.fill(masterPassword);
     await this.passwordInput.fill(password);
     await this.submitButton.click();
-    await this.page.waitForURL(/\/entries/);
   }
 
-  async signUp({
+  async fillSignUpForm({
     username,
     email,
     password,
@@ -57,8 +53,38 @@ export class AuthPage extends BasePage {
     await this.masterPasswordInput.fill(masterPassword);
     await this.passwordInput.fill(password);
     await this.confirmPasswordInput.fill(password);
+  }
+
+  async signUp(user: {
+    username: string;
+    email: string;
+    password: string;
+    masterPassword: string;
+  }) {
+    await this.fillSignUpForm(user);
 
     await this.submitButton.click();
+
+    const closeRecoveryBtn = this.page.getByRole('button', { name: 'Close' });
+    if (await closeRecoveryBtn.isVisible()) {
+      await closeRecoveryBtn.click();
+    } else {
+      try {
+        await closeRecoveryBtn.waitFor({ state: 'visible', timeout: 5000 });
+        await closeRecoveryBtn.click();
+      } catch (e) {}
+    }
+
+    const cancelNavBtn = this.page.getByRole('button', { name: 'Cancel' });
+    if (await cancelNavBtn.isVisible()) {
+      await cancelNavBtn.click();
+    } else {
+      try {
+        await cancelNavBtn.waitFor({ state: 'visible', timeout: 5000 });
+        await cancelNavBtn.click();
+      } catch (e) {}
+    }
+
     await this.page.waitForURL(/\/entries/);
   }
 

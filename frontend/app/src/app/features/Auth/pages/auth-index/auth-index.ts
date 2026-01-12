@@ -1,6 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { AsyncPipe, TitleCasePipe } from '@angular/common';
 
 import { BehaviorSubject, map, Subscription, tap } from 'rxjs';
@@ -84,13 +92,16 @@ export class AuthIndex {
     masterPassword: ['', Validators.required],
   });
 
-  authSignUpFormGroup = this.#formBuilder.group({
-    username: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
-    confirmPassword: ['', [Validators.required]],
-    masterPassword: ['', Validators.required],
-  });
+  authSignUpFormGroup = this.#formBuilder.group(
+    {
+      username: ['', [Validators.required, Validators.maxLength(100)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]],
+      confirmPassword: ['', [Validators.required]],
+      masterPassword: ['', Validators.required],
+    },
+    { validators: passwordMatchValidator }
+  );
 
   authSettings$ = this.isSignIn$.pipe(
     map((isSignIn) => {
@@ -140,10 +151,15 @@ export class AuthIndex {
 
   getErrorMessage(controlName: string, label: string): string {
     //INFO: Form group ambiguity using 'as' to solve
-    const control = (this.#getFormControl() as FormGroup).get(controlName);
+    const group = this.#getFormControl() as FormGroup;
+    const control = group.get(controlName);
 
     if (control?.errors?.['serverError']) {
       return control.errors['serverError'];
+    }
+
+    if (controlName === 'confirmPassword' && group.hasError('passwordMismatch')) {
+      return 'Passwords do not match';
     }
 
     if (!control?.errors || !control.touched) {
@@ -156,6 +172,10 @@ export class AuthIndex {
 
     if (control.errors['email']) {
       return 'Please enter a valid email address';
+    }
+
+    if (control.errors['maxlength']) {
+      return `${label} cannot exceed ${control.errors['maxlength'].requiredLength} characters`;
     }
 
     return '';
@@ -177,7 +197,7 @@ export class AuthIndex {
     }
 
     const signInDto: IAuthProps<IAuthSignInDto> = {
-      email: email,
+      email: email.trim(),
       password: password,
       masterPassword: masterPassword,
     };
@@ -218,10 +238,10 @@ export class AuthIndex {
     }
 
     const signUpDto: IAuthProps<IAuthSignUpDto> = {
-      email,
+      email: email.trim(),
       password,
       confirmPassword,
-      username,
+      username: username.trim(),
       masterPassword,
     };
     this.#loadingService.setSaving(true);
@@ -257,3 +277,12 @@ export class AuthIndex {
     return;
   }
 }
+ 
+export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const password = control.get('password');
+  const confirmPassword = control.get('confirmPassword');
+
+  return password && confirmPassword && password.value !== confirmPassword.value
+    ? { passwordMismatch: true }
+    : null;
+};

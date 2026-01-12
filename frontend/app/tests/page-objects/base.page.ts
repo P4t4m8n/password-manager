@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, Cookie } from '@playwright/test';
 
 export class BasePage {
   readonly page: Page;
@@ -7,31 +7,27 @@ export class BasePage {
     this.page = page;
   }
 
-  async goto(path: string = '') {
+  async goto(path: string = ''): Promise<void> {
     await this.page.goto(path);
   }
 
-  async waitForNavigation(url?: string | RegExp) {
-    if (url) {
-      await this.page.waitForURL(url);
-    } else {
-      await this.page.waitForLoadState('networkidle');
-    }
+  async waitForNavigation(url?: string | RegExp): Promise<void> {
+    url ? await this.page.waitForURL(url) : await this.page.waitForLoadState('networkidle');
   }
 
   async getCurrentUrl(): Promise<string> {
     return this.page.url();
   }
 
-  async clickAndWaitForNavigation(locator: Locator, url?: string | RegExp) {
+  async clickAndWaitForNavigation(locator: Locator, url?: string | RegExp): Promise<void> {
     await Promise.all([this.page.waitForURL(url || /.*/), locator.click()]);
   }
 
-  async fillField(locator: Locator, value: string) {
+  async fillField(locator: Locator, value: string): Promise<void> {
     await locator.fill(value);
   }
 
-  async clickButton(locator: Locator) {
+  async clickButton(locator: Locator): Promise<void> {
     await locator.click();
   }
 
@@ -39,7 +35,7 @@ export class BasePage {
     return await locator.isVisible();
   }
 
-  async waitForElement(locator: Locator) {
+  async waitForElement(locator: Locator): Promise<void> {
     await locator.waitFor({ state: 'visible' });
   }
 
@@ -47,15 +43,15 @@ export class BasePage {
     return (await locator.textContent()) || '';
   }
 
-  async takeScreenshot(name: string) {
+  async takeScreenshot(name: string): Promise<void> {
     await this.page.screenshot({ path: `tests/visual-snapshots/${name}.png`, fullPage: true });
   }
 
-  async getCookies() {
+  async getCookies(): Promise<Cookie[]> {
     return await this.page.context().cookies();
   }
 
-  async clearCookies() {
+  async clearCookies(): Promise<void> {
     await this.page.context().clearCookies();
   }
 }
