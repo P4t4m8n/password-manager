@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Loader } from '../../componenets/loader/loader';
+import { Loader } from '../loader/loader';
 
 @Component({
   selector: 'app-submit-button',
