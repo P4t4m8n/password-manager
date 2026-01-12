@@ -37,7 +37,7 @@
 
 <footer>
   <h5 class="truncate">{{ sessionUser?.username | titlecase }}</h5>
-  <button (click)="onSignout()">
+  <button (click)="onSignout()" aria-label="Sign Out">
     <app-icon-signout
       [style]="{
         height: '100%',
