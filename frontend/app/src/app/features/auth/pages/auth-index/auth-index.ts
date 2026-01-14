@@ -146,7 +146,7 @@ export class AuthIndex {
       return;
     }
 
-    return this.#isSignIn.getValue() ? this.#signIn() : await this.#signUp();
+    return this.#isSignIn.getValue() ? this.#signIn() :  this.#signUp();
   }
 
   getErrorMessage(controlName: string, label: string): string {
