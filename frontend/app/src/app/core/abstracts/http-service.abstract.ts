@@ -4,8 +4,7 @@ import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ErrorService } from '../services/error-service';
-
-import { environment } from '../consts/environment.const';
+import { environment } from '../../../environments/environment';
 import { AbstractGlobalStateService } from './abstract-global-state-service.abstract';
 
 export abstract class AbstractHttpService<T> extends AbstractGlobalStateService<T> {
