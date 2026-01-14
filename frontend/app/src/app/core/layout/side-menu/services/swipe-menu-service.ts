@@ -10,11 +10,11 @@ export class SwipeMenuService {
 
   toggle() {
 
-    this.#isOpen.next(false);
+    this.#isOpen.next(!this.#isOpen.value);
   }
 
   open() {
-    this.#isOpen.next(false);
+    this.#isOpen.next(true);
   }
 
   close() {
