@@ -144,7 +144,8 @@ namespace API.Services
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
+                
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
