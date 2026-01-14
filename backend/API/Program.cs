@@ -53,7 +53,7 @@ builder.Services.AddCors((options) =>
             });
         options.AddPolicy("ProdCors", (corsBuilder) =>
             {
-                corsBuilder.WithOrigins("https://myProductionSite.com")
+                corsBuilder.WithOrigins("https://gentle-dune-02bea5410.2.azurestaticapps.net")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials();
