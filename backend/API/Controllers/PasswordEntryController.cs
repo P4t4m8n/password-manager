@@ -11,7 +11,7 @@ namespace API.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/Password-entry")]
+    [Route("api/password-entry")]
     public sealed class PasswordEntryController : ControllerBase
     {
         private readonly IPasswordEntryService _passwordEntryService;

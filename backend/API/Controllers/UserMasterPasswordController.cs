@@ -12,12 +12,12 @@ namespace API.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/Master-password-recovery")]
+    [Route("api/user-master-password")]
     public sealed class MasterPasswordRecoveryController : ControllerBase
     {
-        private readonly IMasterPasswordRecoveryService _masterPasswordRecoveryService;
+        private readonly IUserMasterPasswordServiceService _masterPasswordRecoveryService;
 
-        public MasterPasswordRecoveryController(IMasterPasswordRecoveryService masterPasswordRecoveryService)
+        public MasterPasswordRecoveryController(IUserMasterPasswordServiceService masterPasswordRecoveryService)
         {
             _masterPasswordRecoveryService = masterPasswordRecoveryService;
         }

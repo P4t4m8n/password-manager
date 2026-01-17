@@ -6,12 +6,12 @@ using Dapper;
 
 namespace API.Services
 {
-    public sealed class MasterPasswordRecoveryService : IMasterPasswordRecoveryService
+    public sealed class UserMasterPasswordService : IUserMasterPasswordServiceService
     {
 
         private readonly IDataContext _contextDapper;
 
-        public MasterPasswordRecoveryService(IDataContext contextDapper)
+        public UserMasterPasswordService(IDataContext contextDapper)
         {
             _contextDapper = contextDapper;
         }

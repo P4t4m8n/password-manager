@@ -10,7 +10,7 @@ using API.Extensions;
 namespace API.Controllers
 {
     [ApiController]
-    [Route("api/Auth")]
+    [Route("api/auth")]
     public sealed class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -20,7 +20,7 @@ namespace API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("Sign-in")]
+        [HttpPost("sign-in")]
         public async Task<ActionResult<HttpResponseDTO<AuthResponseDTO>>> SignIn(AuthSignInDTO signInDto)
         {
 
@@ -36,7 +36,7 @@ namespace API.Controllers
             return StatusCode(httpResponse.StatusCode, httpResponse);
         }
         [AllowAnonymous]
-        [HttpPost("Sign-up")]
+        [HttpPost("sign-up")]
         public async Task<ActionResult<HttpResponseDTO<AuthResponseDTO>>> SignUp(AuthSignUpDTO signUpDto)
         {
             AuthResponseDTO authResponse = await _authService.SignUpAsync(signUpDto, Response);
@@ -50,7 +50,7 @@ namespace API.Controllers
             return StatusCode(httpResponse.StatusCode, httpResponse);
         }
 
-        [HttpGet("Check-session")]
+        [HttpGet("check-session")]
         public async Task<ActionResult<HttpResponseDTO<AuthResponseDTO>>> CheckSession()
         {
             Guid userGuid = User.GetUserId();
@@ -65,7 +65,7 @@ namespace API.Controllers
             return StatusCode(httpResponse.StatusCode, httpResponse);
         }
 
-        [HttpGet("Refresh-token")]
+        [HttpGet("refresh-token")]
         public async Task<ActionResult<HttpResponseDTO<AuthResponseDTO>>> RefreshToken()
         {
             Guid userGuid = User.GetUserId();
@@ -80,7 +80,7 @@ namespace API.Controllers
             return StatusCode(httpResponse.StatusCode, httpResponse);
         }
 
-        [HttpPost("Sign-out")]
+        [HttpPost("sign-out")]
         public new ActionResult<HttpResponseDTO<AuthResponseDTO>> SignOut()
         {
 

@@ -12,14 +12,14 @@ namespace API.UnitTests;
 public sealed class MasterPasswordRecoveryServiceTests
 {
     private Mock<IDataContext> _mockDataContext = null!;
-    private MasterPasswordRecoveryService _masterPasswordRecoveryService = null!;
+    private UserMasterPasswordService _masterPasswordRecoveryService = null!;
     private Guid _testUserGuid;
 
     [TestInitialize]
     public void Setup()
     {
         _mockDataContext = new Mock<IDataContext>();
-        _masterPasswordRecoveryService = new MasterPasswordRecoveryService(_mockDataContext.Object);
+        _masterPasswordRecoveryService = new UserMasterPasswordService(_mockDataContext.Object);
         _testUserGuid = Guid.NewGuid();
     }
 

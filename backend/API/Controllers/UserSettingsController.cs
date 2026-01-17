@@ -9,7 +9,7 @@ namespace API.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/User-settings")]
+    [Route("api/user-settings")]
 
     public sealed class UserSettingsController : ControllerBase
     {

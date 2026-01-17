@@ -8,7 +8,7 @@ namespace API.Controllers
 {
 
     [ApiController]
-    [Route("api/User")]
+    [Route("api/user")]
     public sealed class UserController : ControllerBase
     {
         private readonly IDataContext _contextDapper;
