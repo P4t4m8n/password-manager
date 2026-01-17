@@ -21,7 +21,6 @@ namespace API.Services
         public async Task<AuthResponseDTO> SignInAsync(AuthSignInDTO signInDto, HttpResponse response)
         {
 
-            // throw new NotImplementedException();
             await VerifyUserAndPasswordAsync(signInDto);
 
             UserWithSettings? user = await GetUserByEmailOrIdAsync(signInDto.Email, null) ??
