@@ -1,6 +1,6 @@
 import { Directive, Input } from '@angular/core';
 
-@Directive()
+@Directive({})
 export abstract class AbstractIconComponent {
   @Input() style: Partial<Record<keyof CSSStyleDeclaration, string | number>> = {};
 }

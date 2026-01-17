@@ -25,10 +25,11 @@ import type { IAuthProps, IAuthSignInDto, IAuthSignUpDto } from '../../interface
 import { SETTINGS_PATHS } from '../../../settings/const/settings-routes.const';
 import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
 import { LoadingService } from '../../../../core/services/loading-service';
+import { IconGoogle } from '../../../../core/icons/icon-google/icon-google';
 
 @Component({
   selector: 'app-auth-index',
-  imports: [ReactiveFormsModule, AsyncPipe, SubmitButton],
+  imports: [ReactiveFormsModule, AsyncPipe, SubmitButton, IconGoogle],
   templateUrl: './auth-index.html',
   styleUrl: './auth-index.css',
   providers: [LoadingService],
@@ -100,7 +101,7 @@ export class AuthIndex {
       confirmPassword: ['', [Validators.required]],
       masterPassword: ['', Validators.required],
     },
-    { validators: passwordMatchValidator }
+    { validators: passwordMatchValidator },
   );
 
   authSettings$ = this.isSignIn$.pipe(
@@ -122,14 +123,14 @@ export class AuthIndex {
         this.signUpInputs.push(this.masterPasswordInput);
       }
       return {
-        headerText: 'Sign Up',
-        loadingText: 'Signing Up...',
+        headerText: 'Create an account',
+        loadingText: 'Creating...',
         footerText: 'Already have an account? Sign In',
         formGroup: this.authSignUpFormGroup,
         inputs: this.signUpInputs,
         isSignIn: false,
       };
-    })
+    }),
   );
 
   toggleAuthMode() {
@@ -146,7 +147,7 @@ export class AuthIndex {
       return;
     }
 
-    return this.#isSignIn.getValue() ? this.#signIn() :  this.#signUp();
+    return this.#isSignIn.getValue() ? this.#signIn() : this.#signUp();
   }
 
   getErrorMessage(controlName: string, label: string): string {
@@ -191,7 +192,7 @@ export class AuthIndex {
     const { email, password, masterPassword } = this.authSignInFormGroup.value;
     if (!email || !password || !masterPassword) {
       console.warn(
-        'Email, Password or Master Password are missing and skipped validation, this should not happen.'
+        'Email, Password or Master Password are missing and skipped validation, this should not happen.',
       );
       return;
     }
@@ -209,7 +210,7 @@ export class AuthIndex {
       .pipe(
         tap(async () => {
           this.#router.navigate(['/entries']);
-        })
+        }),
       )
       .subscribe({
         //In theory only HttpErrorResponse can come here
@@ -232,7 +233,7 @@ export class AuthIndex {
 
     if (!email || !password || !confirmPassword || !username || !masterPassword) {
       console.warn(
-        'Email, Password or Confirm Password are missing and skipped validation, this should not happen.'
+        'Email, Password or Confirm Password are missing and skipped validation, this should not happen.',
       );
       return;
     }
@@ -277,8 +278,10 @@ export class AuthIndex {
     return;
   }
 }
- 
-export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+
+export const passwordMatchValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
   const password = control.get('password');
   const confirmPassword = control.get('confirmPassword');
 

@@ -1,50 +1,54 @@
-@if(authSettings$ | async; as authSettings){
+@if (authSettings$ | async; as authSettings) {
+  <form
+    (submit)="onSubmit($event)"
+    [formGroup]="authSettings.formGroup"
+    [class.sign-up]="!authSettings.isSignIn"
+  >
+    <h2>{{ authSettings.headerText.toUpperCase() }}</h2>
 
-<form
-  (submit)="onSubmit($event)"
-  [formGroup]="authSettings.formGroup"
-  [class.sign-up]="!authSettings.isSignIn"
->
-  <h2>{{ authSettings.headerText.toUpperCase() }}</h2>
+    <ul>
+      @for (input of authSettings?.inputs; track input.formControlName) {
+        <li>
+          <label [for]="input.formControlName">{{ input.labelText.toUpperCase() }}</label>
+          <input
+            [id]="input.formControlName"
+            [formControlName]="input.formControlName"
+            [type]="input.type"
+            [placeholder]="input.placeHolder"
+            class="input-box"
+            autocomplete="new-password"
+          />
 
-  <ul>
-    @for (input of authSettings?.inputs; track input.formControlName) {
-    <li>
-      <label [for]="input.formControlName">{{ input.labelText.toUpperCase() }}</label>
-      <input
-        [id]="input.formControlName"
-        [formControlName]="input.formControlName"
-        [type]="input.type"
-        [placeholder]="input.placeHolder"
-        class="input-box"
-        autocomplete="new-password"
-      />
+          <span class="error-message">{{
+            getErrorMessage(input.formControlName, input.labelText)
+          }}</span>
+        </li>
+      }
+    </ul>
 
-      <span class="error-message">{{
-        getErrorMessage(input.formControlName, input.labelText)
-      }}</span>
-    </li>
-    }
-  </ul>
+    <app-submit-button
+      [isDisabled]="authSettings.formGroup.invalid && authSettings.formGroup.touched"
+      [isLoading]="isSaving$ | async"
+      [buttonText]="authSettings.headerText"
+      [buttonLoadingText]="authSettings.loadingText"
+    />
 
-  <app-submit-button
-    [isDisabled]="authSettings.formGroup.invalid && authSettings.formGroup.touched"
-    [isLoading]="isSaving$ | async"
-    [buttonText]="authSettings.headerText"
-    [buttonLoadingText]="authSettings.loadingText"
-  />
+    <span class="divider">OR</span>
 
-  <span class="divider">OR</span>
+    <div class="social-login">
+      <button class="social-btn hover-active-small flex center">
+        <app-icon-google
+          [style]="{
+            width: '100%',
+            height: '100%',
+            fill: 'var(--accent)',
+          }"
+        />
+      </button>
+    </div>
 
-  <div class="social-login">
-    <div class="social-btn hover-active-small">G</div>
-    <div class="social-btn hover-active-small">F</div>
-    <div class="social-btn hover-active-small">X</div>
-  </div>
-
-  <button class="toggle-btn" type="button" (click)="toggleAuthMode()">
-    {{ authSettings.footerText }}
-  </button>
-</form>
-
+    <button class="toggle-btn" type="button" (click)="toggleAuthMode()">
+      {{ authSettings.footerText }}
+    </button>
+  </form>
 }
