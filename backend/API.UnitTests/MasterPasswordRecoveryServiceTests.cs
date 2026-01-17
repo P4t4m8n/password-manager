@@ -206,7 +206,7 @@ public sealed class MasterPasswordRecoveryServiceTests
             .ReturnsAsync(returnedUser);
 
         // Act
-        var result = await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto);
+        var result = await _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto);
 
         // Assert
         Assert.IsNotNull(result);
@@ -227,7 +227,7 @@ public sealed class MasterPasswordRecoveryServiceTests
             .ReturnsAsync(returnedUser);
 
         // Act
-        await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto);
+        await _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto);
 
         // Assert
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<User>(
@@ -249,7 +249,7 @@ public sealed class MasterPasswordRecoveryServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsExceptionAsync<NotFoundException>(
-            () => _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto));
+            () => _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto));
 
         Assert.AreEqual("User not found.", exception.Message);
     }
@@ -275,7 +275,7 @@ public sealed class MasterPasswordRecoveryServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsExceptionAsync<UnexpectedCaughtException>(
-            () => _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto));
+            () => _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto));
 
         Assert.AreEqual("Failed to update master password salt.", exception.Message);
         Assert.IsNotNull(exception.Errors);
@@ -303,7 +303,7 @@ public sealed class MasterPasswordRecoveryServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsExceptionAsync<UnexpectedCaughtException>(
-            () => _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto));
+            () => _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto));
 
         Assert.AreEqual("Failed to update master password salt.", exception.Message);
     }
@@ -322,7 +322,7 @@ public sealed class MasterPasswordRecoveryServiceTests
             .ReturnsAsync(returnedUser);
 
         // Act
-        await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto);
+        await _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto);
 
         // Assert
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<User>(
@@ -357,7 +357,7 @@ public sealed class MasterPasswordRecoveryServiceTests
             .ReturnsAsync(returnedUser);
 
         // Act
-        var result = await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto);
+        var result = await _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto);
 
         // Assert
         Assert.IsNotNull(result);
@@ -380,7 +380,7 @@ public sealed class MasterPasswordRecoveryServiceTests
             .ReturnsAsync(returnedUser);
 
         // Act
-        var result = await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto);
+        var result = await _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto);
 
         // Assert
         CollectionAssert.AreEqual(expectedSalt, result);
@@ -403,7 +403,7 @@ public sealed class MasterPasswordRecoveryServiceTests
             .ReturnsAsync(returnedUser);
 
         // Act
-        var result = await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto);
+        var result = await _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto);
 
         // Assert
         Assert.AreEqual(1, result.Length);
@@ -456,10 +456,10 @@ public sealed class MasterPasswordRecoveryServiceTests
             .ReturnsAsync(returnedUser);
 
         // Act
-        await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(userId1, updateDto);
+        await _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(userId1, updateDto);
 
         returnedUser.Id = userId2;
-        await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(userId2, updateDto);
+        await _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(userId2, updateDto);
 
         // Assert
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<User>(
@@ -514,7 +514,7 @@ public sealed class MasterPasswordRecoveryServiceTests
             .ReturnsAsync(returnedUser);
 
         // Act
-        var result = await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto);
+        var result = await _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto);
 
         // Assert
         Assert.IsNotNull(result);
@@ -541,7 +541,7 @@ public sealed class MasterPasswordRecoveryServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsExceptionAsync<UnexpectedCaughtException>(
-            () => _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(_testUserGuid, updateDto));
+            () => _masterPasswordRecoveryService.UpdateUserMasterPasswordAsync(_testUserGuid, updateDto));
 
         Assert.IsNotNull(exception.Errors);
         Assert.AreEqual(" The master password salt is null or empty after update.", exception.Errors["MasterPassword"]);

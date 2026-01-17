@@ -56,7 +56,7 @@ BEGIN
         RecoveryIV VARBINARY (MAX) NOT NULL,
 
         MasterEncryptedPasswordTest VARBINARY(MAX) NOT NULL,
-        MasterEncryptedPasswordIV NVARCHAR(255) NOT NULL,
+        MasterEncryptedPasswordIV NVARCHAR(MAX) NOT NULL,
 
         MasterPasswordSalt VARBINARY (MAX) ,
 

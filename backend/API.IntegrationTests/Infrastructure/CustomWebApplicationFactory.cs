@@ -19,7 +19,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public Mock<IAuthService> MockAuthService { get; } = new();
     public Mock<IPasswordEntryService> MockPasswordEntryService { get; } = new();
     public Mock<IUserSettingsService> MockUserSettingsService { get; } = new();
-    public Mock<IUserMasterPasswordServiceService> MockMasterPasswordRecoveryService { get; } = new();
+    public Mock<IUserMasterPasswordService> MockMasterPasswordRecoveryService { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -46,7 +46,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             RemoveService<IAuthService>(services);
             RemoveService<IPasswordEntryService>(services);
             RemoveService<IUserSettingsService>(services);
-            RemoveService<IUserMasterPasswordServiceService>(services);
+            RemoveService<IUserMasterPasswordService>(services);
 
             // Add mocked services
             services.AddScoped(_ => MockDataContext.Object);

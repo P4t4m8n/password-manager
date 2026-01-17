@@ -6,7 +6,7 @@ using Dapper;
 
 namespace API.Services
 {
-    public sealed class UserMasterPasswordService : IUserMasterPasswordServiceService
+    public sealed class UserMasterPasswordService : IUserMasterPasswordService
     {
 
         private readonly IDataContext _contextDapper;
@@ -18,10 +18,8 @@ namespace API.Services
 
         public async Task<MasterKeyRecoveryResponseDTO> GetMasterPasswordRecoveryAsync(Guid userGuid)
         {
-
-            
             string selectSql
-             = @"EXEC PasswordSchema.spUser_Select_MasterPasswordRecoveryData
+             = @"EXEC PasswordSchema.sp_UserMasterPassword_SELECT_MasterPasswordRecoveryData
                                  @UserId=@UserId;";
 
             DynamicParameters parameters = new();
@@ -34,24 +32,79 @@ namespace API.Services
             return recoveryData;
         }
 
-        public async Task<byte[]> UpdateMasterPasswordRecoveryAsync(Guid userGuid, MasterKeyRecoveryEditDTO updateDto)
+        public async Task<UserMasterPasswordDTO> GetUserMasterPasswordAsync(Guid userGuid)
         {
-            string updateSql = @"EXEC PasswordSchema.spUser_Update_MasterPasswordRecovery
+            string selectSql = @"EXEC PasswordSchema.sp_UserMasterPassword_SELECT_ByUserId
+                                 @UserId=@UserId;";
+
+            DynamicParameters parameters = new();
+            parameters.Add("@UserId", userGuid);
+
+            UserMasterPasswordDTO userMasterPassword = await _contextDapper.QuerySingleOrDefaultAsync<UserMasterPasswordDTO>(selectSql, parameters)
+             ?? throw new NotFoundException("User master password not found.");
+
+            return userMasterPassword;
+        }
+
+        public async Task<UserMasterPasswordDTO> CreateUserMasterPasswordAsync(Guid userGuid, MasterKeyRecoveryEditDTO createDto)
+        {
+            string insertSql = @"EXEC PasswordSchema.sp_UserMasterPassword_INSERT
                                  @UserId=@UserId,
                                  @EncryptedMasterKeyWithRecovery=@EncryptedMasterKeyWithRecovery,
                                  @RecoveryIV=@RecoveryIV,
-                                 @MasterPasswordSalt=@MasterPasswordSalt;";
+                                 @MasterPasswordSalt=@MasterPasswordSalt,
+                                 @MasterEncryptedPasswordTest = @MasterEncryptedPasswordTest,
+                                 @MasterEncryptedPasswordIV = @MasterEncryptedPasswordIV
+                                 ;";
+
+            DynamicParameters parameters = new();
+            parameters.Add("@UserId", userGuid);
+            parameters.Add("@EncryptedMasterKeyWithRecovery", createDto.EncryptedMasterKeyWithRecovery);
+            parameters.Add("@RecoveryIV", createDto.RecoveryIV);
+            parameters.Add("@MasterPasswordSalt", createDto.MasterPasswordSalt);
+            parameters.Add("@MasterEncryptedPasswordTest", createDto.MasterEncryptedPasswordTest);
+            parameters.Add("@MasterEncryptedPasswordIV", createDto.MasterEncryptedPasswordIV);
+
+            UserMasterPassword userMasterPassword = await _contextDapper.QuerySingleOrDefaultAsync<UserMasterPassword>(insertSql, parameters)
+          ?? throw new UnexpectedCaughtException("Failed to create user master password.", new Dictionary<string, string>
+          {
+              { "UserMasterPassword", " The created user master password is null." }
+          });
+
+            UserMasterPasswordDTO userMasterPasswordDto = new()
+            {
+                EncryptedMasterKeyWithRecovery = userMasterPassword.EncryptedMasterKeyWithRecovery,
+                RecoveryIV = userMasterPassword.RecoveryIV,
+                MasterEncryptedPasswordTest = userMasterPassword.MasterEncryptedPasswordTest,
+                MasterEncryptedPasswordIV = userMasterPassword.MasterEncryptedPasswordIV
+            };
+
+            return userMasterPasswordDto;
+        }
+
+        public async Task<UserMasterPasswordDTO> UpdateUserMasterPasswordAsync(Guid userGuid, MasterKeyRecoveryEditDTO updateDto)
+        {
+            string updateSql = @"EXEC PasswordSchema.sp_UserMasterPassword_UPDATE
+                                 @UserId=@UserId,
+                                 @EncryptedMasterKeyWithRecovery=@EncryptedMasterKeyWithRecovery,
+                                 @RecoveryIV=@RecoveryIV,
+                                 @MasterPasswordSalt=@MasterPasswordSalt,
+                                 @MasterEncryptedPasswordTest = @MasterEncryptedPasswordTest,
+                                 @MasterEncryptedPasswordIV = @MasterEncryptedPasswordIV
+                                 ;";
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
             parameters.Add("@EncryptedMasterKeyWithRecovery", updateDto.EncryptedMasterKeyWithRecovery);
             parameters.Add("@RecoveryIV", updateDto.RecoveryIV);
             parameters.Add("@MasterPasswordSalt", updateDto.MasterPasswordSalt);
+            parameters.Add("@MasterEncryptedPasswordTest", updateDto.MasterEncryptedPasswordTest);
+            parameters.Add("@MasterEncryptedPasswordIV", updateDto.MasterEncryptedPasswordIV);
 
-            User user = await _contextDapper.QuerySingleOrDefaultAsync<User>(updateSql, parameters)
-          ?? throw new NotFoundException("User not found.");
+            UserMasterPassword userMasterPassword = await _contextDapper.QuerySingleOrDefaultAsync<UserMasterPassword>(updateSql, parameters)
+          ?? throw new NotFoundException("User master password not found.");
 
-            if (user.MasterPasswordSalt == null || user.MasterPasswordSalt.Length == 0)
+            if (userMasterPassword.MasterPasswordSalt == null || userMasterPassword.MasterPasswordSalt.Length == 0)
             {
                 throw new UnexpectedCaughtException("Failed to update master password salt.", new Dictionary<string, string>
                 {
@@ -59,7 +112,15 @@ namespace API.Services
                 });
             }
 
-            return user.MasterPasswordSalt;
+            UserMasterPasswordDTO userMasterPasswordDto = new()
+            {
+                EncryptedMasterKeyWithRecovery = userMasterPassword.EncryptedMasterKeyWithRecovery,
+                RecoveryIV = userMasterPassword.RecoveryIV,
+                MasterEncryptedPasswordTest = userMasterPassword.MasterEncryptedPasswordTest,
+                MasterEncryptedPasswordIV = userMasterPassword.MasterEncryptedPasswordIV
+            };
+
+            return userMasterPasswordDto;
         }
 
     }

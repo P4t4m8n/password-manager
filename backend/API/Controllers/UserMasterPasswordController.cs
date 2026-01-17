@@ -6,7 +6,6 @@ using API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using API.Extensions;
-using API.Dtos.Auth;
 
 namespace API.Controllers
 {
@@ -15,18 +14,31 @@ namespace API.Controllers
     [Route("api/user-master-password")]
     public sealed class MasterPasswordRecoveryController : ControllerBase
     {
-        private readonly IUserMasterPasswordServiceService _masterPasswordRecoveryService;
+        private readonly IUserMasterPasswordService _userMasterPasswordService;
 
-        public MasterPasswordRecoveryController(IUserMasterPasswordServiceService masterPasswordRecoveryService)
+        public MasterPasswordRecoveryController(IUserMasterPasswordService masterPasswordRecoveryService)
         {
-            _masterPasswordRecoveryService = masterPasswordRecoveryService;
+            _userMasterPasswordService = masterPasswordRecoveryService;
+        }
+        [HttpGet("")]
+        public async Task<ActionResult<HttpResponseDTO<UserMasterPasswordDTO>>> GetUserMasterPassword()
+        {
+            Guid userGuid = User.GetUserId();
+            UserMasterPasswordDTO userMasterPassword = await _userMasterPasswordService.GetUserMasterPasswordAsync(userGuid);
+            HttpResponseDTO<UserMasterPasswordDTO> httpResponse = new()
+            {
+                Data = userMasterPassword,
+                Message = "User master password retrieved successfully.",
+                StatusCode = 200
+            };
+            return StatusCode(httpResponse.StatusCode, httpResponse);
         }
 
-        [HttpGet("")]
+        [HttpGet("master-password-recovery")]
         public async Task<ActionResult<HttpResponseDTO<MasterKeyRecoveryResponseDTO>>> GetMasterPasswordRecovery()
         {
             Guid userGuid = User.GetUserId();
-            MasterKeyRecoveryResponseDTO? recoveryData = await _masterPasswordRecoveryService.GetMasterPasswordRecoveryAsync(userGuid);
+            MasterKeyRecoveryResponseDTO? recoveryData = await _userMasterPasswordService.GetMasterPasswordRecoveryAsync(userGuid);
             HttpResponseDTO<MasterKeyRecoveryResponseDTO> httpResponse = new()
             {
                 Data = recoveryData,
@@ -37,16 +49,35 @@ namespace API.Controllers
             return StatusCode(httpResponse.StatusCode, httpResponse);
         }
 
-        [HttpPatch("")]
-        public async Task<ActionResult<HttpResponseDTO<AuthResponseDTO>>> UpdateMasterPasswordRecovery(MasterKeyRecoveryEditDTO updateDto)
+
+
+
+        [HttpPost("")]
+        public async Task<ActionResult<HttpResponseDTO<UserMasterPasswordDTO>>> CreateMasterPasswordRecovery(MasterKeyRecoveryEditDTO createDto)
         {
             Guid userGuid = User.GetUserId();
 
-            byte[] masterPasswordSalt = await _masterPasswordRecoveryService.UpdateMasterPasswordRecoveryAsync(userGuid, updateDto);
-
-            HttpResponseDTO<byte[]> httpResponse = new()
+            UserMasterPasswordDTO userMasterPasswordDto = await _userMasterPasswordService.CreateUserMasterPasswordAsync(userGuid, createDto);
+            HttpResponseDTO<UserMasterPasswordDTO> httpResponse = new()
             {
-                Data = masterPasswordSalt,
+                Data = userMasterPasswordDto,
+                Message = "Master password recovery created successfully.",
+                StatusCode = 201
+
+            };
+
+            return StatusCode(httpResponse.StatusCode, httpResponse);
+        }
+        [HttpPut("")]
+        public async Task<ActionResult<HttpResponseDTO<UserMasterPasswordDTO>>> UpdateMasterPasswordRecovery(MasterKeyRecoveryEditDTO updateDto)
+        {
+            Guid userGuid = User.GetUserId();
+
+            UserMasterPasswordDTO userMasterPasswordDto = await _userMasterPasswordService.UpdateUserMasterPasswordAsync(userGuid, updateDto);
+
+            HttpResponseDTO<UserMasterPasswordDTO> httpResponse = new()
+            {
+                Data = userMasterPasswordDto,
                 Message = "Master password recovery updated successfully.",
                 StatusCode = 201
 

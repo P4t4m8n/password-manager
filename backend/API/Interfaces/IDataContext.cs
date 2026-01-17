@@ -13,4 +13,10 @@ public interface IDataContext
         DynamicParameters? parameters,
         string splitOn);
 
+    Task<TReturn?> QueryAsyncThreeSplit<T1, T2, T3, TReturn>(
+string sql,
+Func<T1, T2, T3, TReturn> map,
+DynamicParameters? parameters,
+string splitOn);
+
 }

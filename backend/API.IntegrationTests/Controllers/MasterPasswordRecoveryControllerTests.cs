@@ -120,7 +120,7 @@ public class MasterPasswordRecoveryControllerTests : IntegrationTestBase
         var returnedSalt = new byte[] { 200, 201, 202, 203 };
 
         _ = Factory.MockMasterPasswordRecoveryService
-            .Setup(x => x.UpdateMasterPasswordRecoveryAsync(It.IsAny<Guid>(), It.IsAny<MasterKeyRecoveryEditDTO>()))
+            .Setup(x => x.UpdateUserMasterPasswordAsync(It.IsAny<Guid>(), It.IsAny<MasterKeyRecoveryEditDTO>()))
             .ReturnsAsync(returnedSalt);
 
         AuthenticateClientAs(userId);
@@ -222,7 +222,7 @@ public class MasterPasswordRecoveryControllerTests : IntegrationTestBase
         MasterKeyRecoveryEditDTO? capturedDto = null;
 
         _ = Factory.MockMasterPasswordRecoveryService
-            .Setup(x => x.UpdateMasterPasswordRecoveryAsync(It.IsAny<Guid>(), It.IsAny<MasterKeyRecoveryEditDTO>()))
+            .Setup(x => x.UpdateUserMasterPasswordAsync(It.IsAny<Guid>(), It.IsAny<MasterKeyRecoveryEditDTO>()))
             .Callback<Guid, MasterKeyRecoveryEditDTO>((id, dto) =>
             {
                 capturedUserId = id;
@@ -255,7 +255,7 @@ public class MasterPasswordRecoveryControllerTests : IntegrationTestBase
         var userId = Guid.NewGuid();
 
         _ = Factory.MockMasterPasswordRecoveryService
-            .Setup(x => x.UpdateMasterPasswordRecoveryAsync(It.IsAny<Guid>(), It.IsAny<MasterKeyRecoveryEditDTO>()))
+            .Setup(x => x.UpdateUserMasterPasswordAsync(It.IsAny<Guid>(), It.IsAny<MasterKeyRecoveryEditDTO>()))
             .ReturnsAsync(new byte[] { 1, 2, 3 });
 
         AuthenticateClientAs(userId);

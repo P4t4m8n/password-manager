@@ -50,7 +50,7 @@ public sealed class AuthServiceTests
         var passwordSalt = new byte[] { 1, 2, 3, 4 };
         var passwordHash = new byte[] { 5, 6, 7, 8 };
 
-        var authConfirmation = new AuthConfirmationDTO
+        var authConfirmation = new AuthForHash
         {
             PasswordHash = passwordHash,
             PasswordSalt = passwordSalt
@@ -59,7 +59,7 @@ public sealed class AuthServiceTests
         var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
 
         _mockDataContext
-            .Setup(x => x.QuerySingleOrDefaultAsync<AuthConfirmationDTO>(
+            .Setup(x => x.QuerySingleOrDefaultAsync<AuthForHash>(
                 It.Is<string>(sql => sql.Contains("spFor_Hash")),
                 It.IsAny<DynamicParameters?>()))
             .ReturnsAsync(authConfirmation);
@@ -69,9 +69,9 @@ public sealed class AuthServiceTests
             .Returns(passwordHash);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.Is<string>(sql => sql.Contains("spUser_GetOne")),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -104,14 +104,14 @@ public sealed class AuthServiceTests
         var correctHash = new byte[] { 5, 6, 7, 8 };
         var wrongHash = new byte[] { 9, 10, 11, 12 };
 
-        var authConfirmation = new AuthConfirmationDTO
+        var authConfirmation = new AuthForHash
         {
             PasswordHash = correctHash,
             PasswordSalt = passwordSalt
         };
 
         _mockDataContext
-            .Setup(x => x.QuerySingleOrDefaultAsync<AuthConfirmationDTO>(
+            .Setup(x => x.QuerySingleOrDefaultAsync<AuthForHash>(
                 It.IsAny<string>(),
                 It.IsAny<DynamicParameters?>()))
             .ReturnsAsync(authConfirmation);
@@ -141,10 +141,10 @@ public sealed class AuthServiceTests
         };
 
         _mockDataContext
-            .Setup(x => x.QuerySingleOrDefaultAsync<AuthConfirmationDTO>(
+            .Setup(x => x.QuerySingleOrDefaultAsync<AuthForHash>(
                 It.IsAny<string>(),
                 It.IsAny<DynamicParameters?>()))
-            .ReturnsAsync((AuthConfirmationDTO?)null);
+            .ReturnsAsync((AuthForHash?)null);
 
         // Act & Assert
         var exception = await Assert.ThrowsExceptionAsync<UnauthorizedException>(
@@ -217,14 +217,14 @@ public sealed class AuthServiceTests
         var passwordSalt = new byte[] { 1, 2, 3, 4 };
         var passwordHash = new byte[] { 5, 6, 7, 8 };
 
-        var authConfirmation = new AuthConfirmationDTO
+        var authConfirmation = new AuthForHash
         {
             PasswordHash = passwordHash,
             PasswordSalt = passwordSalt
         };
 
         _mockDataContext
-            .Setup(x => x.QuerySingleOrDefaultAsync<AuthConfirmationDTO>(
+            .Setup(x => x.QuerySingleOrDefaultAsync<AuthForHash>(
                 It.IsAny<string>(),
                 It.IsAny<DynamicParameters?>()))
             .ReturnsAsync(authConfirmation);
@@ -234,12 +234,12 @@ public sealed class AuthServiceTests
             .Returns(passwordHash);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
-            .ReturnsAsync((UserWithSettings?)null);
+            .ReturnsAsync((UserFull?)null);
 
         // Act & Assert
         var exception = await Assert.ThrowsExceptionAsync<NotFoundException>(
@@ -261,7 +261,7 @@ public sealed class AuthServiceTests
         var passwordSalt = new byte[] { 1, 2, 3, 4 };
         var passwordHash = new byte[] { 5, 6, 7, 8 };
 
-        var authConfirmation = new AuthConfirmationDTO
+        var authConfirmation = new AuthForHash
         {
             PasswordHash = passwordHash,
             PasswordSalt = passwordSalt
@@ -313,9 +313,9 @@ public sealed class AuthServiceTests
             .Returns(generatedHash);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.Is<string>(sql => sql.Contains("spUser_Create")),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -405,12 +405,12 @@ public sealed class AuthServiceTests
         _mockCryptoService.Setup(x => x.GetPasswordHash(signUpDto.Password!, generatedSalt)).Returns(generatedHash);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
-            .ReturnsAsync((UserWithSettings?)null);
+            .ReturnsAsync((UserFull?)null);
 
         // Act & Assert
         var exception = await Assert.ThrowsExceptionAsync<UserCreationFailedException>(
@@ -438,9 +438,9 @@ public sealed class AuthServiceTests
         _mockCryptoService.Setup(x => x.GetPasswordHash(signUpDto.Password!, generatedSalt)).Returns(generatedHash);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithEmptyGuid);
@@ -468,9 +468,9 @@ public sealed class AuthServiceTests
         _mockCryptoService.Setup(x => x.CreateToken(It.IsAny<string>())).Returns("token");
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -500,9 +500,9 @@ public sealed class AuthServiceTests
         _mockCryptoService.Setup(x => x.CreateToken(It.IsAny<string>())).Returns("token");
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -525,9 +525,9 @@ public sealed class AuthServiceTests
         var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.Is<string>(sql => sql.Contains("spUser_GetOne")),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -547,12 +547,12 @@ public sealed class AuthServiceTests
     {
         // Arrange
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
-            .ReturnsAsync((UserWithSettings?)null);
+            .ReturnsAsync((UserFull?)null);
 
         // Act & Assert
         var exception = await Assert.ThrowsExceptionAsync<NotFoundException>(
@@ -572,9 +572,9 @@ public sealed class AuthServiceTests
         userWithSettings.Settings.MinimumPasswordStrength = PasswordStrengthEnum.veryStrong;
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -595,9 +595,9 @@ public sealed class AuthServiceTests
         var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -620,9 +620,9 @@ public sealed class AuthServiceTests
         var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.Is<string>(sql => sql.Contains("spUser_GetOne")),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -645,12 +645,12 @@ public sealed class AuthServiceTests
     {
         // Arrange
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
-            .ReturnsAsync((UserWithSettings?)null);
+            .ReturnsAsync((UserFull?)null);
 
         // Act & Assert
         var exception = await Assert.ThrowsExceptionAsync<NotFoundException>(
@@ -666,9 +666,9 @@ public sealed class AuthServiceTests
         var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -691,9 +691,9 @@ public sealed class AuthServiceTests
         var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -726,7 +726,7 @@ public sealed class AuthServiceTests
         var passwordHash = new byte[] { 5, 6, 7, 8 };
         var masterPasswordSalt = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 };
 
-        var authConfirmation = new AuthConfirmationDTO { PasswordHash = passwordHash, PasswordSalt = passwordSalt };
+        var authConfirmation = new AuthForHash { PasswordHash = passwordHash, PasswordSalt = passwordSalt };
         var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
         userWithSettings.MasterPasswordSalt = masterPasswordSalt;
 
@@ -749,9 +749,9 @@ public sealed class AuthServiceTests
         userWithSettings.Settings.MasterPasswordStorageMode = StorageModeEnum.local;
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -779,14 +779,14 @@ public sealed class AuthServiceTests
         var storedHash = new byte[] { 5, 6, 7, 8 }; 
         var computedHash = new byte[] { 99, 6, 7, 8 }; // First byte different
 
-        var authConfirmation = new AuthConfirmationDTO
+        var authConfirmation = new AuthForHash
         {
             PasswordHash = storedHash,
             PasswordSalt = passwordSalt
         };
 
         _mockDataContext
-            .Setup(x => x.QuerySingleOrDefaultAsync<AuthConfirmationDTO>(
+            .Setup(x => x.QuerySingleOrDefaultAsync<AuthForHash>(
                 It.IsAny<string>(),
                 It.IsAny<DynamicParameters?>()))
             .ReturnsAsync(authConfirmation);
@@ -822,10 +822,10 @@ public sealed class AuthServiceTests
 
     #region Helper Methods
 
-    private void SetupSuccessfulSignIn(AuthConfirmationDTO authConfirmation, byte[] passwordHash, byte[] passwordSalt, UserWithSettings userWithSettings, string password)
+    private void SetupSuccessfulSignIn(AuthForHash authConfirmation, byte[] passwordHash, byte[] passwordSalt, UserFull userWithSettings, string password)
     {
         _mockDataContext
-            .Setup(x => x.QuerySingleOrDefaultAsync<AuthConfirmationDTO>(
+            .Setup(x => x.QuerySingleOrDefaultAsync<AuthForHash>(
                 It.IsAny<string>(),
                 It.IsAny<DynamicParameters?>()))
             .ReturnsAsync(authConfirmation);
@@ -835,9 +835,9 @@ public sealed class AuthServiceTests
             .Returns(passwordHash);
 
         _mockDataContext
-            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserFull>(
                 It.IsAny<string>(),
-                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<Func<User, UserSettings, UserFull>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
             .ReturnsAsync(userWithSettings);
@@ -847,9 +847,9 @@ public sealed class AuthServiceTests
             .Returns("mock-token");
     }
 
-    private static UserWithSettings CreateTestUserWithSettings(Guid userId)
+    private static UserFull CreateTestUserWithSettings(Guid userId)
     {
-        return new UserWithSettings
+        return new UserFull
         {
             Id = userId,
             Username = "testuser",

@@ -23,8 +23,6 @@ namespace API.Controllers
         [HttpPost("sign-in")]
         public async Task<ActionResult<HttpResponseDTO<AuthResponseDTO>>> SignIn(AuthSignInDTO signInDto)
         {
-
-
             AuthResponseDTO authResponse = await _authService.SignInAsync(signInDto, Response);
             HttpResponseDTO<AuthResponseDTO> httpResponse = new()
             {

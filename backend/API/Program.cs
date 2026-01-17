@@ -91,7 +91,7 @@ builder.Services.AddScoped<IGoogleService, GoogleService>();
 builder.Services.AddScoped<ICryptoService, CryptoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordEntryService, PasswordEntryService>();
-builder.Services.AddScoped<IUserMasterPasswordServiceService, UserMasterPasswordService>();
+builder.Services.AddScoped<IUserMasterPasswordService, UserMasterPasswordService>();
 builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 
 

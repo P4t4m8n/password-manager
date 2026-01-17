@@ -49,6 +49,17 @@ namespace API.Data
             return result.FirstOrDefault();
         }
 
+        public async Task<TReturn?> QueryAsyncThreeSplit<T1, T2, T3, TReturn>(
+            string sql,
+     Func<T1, T2, T3, TReturn> map,
+    DynamicParameters? parameters,
+    string splitOn)
+        {
+            using IDbConnection dbConnection = new SqlConnection(_connectionString);
+            IEnumerable<TReturn>? result = await dbConnection.QueryAsync(sql, map, parameters, splitOn: splitOn);
+            return result.FirstOrDefault();
+        }
+
 
     }
 }

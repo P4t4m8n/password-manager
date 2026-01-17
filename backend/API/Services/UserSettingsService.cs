@@ -24,7 +24,7 @@ namespace API.Services
             parameters.Add("@UserId", userGuid);
 
             UserSettings userSettings = await _contextDapper.QuerySingleOrDefaultAsync<UserSettings>(selectSql, parameters)
-             ?? throw new Exception("User Settings not found");
+             ?? throw new NotFoundException("User Settings not found");
 
             UserSettingsDTO dto = new()
             {

@@ -23,7 +23,7 @@ namespace API.Services
 
             await VerifyUserAndPasswordAsync(signInDto);
 
-            UserWithSettings? user = await GetUserByEmailOrIdAsync(signInDto.Email, null) ??
+            UserFull? user = await GetUserByEmailOrIdAsync(signInDto.Email, null) ??
              throw new NotFoundException("User not found after successful authentication", new Dictionary<string, string>
                  {
                     { "User", "No user found for the given email after successful authentication" }
@@ -36,14 +36,14 @@ namespace API.Services
         public async Task<AuthResponseDTO> SignUpAsync(AuthSignUpDTO signUpDto, HttpResponse response)
         {
             await CheckUserExist(signUpDto.Email);
-            UserWithSettings? user = await CreateUserAsync(signUpDto);
+            UserFull? user = await CreateUserAsync(signUpDto);
             AppendAuthCookie(user.Id.ToString(), response);
             return CreateAuthResponse(user);
         }
         public async Task<AuthResponseDTO> CheckSessionAsync(Guid userGuid)
         {
 
-            UserWithSettings user = await GetUserByEmailOrIdAsync(null, userGuid) ??
+            UserFull user = await GetUserByEmailOrIdAsync(null, userGuid) ??
              throw new NotFoundException("User not found", new Dictionary<string, string>
                  {
                     { "User", "No user found for the given authentication token" }
@@ -54,7 +54,7 @@ namespace API.Services
         public async Task<AuthResponseDTO> RefreshTokenAsync(Guid userGuid, HttpResponse response)
         {
 
-            UserWithSettings? user = await GetUserByEmailOrIdAsync(null, userGuid)
+            UserFull? user = await GetUserByEmailOrIdAsync(null, userGuid)
              ?? throw new NotFoundException("User not found", new Dictionary<string, string>
                  {
                     { "User", "No user found for the given authentication token" }
@@ -73,18 +73,16 @@ namespace API.Services
             {
                 throw new UnauthorizedException("Invalid email or password");
             }
-            string sqlForHash = "EXEC PasswordSchema.spFor_Hash @Email=@Email";
+            string sqlForHash = "EXEC PasswordSchema.PasswordSchema.sp_User_SELECT_ForHash @Email=@Email";
 
             parameters.Add("@Email", signInDto.Email);
 
-            AuthConfirmationDTO? authConfirmation = await _contextDapper.QuerySingleOrDefaultAsync<AuthConfirmationDTO>(sqlForHash, parameters)
+            AuthForHash authConfirmation = await _contextDapper.QuerySingleOrDefaultAsync<AuthForHash>(sqlForHash, parameters)
              ?? throw new UnauthorizedException("Invalid email or password", new Dictionary<string, string>
                {
                    { "Email",  "Invalid email or password" },
                    { "Password",  "Invalid email or password" },
                });
-
-
 
             byte[] passwordHash = _cryptoService.GetPasswordHash(signInDto.Password, authConfirmation.PasswordSalt);
 
@@ -101,37 +99,35 @@ namespace API.Services
             }
 
         }
-        private async Task<UserWithSettings?> GetUserByEmailOrIdAsync(string? email, Guid? id)
+        private async Task<UserFull?> GetUserByEmailOrIdAsync(string? email, Guid? id)
         {
 
             DynamicParameters parameters = new();
             parameters.Add("@Email", email);
             parameters.Add("@Id", id);
-            string userSelectSql = "EXEC PasswordSchema.spUser_GetOne @Email=@Email ,@Id=@Id";
+            string userSelectSql = "EXEC PasswordSchema.sp_User_SELECT_ByIdOrEmail @Email=@Email ,@Id=@Id";
 
-            UserWithSettings? user = await _contextDapper.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(userSelectSql,
-            (user, settings) =>
-              {
-                  UserWithSettings userWithSettings = new()
-                  {
-                      Id = user.Id,
-                      Username = user.Username,
-                      Email = user.Email,
-                      PasswordHash = user.PasswordHash,
-                      PasswordSalt = user.PasswordSalt,
-                      GoogleId = user.GoogleId,
-                      MasterPasswordSalt = user.MasterPasswordSalt,
-                      EncryptedMasterKeyWithRecovery = user.EncryptedMasterKeyWithRecovery,
-                      RecoveryIV = user.RecoveryIV,
-                      CreatedAt = user.CreatedAt,
-                      UpdatedAt = user.UpdatedAt,
-                      Settings = settings
-                  };
-                  return userWithSettings;
-              },
-                parameters,
-                       splitOn: "MasterPasswordTTLInMinutes"
-                  );
+            UserFull? user = await _contextDapper.QueryAsyncThreeSplit<User, UserSettings, UserMasterPassword, UserFull>(
+                             userSelectSql,
+                             (u, settings, master) =>
+                             {
+                                 return new UserFull
+                                 {
+                                     Id = u.Id,
+                                     Username = u.Username,
+                                     Email = u.Email,
+                                     PasswordHash = u.PasswordHash,
+                                     PasswordSalt = u.PasswordSalt,
+                                     GoogleId = u.GoogleId,
+                                     CreatedAt = u.CreatedAt,
+                                     UpdatedAt = u.UpdatedAt,
+                                     Settings = settings,
+                                     MasterPassword = master
+                                 };
+                             },
+                            parameters,
+                            splitOn: "MasterPasswordTTLInMinutes,MasterPasswordSalt"
+                            );
 
             return user;
         }
@@ -144,7 +140,7 @@ namespace API.Services
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                
+
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
@@ -162,7 +158,7 @@ namespace API.Services
             }
 
             DynamicParameters parameters = new();
-            string selectExistingUserSql = "EXEC PasswordSchema.spFor_Existing @Email=@Email";
+            string selectExistingUserSql = "EXEC PasswordSchema.sp_User_SELECT_ForExisting @Email=@Email";
             parameters.Add("@Email", email);
 
             IEnumerable<string> existingUser = await _contextDapper.LoadData<string>(selectExistingUserSql, parameters);
@@ -171,7 +167,7 @@ namespace API.Services
                 throw new UserAlreadyExistsException();
             }
         }
-        private async Task<UserWithSettings> CreateUserAsync(AuthSignUpDTO signUpDto)
+        private async Task<UserFull> CreateUserAsync(AuthSignUpDTO signUpDto)
         {
             {
 
@@ -189,23 +185,17 @@ namespace API.Services
                                       @Email=@Email, 
                                       @Username=@Username,
                                       @PasswordHash=@PasswordHash, 
-                                      @PasswordSalt=@PasswordSalt, 
-                                      @MasterPasswordSalt=@MasterPasswordSalt,
-                                      @EncryptedMasterKeyWithRecovery=@EncryptedMasterKeyWithRecovery,
-                                      @RecoveryIV=@RecoveryIV";
+                                      @PasswordSalt=@PasswordSalt";
 
                 parameters.Add(@"Username", signUpDto.Username);
                 parameters.Add(@"PasswordHash", passwordHash);
                 parameters.Add(@"PasswordSalt", PasswordSalt);
-                parameters.Add(@"MasterPasswordSalt", signUpDto.MasterPasswordSalt);
-                parameters.Add(@"EncryptedMasterKeyWithRecovery", signUpDto.EncryptedMasterKeyWithRecovery);
-                parameters.Add(@"RecoveryIV", signUpDto.RecoveryIV);
                 parameters.Add(@"Email", signUpDto.Email);
 
-                UserWithSettings? user = await _contextDapper.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(sqlInsertAuth,
+                UserFull? user = await _contextDapper.QueryAsyncTwoSplit<User, UserSettings, UserFull>(sqlInsertAuth,
                           (user, settings) =>
                             {
-                                UserWithSettings userWithSettings = new()
+                                UserFull userWithSettings = new()
                                 {
                                     Id = user.Id,
                                     Username = user.Username,
@@ -213,9 +203,6 @@ namespace API.Services
                                     PasswordHash = user.PasswordHash,
                                     PasswordSalt = user.PasswordSalt,
                                     GoogleId = user.GoogleId,
-                                    MasterPasswordSalt = user.MasterPasswordSalt,
-                                    EncryptedMasterKeyWithRecovery = user.EncryptedMasterKeyWithRecovery,
-                                    RecoveryIV = user.RecoveryIV,
                                     CreatedAt = user.CreatedAt,
                                     UpdatedAt = user.UpdatedAt,
                                     Settings = settings
@@ -235,7 +222,7 @@ namespace API.Services
             }
         }
 
-        private static AuthResponseDTO CreateAuthResponse(UserWithSettings user)
+        private static AuthResponseDTO CreateAuthResponse(UserFull user)
         {
             return new AuthResponseDTO()
             {
@@ -254,9 +241,15 @@ namespace API.Services
                         MasterPasswordStorageMode = user.Settings.MasterPasswordStorageMode,
                         CreatedAt = user.Settings.CreatedAt,
                         UpdatedAt = user.Settings.UpdatedAt
+                    },
+                    MasterPassword = new UserMasterPasswordDTO
+                    {
+                        MasterPasswordSalt = user.MasterPassword?.MasterPasswordSalt,
+                        MasterEncryptedPasswordTest = user.MasterPassword?.MasterEncryptedPasswordTest,
+                        MasterEncryptedPasswordIV = user.MasterPassword?.MasterEncryptedPasswordIV,
                     }
+
                 },
-                MasterPasswordSalt = user.MasterPasswordSalt
             };
 
         }

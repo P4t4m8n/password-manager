@@ -19,10 +19,6 @@ namespace API.Models
         public string? PasswordHash { get; set; }
         public byte[]? PasswordSalt { get; set; }
         public string? GoogleId { get; set; }
-        [Required]
-        public required byte[] MasterPasswordSalt { get; set; }
-        public required byte[] EncryptedMasterKeyWithRecovery { get; set; }
-        public required byte[] RecoveryIV { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
