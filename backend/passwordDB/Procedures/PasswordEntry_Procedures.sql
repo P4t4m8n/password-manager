@@ -1,12 +1,8 @@
 USE PasswordDB;
 
--- GO
-
--- DROP PROCEDURE PasswordSchema.spPasswordEntry_UPDATE;
-
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Select_Many
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_PasswordEntry_SELECT_Many
     @UserId UNIQUEIDENTIFIER,
     @EntryName NVARCHAR(255) = NULL,
     @WebsiteUrl NVARCHAR(255) = NULL,
@@ -26,7 +22,7 @@ END
 
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Select_ById
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_PasswordEntry_SELECT_ById
     @UserId UNIQUEIDENTIFIER,
     @EntryId UNIQUEIDENTIFIER
 AS
@@ -38,7 +34,7 @@ END
 
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Insert
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_PasswordEntry_INSERT
     @UserId UNIQUEIDENTIFIER,
     @EntryName NVARCHAR(100) ,
     @WebsiteUrl NVARCHAR(255) ,
@@ -65,7 +61,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Update
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_PasswordEntry_UPDATE
     @UserId UNIQUEIDENTIFIER,
     @EntryId UNIQUEIDENTIFIER,
     @EntryName NVARCHAR(100) ,
@@ -93,7 +89,7 @@ END
 
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_DELETE
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_PasswordEntry_DELETE
     @UserId UNIQUEIDENTIFIER,
     @EntryId UNIQUEIDENTIFIER
 AS
@@ -103,7 +99,8 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Update_AfterRecovery
+
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_PasswordEntry_UPDATE_AfterRecovery
     @UserId UNIQUEIDENTIFIER,
     @Entries PasswordSchema.PasswordEntryUpdateAfterRecoveryTable READONLY
 AS
@@ -124,7 +121,8 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE PasswordSchema.spPasswordEntry_Like
+
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_PasswordEntry_UPDATE_Like
     @UserId UNIQUEIDENTIFIER,
     @EntryId UNIQUEIDENTIFIER
 AS

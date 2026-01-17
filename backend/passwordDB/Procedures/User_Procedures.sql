@@ -2,7 +2,7 @@ USE PasswordDB;
 
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spFor_Hash
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_User_SELECT_ForHash
     @Email NVARCHAR(100)
 AS
 BEGIN
@@ -13,7 +13,7 @@ END
 
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spUser_GetOne
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_User_SELECT_ByIdOrEmail
     @Email NVARCHAR(100) = NULL,
     @Id UNIQUEIDENTIFIER = NULL
 AS
@@ -22,22 +22,29 @@ BEGIN
         u.Id,
         u.UserName,
         u.Email,
-        u.MasterPasswordSalt,
+        u.CreatedAt,
+        u.UpdatedAt,
         s.MasterPasswordTTLInMinutes,
         s.AutoLockTimeInMinutes,
         s.Theme,
         s.MinimumPasswordStrength,
         s.MasterPasswordStorageMode,
         s.UserId,
-        s.CreatedAt ,
-        s.UpdatedAt
+        s.CreatedAt AS SettingsCreatedAt,
+        s.UpdatedAt AS SettingsUpdatedAt,
+        m.MasterPasswordSalt,
+        m.MasterEncryptedPasswordTest,
+        m.MasterEncryptedPasswordIV,
+        m.CreatedAt AS MasterPasswordCreatedAt,
+        m.UpdatedAt AS MasterPasswordUpdatedAt
     FROM PasswordSchema.[User] u
         INNER JOIN PasswordSchema.UserSettings s ON u.Id = s.UserId
+        INNER JOIN PasswordSchema.UserMasterPassword m ON u.Id = m.UserId
     WHERE u.Email = @Email OR u.Id = @Id;
 END
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spFor_Existing
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_User_SELECT_ForExisting
     @Email NVARCHAR(100)
 AS
 BEGIN
@@ -48,14 +55,12 @@ END
 
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spUser_Create
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_User_INSERT_CreateNewUser
     @Email NVARCHAR(100),
     @UserName NVARCHAR(100),
     @PasswordHash VARBINARY(MAX),
-    @PasswordSalt VARBINARY(MAX),
-    @MasterPasswordSalt VARBINARY(MAX),
-    @EncryptedMasterKeyWithRecovery VARBINARY(MAX),
-    @RecoveryIV VARBINARY(MAX)
+    @PasswordSalt VARBINARY(MAX)
+
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -66,12 +71,10 @@ BEGIN
 
     BEGIN TRY
         INSERT INTO PasswordSchema.[User]
-        (Email, Username, PasswordHash, PasswordSalt, MasterPasswordSalt,
-        EncryptedMasterKeyWithRecovery, RecoveryIV)
+        (Email, Username, PasswordHash, PasswordSalt)
     OUTPUT INSERTED.Id INTO @NewUserId
     VALUES
-        (@Email, @Username, @PasswordHash, @PasswordSalt,
-            @MasterPasswordSalt, @EncryptedMasterKeyWithRecovery, @RecoveryIV);
+        (@Email, @Username, @PasswordHash, @PasswordSalt);
         
         INSERT INTO PasswordSchema.UserSettings
         (UserId)
@@ -80,21 +83,27 @@ BEGIN
         
         SELECT
         u.Id,
+        u.UserName,
         u.Email,
-        u.Username,
-        u.MasterPasswordSalt,
+        u.CreatedAt,
+        u.UpdatedAt,
         s.MasterPasswordTTLInMinutes,
         s.AutoLockTimeInMinutes,
         s.Theme,
-        s.UserId,
         s.MinimumPasswordStrength,
         s.MasterPasswordStorageMode,
-        s.CreatedAt,
-        s.UpdatedAt
+        s.UserId,
+        s.CreatedAt AS SettingsCreatedAt,
+        s.UpdatedAt AS SettingsUpdatedAt,
+        m.MasterPasswordSalt,
+        m.MasterEncryptedPasswordTest,
+        m.MasterEncryptedPasswordIV,
+        m.CreatedAt AS MasterPasswordCreatedAt,
+        m.UpdatedAt AS MasterPasswordUpdatedAt
     FROM PasswordSchema.[User] u
         INNER JOIN PasswordSchema.UserSettings s ON u.Id = s.UserId
+        INNER JOIN PasswordSchema.UserMasterPassword m ON u.Id = m.UserId
         INNER JOIN @NewUserId n ON u.Id = n.Id;
-        
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -104,33 +113,3 @@ BEGIN
 END
 
 GO
-
-CREATE OR ALTER PROCEDURE PasswordSchema.spUser_Select_MasterPasswordRecoveryData
-    @UserId UNIQUEIDENTIFIER
-AS
-BEGIN
-    SELECT EncryptedMasterKeyWithRecovery, RecoveryIV
-    FROM PasswordSchema.[User]
-    WHERE Id = @UserId;
-END
-
-GO
-
-CREATE OR ALTER PROCEDURE PasswordSchema.spUser_Update_MasterPasswordRecovery
-    @UserId UNIQUEIDENTIFIER,
-    @EncryptedMasterKeyWithRecovery VARBINARY(MAX),
-    @RecoveryIV VARBINARY(MAX),
-    @MasterPasswordSalt VARBINARY(MAX)
-AS
-BEGIN
-    UPDATE PasswordSchema.[User]
-    SET EncryptedMasterKeyWithRecovery = @EncryptedMasterKeyWithRecovery,
-        RecoveryIV = @RecoveryIV,
-        MasterPasswordSalt = @MasterPasswordSalt,
-        UpdatedAt = GETDATE()
-    WHERE Id = @UserId;
-
-    SELECT Id, Email, Username, MasterPasswordSalt
-    FROM PasswordSchema.[User]
-    WHERE Id = @UserId;
-END

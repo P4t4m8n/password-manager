@@ -28,11 +28,6 @@ BEGIN
     (
         Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
 
-        EncryptedMasterKeyWithRecovery VARBINARY (MAX) NOT NULL,
-        RecoveryIV VARBINARY (MAX) NOT NULL,
-
-        MasterPasswordSalt VARBINARY (MAX) ,
-
         Username NVARCHAR (50) NOT NULL UNIQUE,
         Email NVARCHAR (100) NOT NULL UNIQUE,
 
@@ -44,6 +39,32 @@ BEGIN
         CreatedAt DATETIME2 DEFAULT GETDATE(),
         UpdatedAt DATETIME2 DEFAULT GETDATE()
 
+    );
+
+END
+IF NOT EXISTS (SELECT *
+FROM sys.tables t
+    JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE s.name = 'PasswordSchema' AND t.name = 'UserMasterPassword')
+BEGIN
+
+    CREATE TABLE PasswordSchema.UserMasterPassword
+    (
+        Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+
+        EncryptedMasterKeyWithRecovery VARBINARY (MAX) NOT NULL,
+        RecoveryIV VARBINARY (MAX) NOT NULL,
+
+        MasterEncryptedPasswordTest VARBINARY(MAX) NOT NULL,
+        MasterEncryptedPasswordIV NVARCHAR(255) NOT NULL,
+
+        MasterPasswordSalt VARBINARY (MAX) ,
+
+        UserId UNIQUEIDENTIFIER NOT NULL,
+        FOREIGN KEY (UserId) REFERENCES PasswordSchema.[User](Id) ON DELETE CASCADE,
+
+        CreatedAt DATETIME2 DEFAULT GETDATE(),
+        UpdatedAt DATETIME2 DEFAULT GETDATE()
     );
 
 END

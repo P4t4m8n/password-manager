@@ -1,3 +1,6 @@
+
+USE PasswordDB;
+GO
 -- Check Schema
 SELECT 'Schema' AS ObjectType, 
        CASE WHEN EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'PasswordSchema') 
@@ -12,6 +15,14 @@ SELECT 'Table',
                          WHERE s.name = 'PasswordSchema' AND t.name = 'User') 
             THEN 'OK' ELSE 'MISSING' END,
        'PasswordSchema.User'
+
+UNION ALL
+
+SELECT 'Table', 
+       CASE WHEN EXISTS (SELECT 1 FROM sys.tables t JOIN sys.schemas s ON t.schema_id = s.schema_id 
+                         WHERE s.name = 'PasswordSchema' AND t.name = 'UserMasterPassword') 
+            THEN 'OK' ELSE 'MISSING' END,
+       'PasswordSchema.UserMasterPassword'
 
 UNION ALL
 
@@ -53,6 +64,25 @@ SELECT 'Index',
 
 UNION ALL
 
+-- Check Constraints
+SELECT 'Constraint',
+       CASE WHEN EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'chk_theme') THEN 'OK' ELSE 'MISSING' END,
+       'chk_theme'
+
+UNION ALL
+
+SELECT 'Constraint',
+       CASE WHEN EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'chk_min_password_strength') THEN 'OK' ELSE 'MISSING' END,
+       'chk_min_password_strength'
+
+UNION ALL
+
+SELECT 'Constraint',
+       CASE WHEN EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'chk_master_password_storage_mode') THEN 'OK' ELSE 'MISSING' END,
+       'chk_master_password_storage_mode'
+
+UNION ALL
+
 -- Check User Type
 SELECT 'Type', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.types WHERE name = 'PasswordEntryUpdateAfterRecoveryTable' AND is_table_type = 1) 
@@ -64,120 +94,136 @@ UNION ALL
 -- Check Stored Procedures
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spFor_Hash') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_User_SELECT_ForHash') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spFor_Hash'
+       'sp_User_SELECT_ForHash'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spUser_GetOne') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_User_SELECT_ByIdOrEmail') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spUser_GetOne'
+       'sp_User_SELECT_ByIdOrEmail'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spFor_Existing') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_User_SELECT_ForExisting') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spFor_Existing'
+       'sp_User_SELECT_ForExisting'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spUser_Create') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_User_INSERT_CreateNewUser') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spUser_Create'
+       'sp_User_INSERT_CreateNewUser'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spUser_Select_MasterPasswordRecoveryData') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_UserMasterPassword_SELECT_MasterPasswordRecoveryData') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spUser_Select_MasterPasswordRecoveryData'
+       'sp_UserMasterPassword_SELECT_MasterPasswordRecoveryData'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spUser_Update_MasterPasswordRecovery') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_UserMasterPassword_SELECT_MasterPasswordTestData') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spUser_Update_MasterPasswordRecovery'
+       'sp_UserMasterPassword_SELECT_MasterPasswordTestData'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spUserSettings_Select_ByUserId') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_UserMasterPassword_INSERT') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spUserSettings_Select_ByUserId'
+       'sp_UserMasterPassword_INSERT'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spUserSettings_Update') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_UserMasterPassword_UPDATE') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spUserSettings_Update'
+       'sp_UserMasterPassword_UPDATE'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spPasswordEntry_Select_Many') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_UserSettings_SELECT_ByUserId') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spPasswordEntry_Select_Many'
+       'sp_UserSettings_SELECT_ByUserId'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spPasswordEntry_Select_ById') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_UserSettings_UPDATE') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spPasswordEntry_Select_ById'
+       'sp_UserSettings_UPDATE'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spPasswordEntry_Insert') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_PasswordEntry_SELECT_Many') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spPasswordEntry_Insert'
+       'sp_PasswordEntry_SELECT_Many'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spPasswordEntry_Update') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_PasswordEntry_SELECT_ById') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spPasswordEntry_Update'
+       'sp_PasswordEntry_SELECT_ById'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spPasswordEntry_DELETE') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_PasswordEntry_INSERT') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spPasswordEntry_DELETE'
+       'sp_PasswordEntry_INSERT'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spPasswordEntry_Update_AfterRecovery') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_PasswordEntry_UPDATE') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spPasswordEntry_Update_AfterRecovery'
+       'sp_PasswordEntry_UPDATE'
 
 UNION ALL
 
 SELECT 'Procedure', 
        CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
-                         WHERE s.name = 'PasswordSchema' AND p.name = 'spPasswordEntry_Like') 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_PasswordEntry_DELETE') 
             THEN 'OK' ELSE 'MISSING' END,
-       'spPasswordEntry_Like'
+       'sp_PasswordEntry_DELETE'
+
+UNION ALL
+
+SELECT 'Procedure', 
+       CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_PasswordEntry_UPDATE_AfterRecovery') 
+            THEN 'OK' ELSE 'MISSING' END,
+       'sp_PasswordEntry_UPDATE_AfterRecovery'
+
+UNION ALL
+
+SELECT 'Procedure', 
+       CASE WHEN EXISTS (SELECT 1 FROM sys.procedures p JOIN sys.schemas s ON p.schema_id = s.schema_id 
+                         WHERE s.name = 'PasswordSchema' AND p.name = 'sp_PasswordEntry_UPDATE_Like') 
+            THEN 'OK' ELSE 'MISSING' END,
+       'sp_PasswordEntry_UPDATE_Like'
 
 ORDER BY ObjectType, Name;

@@ -2,7 +2,7 @@ USE PasswordDB;
 
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spUserSettings_Select_ByUserId
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_UserSettings_SELECT_ByUserId
     @UserId UNIQUEIDENTIFIER
 AS
 BEGIN
@@ -19,7 +19,7 @@ END
 
 GO
 
-CREATE OR ALTER PROCEDURE PasswordSchema.spUserSettings_Update
+CREATE OR ALTER PROCEDURE PasswordSchema.sp_UserSettings_UPDATE
     @UserId UNIQUEIDENTIFIER,
     @MasterPasswordTTLInMinutes INT = 30,
     @AutoLockTimeInMinutes INT = 5,
