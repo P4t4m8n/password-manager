@@ -5,6 +5,8 @@ using API.Dtos.User;
 public sealed class AuthResponseDTO
 {
     public UserDTO? User { get; set; }
-    public required byte[] MasterPasswordSalt { get; set; }
+    public byte[]? MasterPasswordSalt { get; set; }
+    public byte[]? MasterPasswordVerification { get; set; }
+    public byte[]? MasterPasswordVerificationIV { get; set; }
 
 }

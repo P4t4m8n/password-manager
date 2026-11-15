@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { catchError, from, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, Observable, of, tap } from 'rxjs';
 
 import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
 import { CryptoService } from '../../crypto/services/crypto-service';
@@ -12,7 +12,6 @@ import type {
   IAuthSignInDto,
   IAuthSignUpDto,
 } from '../interfaces/auth.interface';
-import type { TPrettify } from '../../../core/types/prettify.type';
 import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dto';
 import type { IUserDTO } from '../../user/interfaces/user-dto';
 
@@ -28,50 +27,25 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
     super('auth');
   }
 
-  signIn(
-    dto: TPrettify<IAuthProps<IAuthSignInDto>>
-  ): Observable<IHttpResponseDto<IAuthResponseDto>> {
+  signIn(dto: IAuthProps<IAuthSignInDto>): Observable<IHttpResponseDto<IAuthResponseDto>> {
     return this.httpClient
       .post<IHttpResponseDto<IAuthResponseDto>>(`${this.ENDPOINT}/Sign-in`, dto, this.httpConfig)
       .pipe(
         tap((res) => {
-          this.#updateStatesData(res, dto.masterPassword);
-        })
+          this.#updateStatesData(res);
+        }),
         //Error handling is done in the component to allow formGroup error setting
       );
   }
 
-  signUp(
-    dto: TPrettify<IAuthProps<IAuthSignUpDto>>
-  ): Observable<IHttpResponseDto<IAuthResponseDto> & { recoveryKey: Uint8Array }> {
-    const { masterPassword, email, ...rest } = dto;
-
-    return from(this.#cryptoService.handleMasterPasswordCreation(masterPassword)).pipe(
-      switchMap(
-        ({ recoveryKey, recoveryIV, encryptedMasterKeyWithRecovery, masterPasswordSalt }) => {
-          const signUpDto: IAuthSignUpDto = {
-            ...rest,
-            email,
-            masterPasswordSalt,
-            encryptedMasterKeyWithRecovery,
-            recoveryIV,
-          };
-
-          return this.httpClient
-            .post<IHttpResponseDto<IAuthResponseDto>>(
-              `${this.ENDPOINT}/Sign-up`,
-              signUpDto,
-              this.httpConfig
-            )
-            .pipe(
-              tap((res) => {
-                this.#updateStatesData(res, masterPassword);
-              }),
-              map((res) => ({ ...res, recoveryKey }))
-            );
-        }
-      )
-    );
+  signUp(dto: IAuthSignUpDto): Observable<IHttpResponseDto<IAuthResponseDto>> {
+    return this.httpClient
+      .post<IHttpResponseDto<IAuthResponseDto>>(`${this.ENDPOINT}/Sign-up`, dto, this.httpConfig)
+      .pipe(
+        tap((res) => {
+          this.#updateStatesData(res);
+        }),
+      );
   }
 
   signOut(): Observable<Object> {
@@ -82,7 +56,7 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
         this.#userSettingsStateService.updateState(null);
         this.#cryptoService.clearSensitiveData();
       }),
-      catchError((err) => this.handleError(err, { showToast: true }))
+      catchError((err) => this.handleError(err, { showToast: true })),
     );
   }
 
@@ -95,7 +69,7 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
         tap((res) => {
           this.#updateStatesData(res);
         }),
-        catchError((err) => this.handleError(err, { showToast: true }))
+        catchError((err) => this.handleError(err, { showToast: true })),
       );
   }
 
@@ -112,7 +86,7 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
           this.updateState(null);
           this.#masterPasswordSaltSessionService.masterPasswordSalt = null;
           return of(null);
-        })
+        }),
       );
   }
 
@@ -120,11 +94,11 @@ export class AuthHttpService extends AbstractHttpService<IUserDTO> {
     return this.getState();
   }
 
-  #updateStatesData(res: IHttpResponseDto<IAuthResponseDto>, masterPassword?: string): void {
-    const { masterPasswordSalt, user } = res.data;
+  #updateStatesData(res: IHttpResponseDto<IAuthResponseDto>): void {
+    const { user } = res.data;
     this.updateState(user);
     this.#userSettingsStateService.updateState(user?.settings ?? null);
-    this.#masterPasswordSaltSessionService.masterPasswordSalt = masterPasswordSalt;
-    this.#cryptoService.persistMasterPassword(masterPassword);
+    // this.#masterPasswordSaltSessionService.masterPasswordSalt = masterPasswordSalt;
+    // this.#cryptoService.persistMasterPassword(masterPassword);
   }
 }

@@ -266,6 +266,9 @@ export class CryptoService {
     const { encrypted: encryptedMasterKeyWithRecovery, iv: recoveryIV } =
       await this.encryptMasterKeyWithRecovery(recoveryKey);
 
+    const { encrypted: verification, iv: verificationIV } =
+      await this.createVerificationToken();
+
     const masterPasswordSaltBase64 = this.arrayBufferToBase64(masterPasswordSalt);
     const encryptedMasterKeyWithRecoveryBase64 = this.arrayBufferToBase64(
       encryptedMasterKeyWithRecovery
@@ -276,8 +279,59 @@ export class CryptoService {
       recoveryIV: recoveryIVBase64,
       encryptedMasterKeyWithRecovery: encryptedMasterKeyWithRecoveryBase64,
       masterPasswordSalt: masterPasswordSaltBase64,
+      masterPasswordVerification: this.arrayBufferToBase64(verification),
+      masterPasswordVerificationIV: this.arrayBufferToBase64(verificationIV),
       recoveryKey,
     };
+  }
+
+  async createVerificationToken(): Promise<{
+    encrypted: Uint8Array<ArrayBuffer>;
+    iv: Uint8Array<ArrayBuffer>;
+  }> {
+    if (!this.#encryptionKey) {
+      throw new Error('Encryption key not initialized in createVerificationToken');
+    }
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode('MASTER_PASSWORD_VERIFIED');
+    const iv = this.generateIV();
+
+    const encryptedBuffer = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      this.#encryptionKey,
+      data
+    );
+
+    return {
+      encrypted: new Uint8Array(encryptedBuffer),
+      iv,
+    };
+  }
+
+  async verifyMasterPassword(
+    encryptedVerification: string,
+    verificationIV: string
+  ): Promise<boolean> {
+    if (!this.#encryptionKey) {
+      throw new Error('Encryption key not initialized in verifyMasterPassword');
+    }
+
+    try {
+      const encrypted = this.base64ToArrayBuffer(encryptedVerification);
+      const iv = this.base64ToArrayBuffer(verificationIV);
+
+      const decryptedBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        this.#encryptionKey,
+        encrypted
+      );
+
+      const decoder = new TextDecoder();
+      return decoder.decode(decryptedBuffer) === 'MASTER_PASSWORD_VERIFIED';
+    } catch {
+      return false;
+    }
   }
 
   async initializeMasterPassword(): Promise<void> {

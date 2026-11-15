@@ -45,7 +45,7 @@ public sealed class UserSettingsServiceTests
         Assert.IsNotNull(result);
         Assert.AreEqual(_testUserGuid, result.UserId);
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<UserSettings>(
-            It.Is<string>(sql => sql.Contains("spUserSettings_Select_ByUserId")),
+            It.Is<string>(sql => sql.Contains("sp_user_settings_select_by_user_id")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -263,7 +263,7 @@ public sealed class UserSettingsServiceTests
         Assert.IsNotNull(result);
         Assert.AreEqual(updateDto.UserId, result.UserId);
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<UserSettingsDTO>(
-            It.Is<string>(sql => sql.Contains("spUserSettings_Update")),
+            It.Is<string>(sql => sql.Contains("sp_user_settings_update")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -647,7 +647,7 @@ public sealed class UserSettingsServiceTests
         // Assert
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<UserSettingsDTO>(
             It.Is<string>(sql =>
-                sql.Contains("spUserSettings_Update") &&
+                sql.Contains("sp_user_settings_update") &&
                 sql.Contains("@UserId") &&
                 sql.Contains("@MasterPasswordTTLInMinutes") &&
                 sql.Contains("@AutoLockTimeInMinutes") &&
@@ -675,7 +675,7 @@ public sealed class UserSettingsServiceTests
         // Assert
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<UserSettings>(
             It.Is<string>(sql =>
-                sql.Contains("spUserSettings_Select_ByUserId") &&
+                sql.Contains("sp_user_settings_select_by_user_id") &&
                 sql.Contains("@UserId")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }

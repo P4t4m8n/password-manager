@@ -1,4 +1,3 @@
-using System.Data;
 using API.Dtos.PasswordEntry;
 using API.Exceptions;
 using API.Interfaces;
@@ -24,12 +23,9 @@ namespace API.Services
             int limit = queryParams.Limit ?? 10;
             int offset = queryParams.Offset ?? 0;
 
-            string selectSql = @"EXEC PasswordSchema.spPasswordEntry_Select_Many
-                                 @UserId=@UserId,
-                                 @EntryName=@EntryName,
-                                 @WebsiteUrl=@WebsiteUrl,
-                                 @Limit=@Limit,
-                                 @Offset=@Offset;";
+            // Migrated: EXEC PasswordSchema.spPasswordEntry_Select_Many -> PG function
+            string selectSql = @"SELECT * FROM password_schema.sp_password_entry_select_many(
+                                 @UserId, @EntryName, @WebsiteUrl, @Offset, @Limit)";
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
@@ -45,9 +41,9 @@ namespace API.Services
 
         public async Task<PasswordEntryDTO> GetPasswordEntryByIdAsync(Guid userGuid, Guid entryId)
         {
-            string selectSql = @"EXEC PasswordSchema.spPasswordEntry_Select_ById
-                                 @UserId=@UserId,
-                                 @EntryId=@EntryId;";
+            // Migrated: EXEC PasswordSchema.spPasswordEntry_Select_ById -> PG function
+            string selectSql = @"SELECT * FROM password_schema.sp_password_entry_select_by_id(
+                                 @UserId, @EntryId)";
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
@@ -64,14 +60,10 @@ namespace API.Services
 
         public async Task<PasswordEntryDTO> CreatePasswordEntryAsync(Guid userGuid, PasswordEntryCreateDTO entryDto)
         {
-            string insertSql = @"EXEC PasswordSchema.spPasswordEntry_Insert
-                                     @UserId=@UserId,
-                                     @EntryName=@EntryName,
-                                     @WebsiteUrl=@WebsiteUrl,
-                                     @EntryUserName=@EntryUserName,
-                                     @EncryptedPassword=@EncryptedPassword,
-                                     @IV=@IV,
-                                     @Notes=@Notes;";
+            // Migrated: EXEC PasswordSchema.spPasswordEntry_Insert -> PG function
+            string insertSql = @"SELECT * FROM password_schema.sp_password_entry_insert(
+                                     @UserId, @EntryName, @WebsiteUrl,
+                                     @EntryUserName, @EncryptedPassword, @IV, @Notes)";
 
 
             DynamicParameters parameters = new();
@@ -93,17 +85,10 @@ namespace API.Services
         }
         public async Task<PasswordEntryDTO> UpdatePasswordEntryAsync(Guid userGuid, Guid entryId, PasswordEntryUpdateDTO entryDto)
         {
-            string updateSql = @"EXEC PasswordSchema.spPasswordEntry_Update
-                                 @UserId=@UserId,
-                                 @EntryId=@EntryId,
-                                 @EntryName=@EntryName,
-                                 @WebsiteUrl=@WebsiteUrl,
-                                 @EntryUserName=@EntryUserName,
-                                 @EncryptedPassword=@EncryptedPassword,
-                                 @IV=@IV,
-                                 @Notes=@Notes,
-                                    @IsLiked=@IsLiked;
-                                 ";
+            // Migrated: EXEC PasswordSchema.spPasswordEntry_Update -> PG function
+            string updateSql = @"SELECT * FROM password_schema.sp_password_entry_update(
+                                 @UserId, @EntryId, @EntryName, @WebsiteUrl,
+                                 @EntryUserName, @EncryptedPassword, @IV, @Notes, @IsLiked)";
 
 
             DynamicParameters parameters = new();
@@ -128,9 +113,9 @@ namespace API.Services
 
         public async Task DeletePasswordEntryAsync(Guid userGuid, Guid entryId)
         {
-            string deleteSql = @"EXEC PasswordSchema.spPasswordEntry_Delete
-                                 @UserId=@UserId,
-                                 @EntryId=@EntryId;";
+            // Migrated: EXEC PasswordSchema.spPasswordEntry_Delete -> PG function
+            string deleteSql = @"SELECT password_schema.sp_password_entry_delete(
+                                 @UserId, @EntryId)";
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
@@ -149,35 +134,33 @@ namespace API.Services
 
         public async Task<int> UpdateEntriesAfterRecoveryAsync(Guid userGuid, List<PasswordEntryUpdateDTO> updateDtos)
         {
-            DataTable tvp = new();
-            tvp.Columns.Add("Id", typeof(Guid));
-            tvp.Columns.Add("EncryptedPassword", typeof(byte[]));
-            tvp.Columns.Add("IV", typeof(string));
+            // Migrated: TVP (DataTable) -> JSONB array for PostgreSQL
+            // PG function expects a JSONB array: [{"Id":"...","EncryptedPassword":"base64","IV":"..."},...]
+            var entriesJson = System.Text.Json.JsonSerializer.Serialize(
+                updateDtos.Select(dto => new
+                {
+                    Id = dto.Id,
+                    EncryptedPassword = dto.EncryptedPassword != null ? Convert.ToBase64String(dto.EncryptedPassword) : "",
+                    IV = dto.IV
+                })
+            );
 
-            foreach (var dto in updateDtos)
-            {
-                tvp.Rows.Add(dto.Id, dto.EncryptedPassword, dto.IV);
-            }
-            string updateSql = @"EXEC PasswordSchema.spPasswordEntry_Update_AfterRecovery
-                                 @UserId=@UserId,
-                                 @Entries=@Entries;";
-
+            // Migrated: EXEC PasswordSchema.spPasswordEntry_Update_AfterRecovery -> PG function
+            string updateSql = @"SELECT password_schema.sp_password_entry_update_after_recovery(
+                                 @UserId, @Entries::jsonb)";
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
-            parameters.Add(
-                "@Entries",
-                tvp.AsTableValuedParameter("PasswordSchema.PasswordEntryUpdateAfterRecoveryTable")
-            );
+            parameters.Add("@Entries", entriesJson);
 
             return await _contextDapper.ExecuteSql(updateSql, parameters);
         }
 
         public async Task<bool> LikePasswordEntryAsync(Guid userGuid, Guid entryId)
         {
-            string likeSql = @"EXEC PasswordSchema.spPasswordEntry_Like
-                                 @UserId=@UserId,
-                                 @EntryId=@EntryId;";
+            // Migrated: EXEC PasswordSchema.spPasswordEntry_Like -> PG function
+            string likeSql = @"SELECT password_schema.sp_password_entry_like(
+                                 @UserId, @EntryId)";
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);

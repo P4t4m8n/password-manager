@@ -28,7 +28,7 @@
   </ul>
 
   <app-submit-button
-    [isDisabled]="authSettings.formGroup.invalid && authSettings.formGroup.touched"
+    [isDisabled]="authSettings.formGroup.invalid && !authSettings.formGroup.touched"
     [isLoading]="isSaving$ | async"
     [buttonText]="authSettings.headerText"
     [buttonLoadingText]="authSettings.loadingText"

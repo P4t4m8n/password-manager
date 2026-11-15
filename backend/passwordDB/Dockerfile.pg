@@ -1,0 +1,11 @@
+# PostgreSQL Dockerfile (migrated from SQL Server)
+# Uses official postgres image instead of mcr.microsoft.com/mssql/server
+FROM postgres:17
+
+# Copy SQL init scripts into the Docker entrypoint init directory.
+# PostgreSQL's official image auto-runs *.sql files from /docker-entrypoint-initdb.d/
+# in alphabetical order on first container start. We prefix with numbers to control order.
+COPY Create.pg.sql /docker-entrypoint-initdb.d/01-create.sql
+COPY Procedures/User_Procedures.pg.sql /docker-entrypoint-initdb.d/02-user-procedures.sql
+COPY Procedures/PasswordEntry_Procedures.pg.sql /docker-entrypoint-initdb.d/03-password-entry-procedures.sql
+COPY Procedures/UserSettings_Procedures.pg.sql /docker-entrypoint-initdb.d/04-user-settings-procedures.sql

@@ -60,7 +60,7 @@ public sealed class AuthServiceTests
 
         _mockDataContext
             .Setup(x => x.QuerySingleOrDefaultAsync<AuthConfirmationDTO>(
-                It.Is<string>(sql => sql.Contains("spFor_Hash")),
+                It.Is<string>(sql => sql.Contains("sp_for_hash")),
                 It.IsAny<DynamicParameters?>()))
             .ReturnsAsync(authConfirmation);
 
@@ -70,7 +70,7 @@ public sealed class AuthServiceTests
 
         _mockDataContext
             .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
-                It.Is<string>(sql => sql.Contains("spUser_GetOne")),
+                It.Is<string>(sql => sql.Contains("sp_user_get_one")),
                 It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
@@ -281,7 +281,7 @@ public sealed class AuthServiceTests
             It.Is<CookieOptions>(opts =>
                 opts.HttpOnly == true &&
                 opts.Secure == true &&
-                opts.SameSite == SameSiteMode.Strict)),
+                opts.SameSite == SameSiteMode.None)),
             Times.Once);
     }
 
@@ -300,7 +300,7 @@ public sealed class AuthServiceTests
 
         _mockDataContext
             .Setup(x => x.LoadData<string>(
-                It.Is<string>(sql => sql.Contains("spFor_Existing")),
+                It.Is<string>(sql => sql.Contains("sp_for_existing")),
                 It.IsAny<DynamicParameters?>()))
             .ReturnsAsync(new List<string>());
 
@@ -314,7 +314,7 @@ public sealed class AuthServiceTests
 
         _mockDataContext
             .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
-                It.Is<string>(sql => sql.Contains("spUser_Create")),
+                It.Is<string>(sql => sql.Contains("sp_user_create")),
                 It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
@@ -342,7 +342,7 @@ public sealed class AuthServiceTests
 
         _mockDataContext
             .Setup(x => x.LoadData<string>(
-                It.Is<string>(sql => sql.Contains("spFor_Existing")),
+                It.Is<string>(sql => sql.Contains("sp_for_existing")),
                 It.IsAny<DynamicParameters?>()))
             .ReturnsAsync(new List<string> { "existing@example.com" });
 
@@ -526,7 +526,7 @@ public sealed class AuthServiceTests
 
         _mockDataContext
             .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
-                It.Is<string>(sql => sql.Contains("spUser_GetOne")),
+                It.Is<string>(sql => sql.Contains("sp_user_get_one")),
                 It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
@@ -621,7 +621,7 @@ public sealed class AuthServiceTests
 
         _mockDataContext
             .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
-                It.Is<string>(sql => sql.Contains("spUser_GetOne")),
+                It.Is<string>(sql => sql.Contains("sp_user_get_one")),
                 It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
                 It.IsAny<DynamicParameters?>(),
                 It.IsAny<string>()))
@@ -725,10 +725,14 @@ public sealed class AuthServiceTests
         var passwordSalt = new byte[] { 1, 2, 3, 4 };
         var passwordHash = new byte[] { 5, 6, 7, 8 };
         var masterPasswordSalt = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 };
+        var masterPasswordVerification = new byte[] { 40, 41, 42, 43 };
+        var masterPasswordVerificationIV = new byte[] { 50, 51, 52, 53 };
 
         var authConfirmation = new AuthConfirmationDTO { PasswordHash = passwordHash, PasswordSalt = passwordSalt };
         var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
         userWithSettings.MasterPasswordSalt = masterPasswordSalt;
+        userWithSettings.MasterPasswordVerification = masterPasswordVerification;
+        userWithSettings.MasterPasswordVerificationIV = masterPasswordVerificationIV;
 
         SetupSuccessfulSignIn(authConfirmation, passwordHash, passwordSalt, userWithSettings, signInDto.Password!);
 
@@ -737,6 +741,64 @@ public sealed class AuthServiceTests
 
         // Assert
         CollectionAssert.AreEqual(masterPasswordSalt, result.MasterPasswordSalt);
+        CollectionAssert.AreEqual(masterPasswordVerification, result.MasterPasswordVerification);
+        CollectionAssert.AreEqual(masterPasswordVerificationIV, result.MasterPasswordVerificationIV);
+    }
+
+    [TestMethod]
+    public async Task SignInAsync_WhenMasterPasswordNotSetup_ReturnsNullMasterPasswordFields()
+    {
+        // Arrange
+        var signInDto = new AuthSignInDTO { Email = "test@example.com", Password = "password123" };
+        var passwordSalt = new byte[] { 1, 2, 3, 4 };
+        var passwordHash = new byte[] { 5, 6, 7, 8 };
+
+        var authConfirmation = new AuthConfirmationDTO { PasswordHash = passwordHash, PasswordSalt = passwordSalt };
+        var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
+
+        SetupSuccessfulSignIn(authConfirmation, passwordHash, passwordSalt, userWithSettings, signInDto.Password!);
+
+        // Act
+        var result = await _authService.SignInAsync(signInDto, _mockHttpResponse.Object);
+
+        // Assert
+        Assert.IsNull(result.MasterPasswordSalt);
+        Assert.IsNull(result.MasterPasswordVerification);
+        Assert.IsNull(result.MasterPasswordVerificationIV);
+    }
+
+    [TestMethod]
+    public async Task SignUpAsync_ReturnsNullMasterPasswordFields()
+    {
+        // Arrange
+        var signUpDto = CreateTestSignUpDTO();
+        var userWithSettings = CreateTestUserWithSettings(_testUserGuid);
+        var generatedSalt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+        var generatedHash = new byte[] { 10, 11, 12, 13, 14, 15, 16, 17 };
+
+        _mockDataContext
+            .Setup(x => x.LoadData<string>(It.IsAny<string>(), It.IsAny<DynamicParameters?>()))
+            .ReturnsAsync(new List<string>());
+
+        _mockCryptoService.Setup(x => x.GenerateSalt()).Returns(generatedSalt);
+        _mockCryptoService.Setup(x => x.GetPasswordHash(signUpDto.Password!, generatedSalt)).Returns(generatedHash);
+        _mockCryptoService.Setup(x => x.CreateToken(It.IsAny<string>())).Returns("token");
+
+        _mockDataContext
+            .Setup(x => x.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(
+                It.IsAny<string>(),
+                It.IsAny<Func<User, UserSettings, UserWithSettings>>(),
+                It.IsAny<DynamicParameters?>(),
+                It.IsAny<string>()))
+            .ReturnsAsync(userWithSettings);
+
+        // Act
+        var result = await _authService.SignUpAsync(signUpDto, _mockHttpResponse.Object);
+
+        // Assert
+        Assert.IsNull(result.MasterPasswordSalt);
+        Assert.IsNull(result.MasterPasswordVerification);
+        Assert.IsNull(result.MasterPasswordVerificationIV);
     }
 
     [TestMethod]
@@ -856,9 +918,11 @@ public sealed class AuthServiceTests
             Email = "test@example.com",
             PasswordHash = "hashedpassword",
             PasswordSalt = new byte[] { 1, 2, 3, 4 },
-            MasterPasswordSalt = new byte[] { 10, 11, 12, 13, 14, 15, 16, 17 },
-            EncryptedMasterKeyWithRecovery = new byte[] { 20, 21, 22, 23 },
-            RecoveryIV = new byte[] { 30, 31, 32, 33 },
+            MasterPasswordSalt = null,
+            EncryptedMasterKeyWithRecovery = null,
+            RecoveryIV = null,
+            MasterPasswordVerification = null,
+            MasterPasswordVerificationIV = null,
             CreatedAt = DateTime.UtcNow.AddDays(-30),
             UpdatedAt = DateTime.UtcNow,
             Settings = new UserSettings
@@ -882,10 +946,7 @@ public sealed class AuthServiceTests
             Email = "newuser@example.com",
             Password = "SecurePassword123!",
             ConfirmPassword = "SecurePassword123!",
-            Username = "newuser",
-            MasterPasswordSalt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
-            EncryptedMasterKeyWithRecovery = new byte[] { 10, 11, 12, 13, 14, 15, 16, 17 },
-            RecoveryIV = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 }
+            Username = "newuser"
         };
     }
 

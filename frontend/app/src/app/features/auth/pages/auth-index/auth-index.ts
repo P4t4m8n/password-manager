@@ -18,6 +18,9 @@ import { ErrorService } from '../../../../core/services/error-service';
 
 import { RecoveryPasswordDialogService } from '../../../master-password/services/recovery-password-dialog';
 import { ConfirmationDialogService } from '../../../../core/dialogs/confirmation-dialog/services/confirmation-dialog-service';
+import { MasterPasswordDialogService } from '../../../master-password/services/master-password-dialog-service';
+import { MasterPasswordHttpService } from '../../../master-password/services/master-password-http-service';
+import { CryptoService } from '../../../crypto/services/crypto-service';
 
 import { PASSWORD_ENTRIES_PATHS } from '../../../password-entry/consts/password-entry-routes.const';
 
@@ -40,6 +43,9 @@ export class AuthIndex {
   #errorService = inject(ErrorService);
   #recoveryPasswordDialogService = inject(RecoveryPasswordDialogService);
   #confirmationDialogService = inject(ConfirmationDialogService);
+  #masterPasswordDialogService = inject(MasterPasswordDialogService);
+  #masterPasswordHttpService = inject(MasterPasswordHttpService);
+  #cryptoService = inject(CryptoService);
   #loadingService = inject(LoadingService);
 
   #isSignIn = new BehaviorSubject<boolean>(true);
@@ -79,17 +85,16 @@ export class AuthIndex {
     },
   ];
 
-  readonly masterPasswordInput = {
-    labelText: 'Master Password',
-    formControlName: 'masterPassword',
-    type: 'password',
-    placeHolder: 'Master Password',
-  };
+  // readonly masterPasswordInput = {
+  //   labelText: 'Master Password',
+  //   formControlName: 'masterPassword',
+  //   type: 'password',
+  //   placeHolder: 'Master Password',
+  // };
 
   authSignInFormGroup = this.#formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
-    masterPassword: ['', Validators.required],
   });
 
   authSignUpFormGroup = this.#formBuilder.group(
@@ -98,17 +103,17 @@ export class AuthIndex {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]],
       confirmPassword: ['', [Validators.required]],
-      masterPassword: ['', Validators.required],
     },
-    { validators: passwordMatchValidator }
+    { validators: passwordMatchValidator },
   );
 
   authSettings$ = this.isSignIn$.pipe(
     map((isSignIn) => {
+      console.log('isSignIn', isSignIn);
       if (isSignIn) {
-        if (!this.signInInputs.includes(this.masterPasswordInput)) {
-          this.signInInputs.push(this.masterPasswordInput);
-        }
+        // if (!this.signInInputs.includes(this.masterPasswordInput)) {
+        //   this.signInInputs.push(this.masterPasswordInput);
+        // }
         return {
           headerText: 'Sign-In',
           loadingText: 'Signing In...',
@@ -118,9 +123,6 @@ export class AuthIndex {
           isSignIn: true,
         };
       }
-      if (!this.signUpInputs.includes(this.masterPasswordInput)) {
-        this.signUpInputs.push(this.masterPasswordInput);
-      }
       return {
         headerText: 'Sign Up',
         loadingText: 'Signing Up...',
@@ -129,24 +131,30 @@ export class AuthIndex {
         inputs: this.signUpInputs,
         isSignIn: false,
       };
-    })
+    }),
   );
 
   toggleAuthMode() {
     this.#isSignIn.next(!this.#isSignIn.getValue());
+    console.log(
+      '🚀 ~ AuthIndex ~ toggleAuthMode ~ this.#isSignIn.getValue():',
+      this.#isSignIn.getValue(),
+    );
   }
 
   async onSubmit(e: Event) {
     e.preventDefault();
 
     const control = this.#getFormControl();
+    console.log('🚀 ~ AuthIndex ~ onSubmit ~ control:', control);
 
     control.markAllAsTouched();
+    console.log('Submitting form');
     if (control.invalid) {
       return;
     }
 
-    return this.#isSignIn.getValue() ? this.#signIn() :  this.#signUp();
+    return this.#isSignIn.getValue() ? this.#signIn() : this.#signUp();
   }
 
   getErrorMessage(controlName: string, label: string): string {
@@ -184,14 +192,15 @@ export class AuthIndex {
   ngOnDestroy() {}
 
   #getFormControl(): FormGroup {
+    console.log('🚀 ~ AuthIndex ~ this.#isSignIn.getValue():', this.#isSignIn.getValue());
     return this.#isSignIn.getValue() ? this.authSignInFormGroup : this.authSignUpFormGroup;
   }
 
   #signIn() {
-    const { email, password, masterPassword } = this.authSignInFormGroup.value;
-    if (!email || !password || !masterPassword) {
+    const { email, password } = this.authSignInFormGroup.value;
+    if (!email || !password) {
       console.warn(
-        'Email, Password or Master Password are missing and skipped validation, this should not happen.'
+        'Email, Password or Master Password are missing and skipped validation, this should not happen.',
       );
       return;
     }
@@ -199,7 +208,6 @@ export class AuthIndex {
     const signInDto: IAuthProps<IAuthSignInDto> = {
       email: email.trim(),
       password: password,
-      masterPassword: masterPassword,
     };
 
     this.#loadingService.setSaving(true);
@@ -207,17 +215,39 @@ export class AuthIndex {
     this.#authHttpService
       .signIn(signInDto)
       .pipe(
-        tap(async () => {
+        tap(async (res) => {
+          // const { masterPasswordVerification, masterPasswordVerificationIV } = res.data;
+
+          // if (masterPasswordVerification && masterPasswordVerificationIV) {
+          //   const isValid = await this.#cryptoService.verifyMasterPassword(
+          //     masterPasswordVerification,
+          //     masterPasswordVerificationIV,
+          //   );
+          //   console.log("🚀 ~ AuthIndex ~ tap ~ isValid:", isValid)
+
+          //   if (!isValid) {
+          //     this.authSignInFormGroup.get('masterPassword')?.setErrors({
+          //       serverError: 'Incorrect master password',
+          //     });
+          //     this.#loadingService.setSaving(false);
+          //     return;
+          //   }
+          // }
+          const masterPassword = await this.#masterPasswordDialogService.openDialog({
+            mode: 'unlock',
+          });
+          console.log("🚀 ~ AuthIndex ~ masterPassword:", masterPassword)
+
           this.#router.navigate(['/entries']);
-        })
+        }),
       )
       .subscribe({
-        //In theory only HttpErrorResponse can come here
         error: (err) => {
           this.#errorService.handleError(err, {
             formGroup: this.authSignInFormGroup,
             showToast: true,
           });
+          this.#loadingService.setSaving(false);
         },
         complete: () => {
           this.#loadingService.setSaving(false);
@@ -227,30 +257,48 @@ export class AuthIndex {
   }
 
   #signUp() {
-    const { email, password, confirmPassword, username, masterPassword } =
-      this.authSignUpFormGroup.value;
+    const { email, password, confirmPassword, username } = this.authSignUpFormGroup.value;
 
-    if (!email || !password || !confirmPassword || !username || !masterPassword) {
+    if (!email || !password || !confirmPassword || !username) {
       console.warn(
-        'Email, Password or Confirm Password are missing and skipped validation, this should not happen.'
+        'Email, Password or Confirm Password are missing and skipped validation, this should not happen.',
       );
       return;
     }
 
-    const signUpDto: IAuthProps<IAuthSignUpDto> = {
+    const signUpDto: IAuthSignUpDto = {
       email: email.trim(),
       password,
       confirmPassword,
       username: username.trim(),
-      masterPassword,
     };
+
     this.#loadingService.setSaving(true);
 
-    const subscription = this.#authHttpService.signUp(signUpDto);
+    this.#authHttpService.signUp(signUpDto).subscribe({
+      next: async () => {
+        this.#loadingService.setSaving(false);
 
-    subscription.subscribe({
-      next: async (res) => {
-        await this.#recoveryPasswordDialogService.openDialog({ recoveryKey: res.recoveryKey });
+        const masterPassword = await this.#masterPasswordDialogService.openDialog({
+          mode: 'setup',
+        });
+
+        if (!masterPassword) return;
+
+        const credentials = await this.#cryptoService.handleMasterPasswordCreation(masterPassword);
+
+        await this.#masterPasswordHttpService.setupMasterPassword({
+          masterPasswordSalt: credentials.masterPasswordSalt,
+          encryptedMasterKeyWithRecovery: credentials.encryptedMasterKeyWithRecovery,
+          recoveryIV: credentials.recoveryIV,
+          masterPasswordVerification: credentials.masterPasswordVerification,
+          masterPasswordVerificationIV: credentials.masterPasswordVerificationIV,
+        });
+
+        await this.#cryptoService.persistMasterPassword(masterPassword);
+        await this.#recoveryPasswordDialogService.openDialog({
+          recoveryKey: credentials.recoveryKey,
+        });
 
         const isNavToSettings = await this.#confirmationDialogService.openDialog({
           title: 'Navigate to Settings',
@@ -268,8 +316,6 @@ export class AuthIndex {
           formGroup: this.authSignUpFormGroup,
           showToast: true,
         });
-      },
-      complete: () => {
         this.#loadingService.setSaving(false);
       },
     });
@@ -277,8 +323,10 @@ export class AuthIndex {
     return;
   }
 }
- 
-export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+
+export const passwordMatchValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
   const password = control.get('password');
   const confirmPassword = control.get('confirmPassword');
 

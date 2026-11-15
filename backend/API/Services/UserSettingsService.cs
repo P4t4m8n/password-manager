@@ -17,8 +17,9 @@ namespace API.Services
 
         public async Task<UserSettingsDTO> GetUserSettingsAsync(Guid userGuid)
         {
-            string selectSql = @"EXEC PasswordSchema.spUserSettings_Select_ByUserId
-                                 @UserId=@UserId;";
+            // Migrated: EXEC PasswordSchema.spUserSettings_Select_ByUserId -> PG function
+            string selectSql = @"SELECT * FROM password_schema.sp_user_settings_select_by_user_id(
+                                 @UserId)";
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userGuid);
@@ -43,13 +44,11 @@ namespace API.Services
 
         public async Task<UserSettingsDTO> UpdateUserSettingsAsync(UserSettingsDTO userSettingsDTO)
         {
-            string updateSql = @"EXEC PasswordSchema.spUserSettings_Update
-                                 @UserId=@UserId,
-                                 @MasterPasswordTTLInMinutes=@MasterPasswordTTLInMinutes,
-                                 @AutoLockTimeInMinutes=@AutoLockTimeInMinutes,
-                                 @Theme=@Theme,
-                                 @MinimumPasswordStrength=@MinimumPasswordStrength,
-                                 @MasterPasswordStorageMode=@MasterPasswordStorageMode;";
+            // Migrated: EXEC PasswordSchema.spUserSettings_Update -> PG function
+            string updateSql = @"SELECT * FROM password_schema.sp_user_settings_update(
+                                 @UserId, @MasterPasswordTTLInMinutes,
+                                 @AutoLockTimeInMinutes, @Theme,
+                                 @MinimumPasswordStrength, @MasterPasswordStorageMode)";
 
             DynamicParameters parameters = new();
             parameters.Add("@UserId", userSettingsDTO.UserId);

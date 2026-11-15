@@ -10,7 +10,7 @@ import { MasterPasswordSaltSessionService } from './master-password-salt-session
 import { TCredentials } from '../../crypto/types/credentials.type';
 import { IPasswordEntryDto } from '../../password-entry/interfaces/passwordEntry';
 
-type TDecryptMasterPasswordProps = Omit<TCredentials, 'masterPasswordSalt'> & {
+type TDecryptMasterPasswordProps = Omit<TCredentials, 'masterPasswordSalt' | 'masterPasswordVerification' | 'masterPasswordVerificationIV'> & {
   recoveryKey: string;
 };
 
@@ -81,14 +81,22 @@ export class MasterPasswordRecoveryService {
   }
 
   async #createNewMasterPassword(newMasterPassword: string): Promise<void> {
-    const { recoveryKey, recoveryIV, encryptedMasterKeyWithRecovery, masterPasswordSalt } =
-      await this.#cryptoService.handleMasterPasswordCreation(newMasterPassword);
+    const {
+      recoveryKey,
+      recoveryIV,
+      encryptedMasterKeyWithRecovery,
+      masterPasswordSalt,
+      masterPasswordVerification,
+      masterPasswordVerificationIV,
+    } = await this.#cryptoService.handleMasterPasswordCreation(newMasterPassword);
 
     const response = await firstValueFrom(
       this.#masterPasswordHttpService.updateMasterPassword({
         recoveryIV,
         encryptedMasterKeyWithRecovery,
         masterPasswordSalt,
+        masterPasswordVerification,
+        masterPasswordVerificationIV,
       })
     );
 

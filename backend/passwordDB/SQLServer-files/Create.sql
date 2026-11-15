@@ -1,12 +1,12 @@
 IF NOT EXISTS (SELECT *
 FROM sys.databases
-WHERE name = 'PasswordDB')
+WHERE name = 'SecuraDB')
 BEGIN
-    CREATE DATABASE PasswordDB;
+    CREATE DATABASE SecuraDB;
 END
 GO
 
-USE PasswordDB;
+USE SecuraDB;
 GO
 SET QUOTED_IDENTIFIER ON;
 GO
@@ -28,10 +28,13 @@ BEGIN
     (
         Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
 
-        EncryptedMasterKeyWithRecovery VARBINARY (MAX) NOT NULL,
-        RecoveryIV VARBINARY (MAX) NOT NULL,
+        EncryptedMasterKeyWithRecovery VARBINARY (MAX),
+        RecoveryIV VARBINARY (MAX),
 
         MasterPasswordSalt VARBINARY (MAX) ,
+
+        MasterPasswordVerification VARBINARY (MAX),
+        MasterPasswordVerificationIV VARBINARY (MAX),
 
         Username NVARCHAR (50) NOT NULL UNIQUE,
         Email NVARCHAR (100) NOT NULL UNIQUE,

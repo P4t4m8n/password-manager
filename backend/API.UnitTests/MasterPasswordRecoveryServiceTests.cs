@@ -1,3 +1,4 @@
+using API.Dtos.Auth;
 using API.Dtos.User;
 using API.Exceptions;
 using API.Interfaces;
@@ -67,7 +68,7 @@ public sealed class MasterPasswordRecoveryServiceTests
 
         // Assert
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<MasterKeyRecoveryResponseDTO>(
-            It.Is<string>(sql => sql.Contains("spUser_Select_MasterPasswordRecoveryData")),
+            It.Is<string>(sql => sql.Contains("sp_user_select_master_password_recovery_data")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -231,7 +232,7 @@ public sealed class MasterPasswordRecoveryServiceTests
 
         // Assert
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<User>(
-            It.Is<string>(sql => sql.Contains("spUser_Update_MasterPasswordRecovery")),
+            It.Is<string>(sql => sql.Contains("sp_user_update_master_password_recovery")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -330,7 +331,9 @@ public sealed class MasterPasswordRecoveryServiceTests
                 sql.Contains("@UserId") &&
                 sql.Contains("@EncryptedMasterKeyWithRecovery") &&
                 sql.Contains("@RecoveryIV") &&
-                sql.Contains("@MasterPasswordSalt")),
+                sql.Contains("@MasterPasswordSalt") &&
+                sql.Contains("@MasterPasswordVerification") &&
+                sql.Contains("@MasterPasswordVerificationIV")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -345,7 +348,9 @@ public sealed class MasterPasswordRecoveryServiceTests
         {
             EncryptedMasterKeyWithRecovery = largeKey,
             RecoveryIV = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
-            MasterPasswordSalt = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 }
+            MasterPasswordSalt = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 },
+            MasterPasswordVerification = new byte[] { 30, 31, 32, 33 },
+            MasterPasswordVerificationIV = new byte[] { 34, 35, 36, 37 }
         };
 
         var returnedUser = CreateTestUser(_testUserGuid);
@@ -501,7 +506,9 @@ public sealed class MasterPasswordRecoveryServiceTests
         {
             EncryptedMasterKeyWithRecovery = maxByteArray,
             RecoveryIV = maxByteArray,
-            MasterPasswordSalt = maxByteArray
+            MasterPasswordSalt = maxByteArray,
+            MasterPasswordVerification = maxByteArray,
+            MasterPasswordVerificationIV = maxByteArray
         };
 
         var returnedUser = CreateTestUser(_testUserGuid);
@@ -549,6 +556,184 @@ public sealed class MasterPasswordRecoveryServiceTests
 
     #endregion
 
+    #region SetupMasterPasswordAsync Tests
+
+    [TestMethod]
+    public async Task SetupMasterPasswordAsync_WithValidData_ReturnsMasterPasswordSalt()
+    {
+        // Arrange
+        var setupDto = CreateTestSetupMasterPasswordDTO();
+        var expectedSalt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+
+        var returnedUser = CreateTestUser(_testUserGuid);
+        returnedUser.MasterPasswordSalt = expectedSalt;
+
+        _mockDataContext
+            .Setup(x => x.QuerySingleOrDefaultAsync<User>(
+                It.IsAny<string>(),
+                It.IsAny<DynamicParameters?>()))
+            .ReturnsAsync(returnedUser);
+
+        // Act
+        var result = await _masterPasswordRecoveryService.SetupMasterPasswordAsync(_testUserGuid, setupDto);
+
+        // Assert
+        Assert.IsNotNull(result);
+        CollectionAssert.AreEqual(expectedSalt, result);
+    }
+
+    [TestMethod]
+    public async Task SetupMasterPasswordAsync_CallsCorrectStoredProcedure()
+    {
+        // Arrange
+        var setupDto = CreateTestSetupMasterPasswordDTO();
+        var returnedUser = CreateTestUser(_testUserGuid);
+
+        _mockDataContext
+            .Setup(x => x.QuerySingleOrDefaultAsync<User>(
+                It.IsAny<string>(),
+                It.IsAny<DynamicParameters?>()))
+            .ReturnsAsync(returnedUser);
+
+        // Act
+        await _masterPasswordRecoveryService.SetupMasterPasswordAsync(_testUserGuid, setupDto);
+
+        // Assert
+        _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<User>(
+            It.Is<string>(sql => sql.Contains("sp_user_setup_master_password")),
+            It.IsAny<DynamicParameters?>()), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task SetupMasterPasswordAsync_PassesAllParametersToStoredProcedure()
+    {
+        // Arrange
+        var setupDto = CreateTestSetupMasterPasswordDTO();
+        var returnedUser = CreateTestUser(_testUserGuid);
+
+        _mockDataContext
+            .Setup(x => x.QuerySingleOrDefaultAsync<User>(
+                It.IsAny<string>(),
+                It.IsAny<DynamicParameters?>()))
+            .ReturnsAsync(returnedUser);
+
+        // Act
+        await _masterPasswordRecoveryService.SetupMasterPasswordAsync(_testUserGuid, setupDto);
+
+        // Assert
+        _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<User>(
+            It.Is<string>(sql =>
+                sql.Contains("@UserId") &&
+                sql.Contains("@MasterPasswordSalt") &&
+                sql.Contains("@EncryptedMasterKeyWithRecovery") &&
+                sql.Contains("@RecoveryIV") &&
+                sql.Contains("@MasterPasswordVerification") &&
+                sql.Contains("@MasterPasswordVerificationIV")),
+            It.IsAny<DynamicParameters?>()), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task SetupMasterPasswordAsync_WhenUserNotFound_ThrowsNotFoundException()
+    {
+        // Arrange
+        var setupDto = CreateTestSetupMasterPasswordDTO();
+
+        _mockDataContext
+            .Setup(x => x.QuerySingleOrDefaultAsync<User>(
+                It.IsAny<string>(),
+                It.IsAny<DynamicParameters?>()))
+            .ReturnsAsync((User?)null);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsExceptionAsync<NotFoundException>(
+            () => _masterPasswordRecoveryService.SetupMasterPasswordAsync(_testUserGuid, setupDto));
+
+        Assert.AreEqual("User not found.", exception.Message);
+    }
+
+    [TestMethod]
+    public async Task SetupMasterPasswordAsync_WhenSaltIsNull_ThrowsUnexpectedCaughtException()
+    {
+        // Arrange
+        var setupDto = CreateTestSetupMasterPasswordDTO();
+        var returnedUser = new User
+        {
+            Id = _testUserGuid,
+            MasterPasswordSalt = null,
+            EncryptedMasterKeyWithRecovery = new byte[] { 1, 2, 3 },
+            RecoveryIV = new byte[] { 4, 5, 6 }
+        };
+
+        _mockDataContext
+            .Setup(x => x.QuerySingleOrDefaultAsync<User>(
+                It.IsAny<string>(),
+                It.IsAny<DynamicParameters?>()))
+            .ReturnsAsync(returnedUser);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsExceptionAsync<UnexpectedCaughtException>(
+            () => _masterPasswordRecoveryService.SetupMasterPasswordAsync(_testUserGuid, setupDto));
+
+        Assert.AreEqual("Failed to set up master password.", exception.Message);
+        Assert.IsNotNull(exception.Errors);
+        CollectionAssert.Contains(exception.Errors.Keys, "MasterPassword");
+    }
+
+    [TestMethod]
+    public async Task SetupMasterPasswordAsync_WhenSaltIsEmpty_ThrowsUnexpectedCaughtException()
+    {
+        // Arrange
+        var setupDto = CreateTestSetupMasterPasswordDTO();
+        var returnedUser = new User
+        {
+            Id = _testUserGuid,
+            MasterPasswordSalt = Array.Empty<byte>(),
+            EncryptedMasterKeyWithRecovery = new byte[] { 1, 2, 3 },
+            RecoveryIV = new byte[] { 4, 5, 6 }
+        };
+
+        _mockDataContext
+            .Setup(x => x.QuerySingleOrDefaultAsync<User>(
+                It.IsAny<string>(),
+                It.IsAny<DynamicParameters?>()))
+            .ReturnsAsync(returnedUser);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsExceptionAsync<UnexpectedCaughtException>(
+            () => _masterPasswordRecoveryService.SetupMasterPasswordAsync(_testUserGuid, setupDto));
+
+        Assert.AreEqual("Failed to set up master password.", exception.Message);
+    }
+
+    [TestMethod]
+    public async Task SetupMasterPasswordAsync_VerifiesErrorDetails()
+    {
+        // Arrange
+        var setupDto = CreateTestSetupMasterPasswordDTO();
+        var returnedUser = new User
+        {
+            Id = _testUserGuid,
+            MasterPasswordSalt = Array.Empty<byte>(),
+            EncryptedMasterKeyWithRecovery = new byte[] { 1, 2, 3 },
+            RecoveryIV = new byte[] { 4, 5, 6 }
+        };
+
+        _mockDataContext
+            .Setup(x => x.QuerySingleOrDefaultAsync<User>(
+                It.IsAny<string>(),
+                It.IsAny<DynamicParameters?>()))
+            .ReturnsAsync(returnedUser);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsExceptionAsync<UnexpectedCaughtException>(
+            () => _masterPasswordRecoveryService.SetupMasterPasswordAsync(_testUserGuid, setupDto));
+
+        Assert.IsNotNull(exception.Errors);
+        Assert.AreEqual("The master password salt is null or empty after setup.", exception.Errors["MasterPassword"]);
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private static MasterKeyRecoveryResponseDTO CreateTestRecoveryResponseDTO()
@@ -566,7 +751,9 @@ public sealed class MasterPasswordRecoveryServiceTests
         {
             EncryptedMasterKeyWithRecovery = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
             RecoveryIV = new byte[] { 9, 10, 11, 12, 13, 14, 15, 16 },
-            MasterPasswordSalt = new byte[] { 17, 18, 19, 20, 21, 22, 23, 24 }
+            MasterPasswordSalt = new byte[] { 17, 18, 19, 20, 21, 22, 23, 24 },
+            MasterPasswordVerification = new byte[] { 25, 26, 27, 28 },
+            MasterPasswordVerificationIV = new byte[] { 29, 30, 31, 32 }
         };
     }
 
@@ -580,8 +767,22 @@ public sealed class MasterPasswordRecoveryServiceTests
             MasterPasswordSalt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
             EncryptedMasterKeyWithRecovery = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 },
             RecoveryIV = new byte[] { 30, 31, 32, 33, 34, 35, 36, 37 },
+            MasterPasswordVerification = new byte[] { 40, 41, 42, 43 },
+            MasterPasswordVerificationIV = new byte[] { 50, 51, 52, 53 },
             CreatedAt = DateTime.UtcNow.AddDays(-30),
             UpdatedAt = DateTime.UtcNow
+        };
+    }
+
+    private static SetupMasterPasswordDTO CreateTestSetupMasterPasswordDTO()
+    {
+        return new SetupMasterPasswordDTO
+        {
+            MasterPasswordSalt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
+            EncryptedMasterKeyWithRecovery = new byte[] { 10, 11, 12, 13, 14, 15, 16, 17 },
+            RecoveryIV = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 },
+            MasterPasswordVerification = new byte[] { 30, 31, 32, 33 },
+            MasterPasswordVerificationIV = new byte[] { 34, 35, 36, 37 }
         };
     }
 

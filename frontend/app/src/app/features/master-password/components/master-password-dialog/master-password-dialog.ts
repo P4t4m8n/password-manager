@@ -19,15 +19,19 @@ export class MasterPasswordDialog extends AbstractDialog<string | null> {
 
   form = inject(FormBuilder).group({
     masterPassword: ['', Validators.required],
+    confirmMasterPassword: [''],
   });
 
   #router = inject(Router);
 
   get title(): string {
+    if (this.mode === 'setup') return 'Set Up Master Password';
     return this.mode === 'unlock' ? 'Enter Master Password' : 'Set Master Password';
   }
 
   get description(): string {
+    if (this.mode === 'setup')
+      return 'Create a master password to encrypt your data. This cannot be recovered without a recovery key.';
     return this.mode === 'unlock'
       ? 'Your session has expired. Please re-enter your master password.'
       : 'Create a new master password to secure your data.';
@@ -41,6 +45,25 @@ export class MasterPasswordDialog extends AbstractDialog<string | null> {
     return this.mode === 'unlock';
   }
 
+  get showConfirmField(): boolean {
+    return this.mode === 'setup';
+  }
+
+  get isDismissable(): boolean {
+    return this.mode !== 'setup';
+  }
+
+  get passwordMismatch(): boolean {
+    const { masterPassword, confirmMasterPassword } = this.form.value;
+    return this.showConfirmField && !!confirmMasterPassword && masterPassword !== confirmMasterPassword;
+  }
+
+  override cancel(): void {
+    if (this.isDismissable) {
+      super.cancel();
+    }
+  }
+
   navigateToRecovery(): void {
     this.cancel();
     this.#router.navigate(['/recovery']);
@@ -48,8 +71,13 @@ export class MasterPasswordDialog extends AbstractDialog<string | null> {
   }
 
   override submit(): void {
-    if (this.form.valid) {
-      this.resolve(this.form.value.masterPassword!);
+    if (!this.form.valid) return;
+
+    if (this.showConfirmField) {
+      const { masterPassword, confirmMasterPassword } = this.form.value;
+      if (masterPassword !== confirmMasterPassword) return;
     }
+
+    this.resolve(this.form.value.masterPassword!);
   }
 }

@@ -1,4 +1,4 @@
-USE PasswordDB;
+USE SecuraDB;
 
 GO
 

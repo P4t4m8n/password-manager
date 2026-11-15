@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, tap } from 'rxjs';
+import { catchError, firstValueFrom, map, tap } from 'rxjs';
 
 import { AbstractHttpService } from '../../../core/abstracts/http-service.abstract';
 import { MasterPasswordSaltSessionService } from './master-password-salt-session-service';
@@ -8,6 +8,7 @@ import type { IHttpResponseDto } from '../../../core/interfaces/http-response-dt
 import type { IMasterKeyRecoveryEditDTO } from '../../user/interfaces/user-dto';
 import type { Observable } from 'rxjs';
 import type { IMasterPasswordRecoveryResponseDTO } from '../interfaces/master-password-recovery-response-dto';
+import type { TCredentials } from '../../crypto/types/credentials.type';
 
 @Injectable({
   providedIn: 'root',
@@ -46,5 +47,20 @@ export class MasterPasswordHttpService extends AbstractHttpService<IMasterPasswo
         }),
         catchError((err) => this.handleError(err, { showToast: false }))
       );
+  }
+
+  public async setupMasterPassword(dto: TCredentials): Promise<void> {
+    const res = await firstValueFrom(
+      this.httpClient
+        .post<IHttpResponseDto<string>>(`${this.ENDPOINT}/setup`, dto, this.httpConfig)
+        .pipe(
+          tap((res) => {
+            if (res.data) {
+              this.#masterPasswordSaltSessionService.masterPasswordSalt = res.data;
+            }
+          }),
+          catchError((err) => this.handleError(err, { showToast: true }))
+        )
+    );
   }
 }

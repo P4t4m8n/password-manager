@@ -3,7 +3,8 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+# Clean install to ensure platform-specific optional deps (like @rollup/rollup-linux-x64-musl) are present
+RUN npm ci
 
 COPY . .
 

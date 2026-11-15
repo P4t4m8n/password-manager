@@ -16,7 +16,7 @@ import { UserSettingsStateService } from '../../services/user-settings-state-ser
 import { Header } from '../../../../core/layout/header/header';
 import { SubmitButton } from '../../../../core/components/submit-button/submit-button';
 
-import { STORGE_MODES, THEMES } from '../../const/user-settings.const';
+import { STORAGE_MODES, THEMES } from '../../const/user-settings.const';
 import { PASSWORD_STRENGTH_LEVELS } from '../../../crypto/const/password.const';
 
 import { toastTypes } from '../../../../core/toast/enum/toast-type.enum';
@@ -61,7 +61,7 @@ export class SettingsIndex {
       'Remember me - Master password will be stored across sessions - not secure and not recommended',
   };
 
-  readonly MASTER_PASSWORD_STORAGE_MODES = STORGE_MODES;
+  readonly MASTER_PASSWORD_STORAGE_MODES = STORAGE_MODES;
   readonly THEMES = THEMES;
   readonly PASSWORD_STRENGTH_LEVELS = PASSWORD_STRENGTH_LEVELS;
 
@@ -69,7 +69,7 @@ export class SettingsIndex {
     {
       labelText: 'Master Password Storage Mode',
       formControlName: 'masterPasswordStorageMode',
-      options: STORGE_MODES,
+      options: STORAGE_MODES,
     },
     {
       labelText: 'Theme',
@@ -127,7 +127,6 @@ export class SettingsIndex {
     this.#userSettingsHttpService.save(dto).subscribe({
       next: ({ data }) => {
         const newMode = data.masterPasswordStorageMode;
-        debugger;
 
         this.#userSettingsStateService.updateState(data);
         this.#patchFormValues(data);

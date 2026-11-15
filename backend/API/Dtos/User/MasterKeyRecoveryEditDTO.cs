@@ -10,5 +10,9 @@ namespace API.Dtos.User
         public byte[]? RecoveryIV { get; set; }
         [Required(ErrorMessage = "Master password salt is required")]
         public byte[]? MasterPasswordSalt { get; set; }
+        [Required(ErrorMessage = "Master password verification is required")]
+        public byte[]? MasterPasswordVerification { get; set; }
+        [Required(ErrorMessage = "Master password verification IV is required")]
+        public byte[]? MasterPasswordVerificationIV { get; set; }
     }
 }

@@ -94,10 +94,7 @@ public class AuthControllerTests : IntegrationTestBase
             Email = "newuser@example.com",
             Password = "SecurePassword123!",
             ConfirmPassword = "SecurePassword123!",
-            Username = "newuser",
-            MasterPasswordSalt = new byte[] { 1, 2, 3, 4 },
-            EncryptedMasterKeyWithRecovery = new byte[] { 5, 6, 7, 8 },
-            RecoveryIV = new byte[] { 9, 10, 11, 12 }
+            Username = "newuser"
         };
 
         var expectedResponse = CreateTestAuthResponse();
@@ -128,10 +125,7 @@ public class AuthControllerTests : IntegrationTestBase
             Email = "existing@example.com",
             Password = "SecurePassword123!",
             ConfirmPassword = "SecurePassword123!",
-            Username = "existinguser",
-            MasterPasswordSalt = new byte[] { 1, 2, 3, 4 },
-            EncryptedMasterKeyWithRecovery = new byte[] { 5, 6, 7, 8 },
-            RecoveryIV = new byte[] { 9, 10, 11, 12 }
+            Username = "existinguser"
         };
 
         Factory.MockAuthService
@@ -253,7 +247,9 @@ public class AuthControllerTests : IntegrationTestBase
                     MasterPasswordStorageMode = StorageModeEnum.session
                 }
             },
-            MasterPasswordSalt = [1, 2, 3, 4, 5, 6, 7, 8]
+            MasterPasswordSalt = null,
+            MasterPasswordVerification = null,
+            MasterPasswordVerificationIV = null
         };
     }
 

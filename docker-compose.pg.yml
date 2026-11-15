@@ -1,0 +1,53 @@
+# docker-compose for PostgreSQL (migrated from SQL Server)
+# 
+# Changes from the original:
+#   - db: postgres:17 instead of mssql/server, port 5432 instead of 1433
+#   - backend: Connection string uses Npgsql format instead of SqlClient
+#   - POSTGRES_DB auto-creates the database on first run (no entrypoint.sh needed)
+#
+# Usage:
+#   1. Copy this over docker-compose.yml (or rename)
+#   2. Create a .env file with: POSTGRES_PASSWORD=YourPassword, TOKEN_KEY=..., PASSWORD_KEY=...
+#   3. docker compose up --build
+
+services:
+  db:
+    build:
+      context: ./backend/passwordDB
+      dockerfile: Dockerfile.pg
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "SecuraDB"  # Auto-created by postgres image on first run
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend/API
+    ports:
+      - "5222:5222"
+    environment:
+      # Npgsql connection string format (was SqlClient format for SQL Server)
+      - DefaultConnection=Host=db;Port=5432;Database=SecuraDB;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - Crypto__TokenKey=${TOKEN_KEY}
+      - Crypto__PasswordKey=${PASSWORD_KEY}
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./backend/API:/app
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend/app
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend/app:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  pg_data:  # Was mssql_data

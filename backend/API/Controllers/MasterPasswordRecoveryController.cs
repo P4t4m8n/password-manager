@@ -54,5 +54,22 @@ namespace API.Controllers
 
             return StatusCode(httpResponse.StatusCode, httpResponse);
         }
+
+        [HttpPost("setup")]
+        public async Task<ActionResult<HttpResponseDTO<byte[]>>> SetupMasterPassword(SetupMasterPasswordDTO setupDto)
+        {
+            Guid userGuid = User.GetUserId();
+
+            byte[] masterPasswordSalt = await _masterPasswordRecoveryService.SetupMasterPasswordAsync(userGuid, setupDto);
+
+            HttpResponseDTO<byte[]> httpResponse = new()
+            {
+                Data = masterPasswordSalt,
+                Message = "Master password setup completed successfully.",
+                StatusCode = 201
+            };
+
+            return StatusCode(httpResponse.StatusCode, httpResponse);
+        }
     }
 }

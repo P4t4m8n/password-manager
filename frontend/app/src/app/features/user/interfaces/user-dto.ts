@@ -5,6 +5,8 @@ export interface IMasterKeyRecoveryEditDTO {
   encryptedMasterKeyWithRecovery?: string;
   recoveryIV?: string;
   masterPasswordSalt?: string;
+  masterPasswordVerification?: string;
+  masterPasswordVerificationIV?: string;
 }
 
 export interface IUserDTO extends IEntity {

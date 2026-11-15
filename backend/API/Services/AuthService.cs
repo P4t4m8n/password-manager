@@ -17,7 +17,6 @@ namespace API.Services
             _contextDapper = contextDapper;
             _cryptoService = cryptoService;
         }
-
         public async Task<AuthResponseDTO> SignInAsync(AuthSignInDTO signInDto, HttpResponse response)
         {
 
@@ -74,7 +73,8 @@ namespace API.Services
             {
                 throw new UnauthorizedException("Invalid email or password");
             }
-            string sqlForHash = "EXEC PasswordSchema.spFor_Hash @Email=@Email";
+            // Migrated: EXEC PasswordSchema.spFor_Hash -> SELECT * FROM PG function
+            string sqlForHash = "SELECT * FROM password_schema.sp_for_hash(@Email)";
 
             parameters.Add("@Email", signInDto.Email);
 
@@ -108,7 +108,8 @@ namespace API.Services
             DynamicParameters parameters = new();
             parameters.Add("@Email", email);
             parameters.Add("@Id", id);
-            string userSelectSql = "EXEC PasswordSchema.spUser_GetOne @Email=@Email ,@Id=@Id";
+            // Migrated: EXEC PasswordSchema.spUser_GetOne -> SELECT * FROM PG function
+            string userSelectSql = "SELECT * FROM password_schema.sp_user_get_one(@Email, @Id)";
 
             UserWithSettings? user = await _contextDapper.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(userSelectSql,
             (user, settings) =>
@@ -122,6 +123,8 @@ namespace API.Services
                       PasswordSalt = user.PasswordSalt,
                       GoogleId = user.GoogleId,
                       MasterPasswordSalt = user.MasterPasswordSalt,
+                      MasterPasswordVerification = user.MasterPasswordVerification,
+                      MasterPasswordVerificationIV = user.MasterPasswordVerificationIV,
                       EncryptedMasterKeyWithRecovery = user.EncryptedMasterKeyWithRecovery,
                       RecoveryIV = user.RecoveryIV,
                       CreatedAt = user.CreatedAt,
@@ -145,7 +148,7 @@ namespace API.Services
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                
+
                 Expires = DateTimeOffset.UtcNow.AddDays(1)
             });
 
@@ -163,7 +166,8 @@ namespace API.Services
             }
 
             DynamicParameters parameters = new();
-            string selectExistingUserSql = "EXEC PasswordSchema.spFor_Existing @Email=@Email";
+            // Migrated: EXEC PasswordSchema.spFor_Existing -> SELECT * FROM PG function
+            string selectExistingUserSql = "SELECT * FROM password_schema.sp_for_existing(@Email)";
             parameters.Add("@Email", email);
 
             IEnumerable<string> existingUser = await _contextDapper.LoadData<string>(selectExistingUserSql, parameters);
@@ -174,66 +178,60 @@ namespace API.Services
         }
         private async Task<UserWithSettings> CreateUserAsync(AuthSignUpDTO signUpDto)
         {
+
+
+            DynamicParameters parameters = new();
+            if (string.IsNullOrEmpty(signUpDto.Password) || string.IsNullOrEmpty(signUpDto.Email))
+            {
+                throw new UnexpectedCaughtException("Password or email is null during user creation",
+                    new Dictionary<string, string> { { "Auth", "Invalid signup payload" } });
+            }
+            byte[] PasswordSalt = _cryptoService.GenerateSalt();
+
+            byte[] passwordHash = _cryptoService.GetPasswordHash(signUpDto.Password, PasswordSalt);
+
+            // Migrated: EXEC PasswordSchema.spUser_Create -> SELECT * FROM PG function
+            string sqlInsertAuth = @"SELECT * FROM password_schema.sp_user_create(
+                                      @Email, @Username, @PasswordHash, @PasswordSalt)";
+
+            parameters.Add(@"Username", signUpDto.Username);
+            parameters.Add(@"PasswordHash", passwordHash);
+            parameters.Add(@"PasswordSalt", PasswordSalt);
+            parameters.Add(@"Email", signUpDto.Email);
+
+            UserWithSettings? user = await _contextDapper.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(sqlInsertAuth,
+                      (user, settings) =>
+                        {
+                            UserWithSettings userWithSettings = new()
+                            {
+                                Id = user.Id,
+                                Username = user.Username,
+                                Email = user.Email,
+                                PasswordHash = user.PasswordHash,
+                                PasswordSalt = user.PasswordSalt,
+                                GoogleId = user.GoogleId,
+                                MasterPasswordSalt = user.MasterPasswordSalt,
+                                MasterPasswordVerification = user.MasterPasswordVerification,
+                                MasterPasswordVerificationIV = user.MasterPasswordVerificationIV,
+                                EncryptedMasterKeyWithRecovery = user.EncryptedMasterKeyWithRecovery,
+                                RecoveryIV = user.RecoveryIV,
+                                CreatedAt = user.CreatedAt,
+                                UpdatedAt = user.UpdatedAt,
+                                Settings = settings
+                            };
+                            return userWithSettings;
+                        },
+                         parameters,
+                                 splitOn: "MasterPasswordTTLInMinutes"
+                            );
+            if (user == null || user.Id == Guid.Empty)
             {
 
-                DynamicParameters parameters = new();
-                if (string.IsNullOrEmpty(signUpDto.Password) || string.IsNullOrEmpty(signUpDto.Email))
-                {
-                    throw new UnexpectedCaughtException("Password or email is null during user creation",
-                        new Dictionary<string, string> { { "Auth", "Invalid signup payload" } });
-                }
-                byte[] PasswordSalt = _cryptoService.GenerateSalt();
-
-                byte[] passwordHash = _cryptoService.GetPasswordHash(signUpDto.Password, PasswordSalt);
-
-                string sqlInsertAuth = @"EXEC PasswordSchema.spUser_Create 
-                                      @Email=@Email, 
-                                      @Username=@Username,
-                                      @PasswordHash=@PasswordHash, 
-                                      @PasswordSalt=@PasswordSalt, 
-                                      @MasterPasswordSalt=@MasterPasswordSalt,
-                                      @EncryptedMasterKeyWithRecovery=@EncryptedMasterKeyWithRecovery,
-                                      @RecoveryIV=@RecoveryIV";
-
-                parameters.Add(@"Username", signUpDto.Username);
-                parameters.Add(@"PasswordHash", passwordHash);
-                parameters.Add(@"PasswordSalt", PasswordSalt);
-                parameters.Add(@"MasterPasswordSalt", signUpDto.MasterPasswordSalt);
-                parameters.Add(@"EncryptedMasterKeyWithRecovery", signUpDto.EncryptedMasterKeyWithRecovery);
-                parameters.Add(@"RecoveryIV", signUpDto.RecoveryIV);
-                parameters.Add(@"Email", signUpDto.Email);
-
-                UserWithSettings? user = await _contextDapper.QueryAsyncTwoSplit<User, UserSettings, UserWithSettings>(sqlInsertAuth,
-                          (user, settings) =>
-                            {
-                                UserWithSettings userWithSettings = new()
-                                {
-                                    Id = user.Id,
-                                    Username = user.Username,
-                                    Email = user.Email,
-                                    PasswordHash = user.PasswordHash,
-                                    PasswordSalt = user.PasswordSalt,
-                                    GoogleId = user.GoogleId,
-                                    MasterPasswordSalt = user.MasterPasswordSalt,
-                                    EncryptedMasterKeyWithRecovery = user.EncryptedMasterKeyWithRecovery,
-                                    RecoveryIV = user.RecoveryIV,
-                                    CreatedAt = user.CreatedAt,
-                                    UpdatedAt = user.UpdatedAt,
-                                    Settings = settings
-                                };
-                                return userWithSettings;
-                            },
-                             parameters,
-                                     splitOn: "MasterPasswordTTLInMinutes"
-                                );
-                if (user == null || user.Id == Guid.Empty)
-                {
-
-                    throw new UserCreationFailedException();
-                }
-
-                return user;
+                throw new UserCreationFailedException();
             }
+
+            return user;
+
         }
 
         private static AuthResponseDTO CreateAuthResponse(UserWithSettings user)
@@ -257,7 +255,9 @@ namespace API.Services
                         UpdatedAt = user.Settings.UpdatedAt
                     }
                 },
-                MasterPasswordSalt = user.MasterPasswordSalt
+                MasterPasswordSalt = user.MasterPasswordSalt,
+                MasterPasswordVerification = user.MasterPasswordVerification,
+                MasterPasswordVerificationIV = user.MasterPasswordVerificationIV
             };
 
         }

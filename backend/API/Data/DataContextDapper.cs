@@ -1,6 +1,6 @@
 using System.Data;
 using Dapper;
-using Microsoft.Data.SqlClient;
+using Npgsql;  // Migrated from Microsoft.Data.SqlClient (SQL Server -> PostgreSQL)
 using API.Interfaces;
 
 namespace API.Data
@@ -20,20 +20,20 @@ namespace API.Data
 
         public async Task<IEnumerable<T>> LoadData<T>(string sql, DynamicParameters? parameters)
         {
-            using IDbConnection dbConnection = new SqlConnection(_connectionString);
+            using IDbConnection dbConnection = new NpgsqlConnection(_connectionString);  // Was SqlConnection
             return await dbConnection.QueryAsync<T>(sql, parameters);
         }
 
 
         public async Task<T?> QuerySingleOrDefaultAsync<T>(string sql, DynamicParameters? parameters)
         {
-            using IDbConnection dbConnection = new SqlConnection(_connectionString);
+            using IDbConnection dbConnection = new NpgsqlConnection(_connectionString);  // Was SqlConnection
             return await dbConnection.QuerySingleOrDefaultAsync<T>(sql, parameters);
         }
 
         public async Task<int> ExecuteSql(string sql, DynamicParameters? parameters)
         {
-            using IDbConnection dbConnection = new SqlConnection(_connectionString);
+            using IDbConnection dbConnection = new NpgsqlConnection(_connectionString);  // Was SqlConnection
             return await dbConnection.ExecuteAsync(sql, parameters);
         }
 
@@ -44,7 +44,7 @@ namespace API.Data
             DynamicParameters? parameters,
             string splitOn)
         {
-            using IDbConnection dbConnection = new SqlConnection(_connectionString);
+            using IDbConnection dbConnection = new NpgsqlConnection(_connectionString);  // Was SqlConnection
             IEnumerable<TReturn>? result = await dbConnection.QueryAsync(sql, map, parameters, splitOn: splitOn);
             return result.FirstOrDefault();
         }

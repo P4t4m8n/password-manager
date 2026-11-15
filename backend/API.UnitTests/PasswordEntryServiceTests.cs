@@ -51,7 +51,7 @@ public sealed class PasswordEntryServiceTests
         Assert.IsNotNull(result);
         Assert.AreEqual(2, result.Count());
         _mockDataContext.Verify(x => x.LoadData<PasswordEntryDTO>(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Select_Many")),
+            It.Is<string>(sql => sql.Contains("sp_password_entry_select_many")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -78,7 +78,7 @@ public sealed class PasswordEntryServiceTests
 
         // Assert
         _mockDataContext.Verify(x => x.LoadData<PasswordEntryDTO>(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Select_Many")),
+            It.Is<string>(sql => sql.Contains("sp_password_entry_select_many")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -179,7 +179,7 @@ public sealed class PasswordEntryServiceTests
         Assert.IsNotNull(result);
         Assert.AreEqual(_testEntryGuid, result.Id);
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<PasswordEntryDTO>(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Select_ById")),
+            It.Is<string>(sql => sql.Contains("sp_password_entry_select_by_id")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -286,7 +286,7 @@ public sealed class PasswordEntryServiceTests
         Assert.AreEqual(createDto.EntryName, result.EntryName);
         Assert.AreEqual(createDto.WebsiteUrl, result.WebsiteUrl);
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<PasswordEntryDTO>(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Insert")),
+            It.Is<string>(sql => sql.Contains("sp_password_entry_insert")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -400,7 +400,7 @@ public sealed class PasswordEntryServiceTests
         Assert.AreEqual(updateDto.EntryName, result.EntryName);
         Assert.AreEqual(updateDto.IsLiked, result.IsLiked);
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<PasswordEntryDTO>(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Update")),
+            It.Is<string>(sql => sql.Contains("sp_password_entry_update")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -504,7 +504,7 @@ public sealed class PasswordEntryServiceTests
 
         // Assert
         _mockDataContext.Verify(x => x.ExecuteSql(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Delete")),
+            It.Is<string>(sql => sql.Contains("sp_password_entry_delete")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -576,7 +576,7 @@ public sealed class PasswordEntryServiceTests
         // Assert
         Assert.AreEqual(3, result);
         _mockDataContext.Verify(x => x.ExecuteSql(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Update_AfterRecovery")),
+            It.Is<string>(sql => sql.Contains("sp_password_entry_update_after_recovery")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -645,7 +645,7 @@ public sealed class PasswordEntryServiceTests
 
         // Assert
         _mockDataContext.Verify(x => x.ExecuteSql(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Update_AfterRecovery")),
+            It.Is<string>(sql => sql.Contains("sp_password_entry_update_after_recovery")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -691,7 +691,7 @@ public sealed class PasswordEntryServiceTests
         // Assert
         Assert.IsTrue(result);
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<bool>(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Like")),
+            It.Is<string>(sql => sql.Contains("sp_password_entry_like")),
             It.IsAny<DynamicParameters?>()), Times.Once);
     }
 
@@ -727,7 +727,7 @@ public sealed class PasswordEntryServiceTests
 
         // Assert
         _mockDataContext.Verify(x => x.QuerySingleOrDefaultAsync<bool>(
-            It.Is<string>(sql => sql.Contains("spPasswordEntry_Like") &&
+            It.Is<string>(sql => sql.Contains("sp_password_entry_like") &&
                                   sql.Contains("@UserId") &&
                                   sql.Contains("@EntryId")),
             It.IsAny<DynamicParameters?>()), Times.Once);
