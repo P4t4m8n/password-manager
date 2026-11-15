@@ -53,7 +53,7 @@ builder.Services.AddCors((options) =>
             });
         options.AddPolicy("ProdCors", (corsBuilder) =>
             {
-                corsBuilder.WithOrigins("https://gentle-dune-02bea5410.2.azurestaticapps.net")
+                corsBuilder.WithOrigins("https://password-manager-five-sepia.vercel.app")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials();
