@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://secure-api-bbhafbe0a2fsexe4.israelcentral-01.azurewebsites.net/api',
+  apiUrl: 'https://password-manager-cf86.onrender.com/api',
   pbkdf2Iterations: 100000,
   enableErrorLogging: false,
 };
